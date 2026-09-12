@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код</title>
+<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v15</title>
 <style>
   :root{
     --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
@@ -50,12 +50,20 @@
   .side{border-left:1px solid var(--border);background:var(--panel);padding:14px 16px 30px;position:sticky;top:120px;align-self:start;max-height:calc(100vh - 120px);overflow:auto;}
   @media (max-width:1100px){.side{position:static;max-height:none;border-left:none;border-top:1px solid var(--border);}}
 
-  .player{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#f0f4fa;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+  .player{display:flex;flex-direction:column;gap:10px;background:#f0f4fa;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+  .player-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .player .step-meta{flex:1 1 220px;min-width:180px;}
   .player .step-title{font-weight:600;font-size:13px;}
   .player .step-note{color:var(--muted);font-size:11px;margin-top:2px;line-height:1.4;}
   .progress{height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:8px;}
   .progress > i{display:block;height:100%;background:var(--accent);width:0%;transition:width .25s ease;}
+  .scenario-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .scenario-head strong{font-size:12px;}
+  .scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;}
+  .scenario-grid button{text-align:left;padding:7px 9px;font-size:11.5px;line-height:1.35;border-radius:7px;}
+  .scenario-grid button.active{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  .scenario-grid button .sid{display:block;font-size:10px;opacity:.75;font-family:Consolas,monospace;margin-bottom:1px;}
+  #scenarioSelect{min-width:280px;max-width:min(520px,90vw);}
 
   .view-panel[hidden]{display:none !important;}
 
@@ -142,8 +150,8 @@
       <button data-view="process" class="active">Процесс заявки</button>
       <button data-view="zones">Складские зоны</button>
     </div>
-    <label class="badge">Сценарий
-      <select id="scenarioSelect" style="margin-left:6px"></select>
+    <label class="badge">Сценарий (все 15)
+      <select id="scenarioSelect" style="margin-left:6px" size="1"></select>
     </label>
     <button id="btnPrev" title="Предыдущий шаг">◀</button>
     <button id="btnPlay" class="primary">▶ Плей</button>
@@ -170,10 +178,17 @@
 <div class="layout">
   <div class="main">
     <div class="player" id="playerBar">
-      <div class="step-meta">
-        <div class="step-title" id="playerTitle">Выберите сценарий и нажмите «Плей» или кликните узел</div>
-        <div class="step-note" id="playerNote">Плеер подсвечивает путь заявки по блок-схеме и синхронизирует панель справа.</div>
-        <div class="progress"><i id="playerProgress"></i></div>
+      <div class="scenario-head">
+        <strong>Сценарии плеера — <span id="scenarioCount">0</span></strong>
+        <span class="badge">выберите карточку ниже (не только выпадающий список)</span>
+      </div>
+      <div class="scenario-grid" id="scenarioGrid"></div>
+      <div class="player-top">
+        <div class="step-meta">
+          <div class="step-title" id="playerTitle">Выберите сценарий и нажмите «Плей» или кликните узел</div>
+          <div class="step-note" id="playerNote">Плеер подсвечивает путь заявки по блок-схеме и синхронизирует панель справа.</div>
+          <div class="progress"><i id="playerProgress"></i></div>
+        </div>
       </div>
     </div>
 
@@ -537,6 +552,8 @@
   var elSideEmpty = document.getElementById('sideEmpty');
   var elSideContent = document.getElementById('sideContent');
   var elScenario = document.getElementById('scenarioSelect');
+  var elScenarioGrid = document.getElementById('scenarioGrid');
+  var elScenarioCount = document.getElementById('scenarioCount');
   var elRoleFilter = document.getElementById('roleFilter');
   var elPlayerTitle = document.getElementById('playerTitle');
   var elPlayerNote = document.getElementById('playerNote');
@@ -569,12 +586,40 @@
       o.value = r.id; o.textContent = r.title.replace(/\n/g,' ');
       elRoleFilter.appendChild(o);
     });
-    SCENARIOS.forEach(function(s){
+    elScenario.innerHTML = '';
+    elScenarioGrid.innerHTML = '';
+    elScenarioCount.textContent = String(SCENARIOS.length);
+    SCENARIOS.forEach(function(s, idx){
       var o = document.createElement('option');
-      o.value = s.id; o.textContent = s.title;
+      o.value = s.id;
+      o.textContent = (idx+1) + '. ' + s.title + ' (' + s.steps.length + ' шагов)';
       elScenario.appendChild(o);
+
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.scenario = s.id;
+      b.innerHTML = '<span class="sid">'+(idx+1)+' / '+s.id+' · '+s.steps.length+' шагов</span>'+escapeHtml(s.title);
+      if (s.id === state.scenarioId) b.classList.add('active');
+      b.addEventListener('click', function(){ pickScenario(s.id); });
+      elScenarioGrid.appendChild(b);
     });
     elScenario.value = state.scenarioId;
+  }
+
+  function pickScenario(id){
+    if (!SCENARIOS.some(function(s){return s.id===id;})) return;
+    stopPlay(true);
+    state.scenarioId = id;
+    elScenario.value = id;
+    syncScenarioButtons();
+    updatePlayerUI();
+    renderLanes();
+  }
+
+  function syncScenarioButtons(){
+    elScenarioGrid.querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('active', b.dataset.scenario === state.scenarioId);
+    });
   }
 
   function currentScenario(){
@@ -816,6 +861,8 @@
     if (sc && SCENARIOS.some(function(s){return s.id===sc;})) {
       state.scenarioId = sc;
       elScenario.value = sc;
+      syncScenarioButtons();
+      updatePlayerUI();
     }
     if (node && byId[node]) selectNode(node, true);
   }
@@ -835,10 +882,7 @@
     state.roleFilter = elRoleFilter.value; applyChrome();
   });
   elScenario.addEventListener('change', function(){
-    stopPlay(true);
-    state.scenarioId = elScenario.value;
-    updatePlayerUI();
-    renderLanes();
+    pickScenario(elScenario.value);
   });
   document.getElementById('btnPlay').addEventListener('click', togglePlay);
   document.getElementById('btnPrev').addEventListener('click', function(){
