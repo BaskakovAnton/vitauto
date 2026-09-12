@@ -347,6 +347,154 @@
         {node:'G4', note:'Нормо-часы.', status:null},
         {node:'G5', note:'Зарплатный фонд.', status:null}
       ]
+    },
+    {
+      id:'partial',
+      title:'Частичная поставка',
+      steps:[
+        {node:'N1', note:'Заявка на N штук.', status:'new'},
+        {node:'M1', note:'Загрузка в 1С.', status:'new'},
+        {node:'M2', note:'Номенклатура найдена.', status:'new'},
+        {node:'D1', note:'Остатка нет → закупка.', status:'new'},
+        {node:'M4', note:'Заказ поставщику на полное кол-во.', status:'ordered'},
+        {node:'M6', note:'У поставщика нехватка → аналог + частичный заказ (ЧастичноЗаказано).', status:'ordered'},
+        {node:'M7', note:'Оплата доступной части.', status:'paid'},
+        {node:'P2', note:'Часть товара в пути.', status:'in_transit'},
+        {node:'K1', note:'Приёмка: раздвоение «принято / нету» по УПД (разрыв UI).', status:'acceptance'},
+        {node:'K2', note:'Принятое размещено; недостача ждёт дозаказ.', status:'acceptance'},
+        {node:'M4', note:'Дозаказ недостающего.', status:'ordered'}
+      ]
+    },
+    {
+      id:'own_truck',
+      title:'Своя машина (ожидаем поступление)',
+      steps:[
+        {node:'N1', note:'Заявка клиента.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M4', note:'Заказ поставщику.', status:'ordered'},
+        {node:'M7', note:'Оплачено.', status:'paid'},
+        {node:'P1', note:'Поставщик подтвердил.', status:'paid'},
+        {node:'P2', note:'Ветка «своя машина» → статус матрицы «Ожидаем поступление» (в коде отдельного статуса нет).', status:'awaiting_receipt'},
+        {node:'K1', note:'Приёмка после прибытия своей машины.', status:'acceptance'},
+        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+      ]
+    },
+    {
+      id:'defect',
+      title:'Дефект на комплектации',
+      steps:[
+        {node:'K2', note:'Товар уже на складе.', status:'acceptance'},
+        {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
+        {node:'K3', note:'Сборка: обнаружен дефект / недостача.', status:'assembly'},
+        {node:'M10', note:'Менеджер отклоняет позицию (красная подсветка в ТЗ — в коде нет).', status:'assembly'},
+        {node:'M4', note:'Дозаказ замены у поставщика.', status:'ordered'},
+        {node:'M12', note:'Опционально: возврат брака поставщику.', status:'return'},
+        {node:'P3', note:'Поставщик принимает возврат.', status:'return'},
+        {node:'K3', note:'Повторная комплектация после прихода замены.', status:'assembly'},
+        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'}
+      ]
+    },
+    {
+      id:'tender_nmck',
+      title:'Тендер / НМЦК (РРЦ×1.5)',
+      steps:[
+        {node:'A0', note:'Админ/НСИ: РРЦ и формула НМЦК = РРЦ×1.5 (конфликт с ТЗ «РРЦ в карточке НЕ делаем» и кодом коэффициент×себестоимость).', status:null},
+        {node:'N1', note:'Тендерная заявка клиента.', status:'new'},
+        {node:'M1', note:'Загрузка заявки.', status:'new'},
+        {node:'M2', note:'Подбор позиции.', status:'new'},
+        {node:'M4', note:'Закупка; менеджер может поднять цену / сменить артикул на «дорогую подмену».', status:'ordered'},
+        {node:'M7', note:'Оплата по тендерной цене.', status:'paid'},
+        {node:'K1', note:'Приход по факту.', status:'acceptance'},
+        {node:'K5', note:'Отгрузка по НМЦК/договорной цене.', status:'shipped'}
+      ]
+    },
+    {
+      id:'white_grey',
+      title:'Белый vs серый контрагент',
+      steps:[
+        {node:'N1', note:'Заявка от контрагента.', status:'new'},
+        {node:'M1', note:'Создание заказа: тип КА белый/серый (в АРМ полей нет).', status:'new'},
+        {node:'A0', note:'НСИ: белые ↔ бухгалтерия/платежи; серые только в этой базе.', status:null},
+        {node:'M4', note:'Закупка под заказ.', status:'ordered'},
+        {node:'M7', note:'Оплата: у белого — связка с бухгалтерией; у серого — только локально.', status:'paid'},
+        {node:'K5', note:'Отгрузка; документооборот зависит от типа КА.', status:'shipped'},
+        {node:'N2', note:'Клиент получил.', status:'closed'}
+      ]
+    },
+    {
+      id:'liquids',
+      title:'Жидкости (литры / большой склад)',
+      steps:[
+        {node:'N1', note:'Заявка на жидкость (кол-во + ЕИ).', status:'new'},
+        {node:'M1', note:'Загрузка; контроль ЕИ = литры (правило ТЗ).', status:'new'},
+        {node:'M2', note:'Поиск номенклатуры жидкости.', status:'new'},
+        {node:'D1', note:'Найдено / закупка при отсутствии.', status:'new'},
+        {node:'M4', note:'При необходимости — заказ поставщику.', status:'ordered'},
+        {node:'K1', note:'Приёмка.', status:'acceptance'},
+        {node:'K2', note:'Размещение на Большом складе (зона Z4 на вкладке «Складские зоны»).', status:'acceptance'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+      ]
+    },
+    {
+      id:'gbc_brand',
+      title:'ГБЦ / группа по бренду',
+      steps:[
+        {node:'N1', note:'Заявка на ГБЦ / сложный агрегат.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M2', note:'Поиск не дал точного совпадения.', status:'new'},
+        {node:'D1', note:'Не найдено → админ.', status:'new'},
+        {node:'A1', note:'Неопознанные + фотофиксация.', status:'new'},
+        {node:'A2', note:'Артикул, кросс, перенос; ТЗ спорит: «группы НЕ ДЕЛАЕМ» vs ГБЦ по брендам.', status:'new'},
+        {node:'M2', note:'Повторный поиск после НСИ.', status:'new'},
+        {node:'M4', note:'Закупка опознанной позиции.', status:'ordered'},
+        {node:'K1', note:'Приход.', status:'acceptance'}
+      ]
+    },
+    {
+      id:'virtual_buy',
+      title:'Виртуальный закуп (по чеку)',
+      steps:[
+        {node:'N1', note:'Срочная заявка, документов поставщика нет.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M4', note:'Виртуальный закуп: 3-й поставщик транзитом / компенсация по чеку (пометка ТЗ).', status:'ordered'},
+        {node:'M7', note:'Оплата вне стандартного УПД-контура.', status:'paid'},
+        {node:'K1', note:'Приход без полноценного УПД — разрыв чек-боксов/полей приёмки.', status:'acceptance'},
+        {node:'K2', note:'Размещение.', status:'acceptance'},
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+      ]
+    },
+    {
+      id:'parallel_repair',
+      title:'Параллельно: запчасть + заказ-наряд',
+      steps:[
+        {node:'N1', note:'Клиентская заявка на запчасть.', status:'new'},
+        {node:'G1', note:'Параллельно механик открывает заказ-наряд.', status:'new'},
+        {node:'M1', note:'Менеджер ведёт клиентскую заявку.', status:'new'},
+        {node:'G2', note:'Механик заказывает позицию для ремонта.', status:'ordered'},
+        {node:'M2', note:'Общий поиск номенклатуры для обоих контуров.', status:'new'},
+        {node:'K2', note:'Склад: общая номенклатура на зонах.', status:'acceptance'},
+        {node:'K3', note:'Комплектация клиентской части.', status:'assembly'},
+        {node:'G3', note:'Выдача/списание в ремонтную зону по ЗН.', status:'assembly'},
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'},
+        {node:'G4', note:'Нормо-часы по ремонту.', status:null},
+        {node:'G5', note:'ЗФ механиков.', status:null}
+      ]
+    },
+    {
+      id:'rights_lock',
+      title:'Эскалация прав (чужой документ)',
+      steps:[
+        {node:'N1', note:'Заявка закреплена за менеджером А.', status:'new'},
+        {node:'M1', note:'Менеджер А создаёт/редактирует заказ (создатель).', status:'new'},
+        {node:'M4', note:'А оформляет закупку; документ «в работе».', status:'ordered'},
+        {node:'M10', note:'Менеджер Б той же роли: по ТЗ может, если назначен; иначе блок. В коде — ОтметкаСтроки/автор, не полное владение документом.', status:'assembly'},
+        {node:'A0', note:'Админ может править всё + история изменений (в АРМ истории нет).', status:null},
+        {node:'M11', note:'После разблокировки — отгрузочные документы.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'}
+      ]
     }
   ];
 
@@ -412,7 +560,7 @@
       '<div class="stat"><b>'+t.ok+'</b><span>есть в коде</span></div>'+
       '<div class="stat"><b>'+t.part+'</b><span>частично</span></div>'+
       '<div class="stat"><b>'+t.no+'</b><span>разрывов</span></div>'+
-      '<div class="stat"><b>'+SCENARIOS.length+'</b><span>сценария</span></div>';
+      '<div class="stat"><b>'+SCENARIOS.length+'</b><span>сценариев</span></div>';
   }
 
   function fillSelectors(){
