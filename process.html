@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v18</title>
+<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v19</title>
 <style>
   :root{
     --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
@@ -706,7 +706,7 @@
     payment_form:'Форма оплаты', stock_qty:'На складе', reserve_qty:'В резерве',
     batch_fifo:'Партия ФИФО', ordered_in_transit_qty:'В пути', shipment_date:'Дата отгрузки',
     shipment_number:'№ отгрузки', upd_date:'Дата УПД', upd_number:'№ УПД', comment:'Комментарий',
-    rrc:'РРЦ', coefficient:'Коэффициент'
+    rrc:'РРЦ (рекомендованная розничная цена)', coefficient:'Коэффициент'
   };
 
   var state = {
@@ -733,14 +733,14 @@
     packCrunch:'326–472',
     calendar:'3,5–5 мес',
     layers:[
-      {name:'Согласования / решения (РРЦ, статусы, Снабжение↔Кладовщик)', hours:'30–50', why:'Иначе этапы 2–4 встают'},
-      {name:'Демо + ревью + правки', hours:'40–60', why:'Нормальный цикл поставки'},
-      {name:'Отладка УНФ 1.6 / регрессии', hours:'25–40', why:'Не в «идеальном» чистом коде'},
-      {name:'Неопределённость / мелкий реворк', hours:'25–40', why:'~8–10% базы; не буфер ТЗ 20–30%'}
+      {name:'Согласования (РРЦ — рекомендованная розничная цена, статусы, роли)', hours:'30–50', why:'Без решений бизнеса этапы цены и прав встают'},
+      {name:'Показы заказчику, проверка кода, правки', hours:'40–60', why:'Обычный цикл работы, не «сдал и бежим»'},
+      {name:'Отладка в УНФ 1.6 и соседних документах', hours:'25–40', why:'Не входит в «идеальное» чистое кодирование'},
+      {name:'Небольшие переделки по ходу', hours:'25–40', why:'Запас без паники; не полный буфер ТЗ 20–30%'}
     ],
     stages:[
       {id:1, name:'НСИ', tz:'24–32', done:15, crunch:'20–27', comfort:'28–38', note:'Бренды, зоны, фото, статус поиска'},
-      {id:2, name:'Партии / РРЦ', tz:'40–56', done:20, crunch:'32–45', comfort:'45–63', note:'Ждёт решение по модели цены'},
+      {id:2, name:'Партии / РРЦ', tz:'40–56', done:20, crunch:'32–45', comfort:'45–63', note:'РРЦ = рекомендованная розничная цена; ждёт решение по формуле'},
       {id:3, name:'Документы', tz:'80–120', done:25, crunch:'60–90', comfort:'84–126', note:'Самый тяжёлый блок'},
       {id:4, name:'Роли / права', tz:'40–56', done:20, crunch:'32–45', comfort:'45–63', note:'Матрица колонок в 1С'},
       {id:5, name:'Печать', tz:'40–56', done:0, crunch:'40–56', comfort:'56–78', note:'5+ форм + шаблоны КА'},
@@ -803,39 +803,42 @@
       return '<tr class="'+cls+'"><td>'+s.id+'. '+s.name+'</td><td class="num">'+s.tz+'</td><td>'+pillDone(s.done)+'</td><td class="num">'+s.crunch+'</td><td class="num">'+s.comfort+'</td><td>'+s.note+'</td></tr>';
     }).join('');
     elEstimateRoot.innerHTML =
-      '<div class="est-callout"><strong>В план — комфортный темп (не аврал): '+E.comfortCode+' ч кода</strong> · '+E.calendar+
-      ' при 120–130 ч/мес. Аврал '+E.crunchCode+' — только нижняя граница. Комфорт = чистый код ×1,4 (согласования, демо, ревью, отладка УНФ). Буфер ТЗ 20–30% поверх ×1,4 не умножать.</div>'+
+      '<div class="est-callout"><strong>В план закладывайте комфорт: '+E.comfortCode+' ч</strong> (около '+E.calendar+
+      ' одного специалиста). Это не «только набор кода», а работа с запасом на согласования и правки. '+
+      'Аврал '+E.crunchCode+' ч — нижняя граница, если писать без остановок и всё уже решено. '+
+      'РРЦ здесь = <strong>рекомендованная розничная цена</strong> (как в ТЗ).</div>'+
       '<div class="est-modes">'+
-        '<div class="est-mode"><div class="tag">Аврал / чистый код</div><h3>Только руки в IDE</h3><div class="big">'+E.crunchCode+' ч</div>'+
-        '<ul><li>~160 ч/мес → 2–2,8 мес</li><li>Без запаса на согласования и реворк</li><li>Риск срыва при блокере РРЦ</li></ul></div>'+
-        '<div class="est-mode pick"><div class="tag">Комфорт — брать в план</div><h3>Устойчивая поставка</h3><div class="big">'+E.comfortCode+' ч</div>'+
-        '<ul><li>×1,4 к чистому коду</li><li>~120–130 ч/мес → '+E.calendar+'</li><li>+ обучение '+E.trainComfort+' → пакет <strong>'+E.packComfort+'</strong></li></ul></div>'+
+        '<div class="est-mode"><div class="tag">Аврал</div><h3>Только написание кода</h3><div class="big">'+E.crunchCode+' ч</div>'+
+        '<ul>'+
+          '<li>Считаем часы, будто разработчик только пишет в 1С: без встреч, показов и переделок.</li>'+
+          '<li>При полной загрузке (~160 ч в месяц) это примерно 2–3 месяца.</li>'+
+          '<li>Если по РРЦ (рекомендованной розничной цене) ещё нет решения — в этой оценке запаса нет, срок легко сдвинется.</li>'+
+        '</ul></div>'+
+        '<div class="est-mode pick"><div class="tag">Комфорт — брать в план</div><h3>Реальная работа с запасом</h3><div class="big">'+E.comfortCode+' ч</div>'+
+        '<ul>'+
+          '<li>Те же задачи, плюс время на согласования, показы, правки и отладку (~в 1,4 раза больше чистого кода).</li>'+
+          '<li>Спокойный темп (~120–130 ч в месяц): около '+E.calendar+'.</li>'+
+          '<li>Плюс обучение пользователей '+E.trainComfort+' ч → всего <strong>'+E.packComfort+'</strong>, если нужно «как этап 10 в ТЗ».</li>'+
+        '</ul></div>'+
       '</div>'+
       '<div class="stats">'+
-        '<div class="stat accent"><b>'+E.comfortCode+'</b><span>комфорт КОД, ч</span></div>'+
-        '<div class="stat"><b>'+E.crunchCode+'</b><span>аврал / чистый код</span></div>'+
-        '<div class="stat warn"><b>'+E.trainComfort+'</b><span>обучение (комфорт)</span></div>'+
-        '<div class="stat ok-s"><b>'+E.calendar+'</b><span>1 спец., 120–130 ч/мес</span></div>'+
-        '<div class="stat"><b>'+cov.ok+' / '+(cov.ok+cov.part+cov.no)+'</b><span>узлов cov=ok</span></div>'+
+        '<div class="stat accent"><b>'+E.comfortCode+'</b><span>комфорт, ч кода</span></div>'+
+        '<div class="stat"><b>'+E.crunchCode+'</b><span>аврал, только код</span></div>'+
+        '<div class="stat warn"><b>'+E.trainComfort+'</b><span>обучение</span></div>'+
+        '<div class="stat ok-s"><b>'+E.calendar+'</b><span>1 спец., спокойный темп</span></div>'+
+        '<div class="stat"><b>'+cov.ok+' / '+(cov.ok+cov.part+cov.no)+'</b><span>узлов уже «есть»</span></div>'+
       '</div>'+
-      '<h2>Слои комфорта (≈ ×1,4)</h2>'+
-      '<p class="hint">Поверх чистого кода '+E.crunchCode+'; без второго умножения буфера ТЗ.</p>'+
-      '<table><thead><tr><th>Слой</th><th>Часы</th><th>Зачем</th></tr></thead><tbody>'+layerRows+
-      '<tr class="tot"><td>Сумма слоёв</td><td class="num">120–190</td><td>→ итог комфорт '+E.comfortCode+'</td></tr></tbody></table>'+
-      '<h2>Блоки ТЗ → аврал vs комфорт</h2>'+
-      '<p class="hint">Готово — экспертно по src/ + cov узлов. Аврал = ТЗ×(1−готово). Комфорт = аврал×1,4.</p>'+
-      '<table><thead><tr><th>Этап ТЗ</th><th>ТЗ, ч</th><th>Готово</th><th>Аврал</th><th>Комфорт ×1,4</th><th>Комментарий</th></tr></thead><tbody>'+
+      '<h2>Из чего складывается запас комфорта</h2>'+
+      '<p class="hint">Добавка к чистому коду '+E.crunchCode+' ч. Буфер из ТЗ 20–30% сверху ещё раз не накручиваем.</p>'+
+      '<table><thead><tr><th>Что входит</th><th>Часы</th><th>Зачем</th></tr></thead><tbody>'+layerRows+
+      '<tr class="tot"><td>Сумма запаса</td><td class="num">120–190</td><td>вместе с кодом → комфорт '+E.comfortCode+'</td></tr></tbody></table>'+
+      '<h2>Блоки ТЗ: аврал и комфорт</h2>'+
+      '<p class="hint">«Готово» — оценка по текущему коду АРМ. Аврал = остаток по ТЗ. Комфорт = аврал × 1,4.</p>'+
+      '<table><thead><tr><th>Этап ТЗ</th><th>ТЗ, ч</th><th>Готово</th><th>Аврал</th><th>Комфорт</th><th>Комментарий</th></tr></thead><tbody>'+
       stageRows+
-      '<tr class="tot"><td>Итого КОД (1–10a)</td><td class="num">—</td><td></td><td class="num">'+E.crunchCode+'</td><td class="num">'+E.comfortCode+'</td><td>В план — правая колонка</td></tr>'+
-      '<tr class="tot"><td>Пакет + обучение</td><td class="num">—</td><td></td><td class="num">'+E.packCrunch+'</td><td class="num">'+E.packComfort+'</td><td>Если этап 10 ТЗ целиком</td></tr>'+
-      '</tbody></table>'+
-      '<h2>Заметки аудита</h2>'+
-      '<ul class="audit">'+
-        '<li>Этап 3 «документы»: готовность ~25%, не 40% — главный прокол ранней оценки.</li>'+
-        '<li>Домены и этапы ТЗ не складывать (двойной счёт).</li>'+
-        '<li>Part ≠ половина работы. Реально «съедено» ~22–28% от mid ТЗ (384–560).</li>'+
-        '<li>Конфликт РРЦ (ТЗ vs схема vs код) и УНФ 1.6 vs оценка «как 3.0» — в комфорте через ×1,4.</li>'+
-      '</ul>';
+      '<tr class="tot"><td>Итого код</td><td class="num">—</td><td></td><td class="num">'+E.crunchCode+'</td><td class="num">'+E.comfortCode+'</td><td>В план — колонка «Комфорт»</td></tr>'+
+      '<tr class="tot"><td>Код + обучение</td><td class="num">—</td><td></td><td class="num">'+E.packCrunch+'</td><td class="num">'+E.packComfort+'</td><td>Если нужно обучение из этапа 10 ТЗ</td></tr>'+
+      '</tbody></table>';
   }
 
   function groupTitle(id){
