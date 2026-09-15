@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v16</title>
+<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v17</title>
 <style>
   :root{
     --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
@@ -59,11 +59,16 @@
   .progress > i{display:block;height:100%;background:var(--accent);width:0%;transition:width .25s ease;}
   .scenario-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
   .scenario-head strong{font-size:12px;}
+  .scenario-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .scenario-filters button{font-size:11px;padding:5px 9px;}
+  .scenario-filters button.active{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  .scenario-sections{display:flex;flex-direction:column;gap:12px;}
+  .scenario-section h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
   .scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;}
   .scenario-grid button{text-align:left;padding:7px 9px;font-size:11.5px;line-height:1.35;border-radius:7px;}
   .scenario-grid button.active{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
   .scenario-grid button .sid{display:block;font-size:10px;opacity:.75;font-family:Consolas,monospace;margin-bottom:1px;}
-  #scenarioSelect{min-width:280px;max-width:min(520px,90vw);}
+  #scenarioSelect{min-width:300px;max-width:min(560px,90vw);}
 
   .view-panel[hidden]{display:none !important;}
 
@@ -180,9 +185,10 @@
     <div class="player" id="playerBar">
       <div class="scenario-head">
         <strong>Сценарии плеера — <span id="scenarioCount">0</span></strong>
-        <span class="badge">выберите карточку ниже (не только выпадающий список)</span>
+        <span class="badge">группы + фильтр; карточка или выпадающий список</span>
       </div>
-      <div class="scenario-grid" id="scenarioGrid"></div>
+      <div class="scenario-filters" id="scenarioFilters"></div>
+      <div class="scenario-sections" id="scenarioGrid"></div>
       <div class="player-top">
         <div class="step-meta">
           <div class="step-title" id="playerTitle">Выберите сценарий и нажмите «Плей» или кликните узел</div>
@@ -238,7 +244,7 @@
     {id:'M1', role:'manager', title:'Загрузка заявки в 1С', full:'Загрузка заявки в 1С: Excel-парсер / ручной ввод по фото', shape:'rect', cov:'part', status:['new'], cols:['order_header','fact'], tz:'Excel-парсер или ручной ввод (§3.1).', code:'ФормаЗагрузкиДанных — табличный ввод, не парсер Excel; номенклатура не матчится.', next:[{to:'M2', label:'поиск по артикулу'}]},
     {id:'M2', role:'manager', title:'Поиск номенклатуры', full:'Поиск номенклатуры по артикулу / наименованию', shape:'rect', cov:'no', status:['new'], cols:['article','name','code_aa'], tz:'Алгоритм поиска (§3.1 п.2).', code:'При загрузке номенклатура часто пустая; автопоиска нет.', next:[{to:'D1', label:'результат'}]},
     {id:'D1', role:'manager', title:'Позиция найдена?', full:'Позиция найдена в 1С?', shape:'decision', cov:'no', status:['new'], cols:['nomenclature'], tz:'Ветвление найден / не найден.', code:'Ветвление UI не реализовано как decision flow.', next:[{to:'M3', label:'да, остаток есть'},{to:'M4', label:'да, остатка нет'},{to:'A1', label:'нет'}]},
-    {id:'M3', role:'manager', title:'Резервирование на складе', full:'Резервирование товара под заказ (остаток есть на складе)', shape:'rect', cov:'part', status:['reserve'], cols:['stock_qty','reserve_qty','batch_fifo'], tz:'Резерв при наличии (§3.1).', code:'Остатки в РС; отдельного статуса «Резервирование» нет.', next:[{to:'K3', label:'на комплектацию'}]},
+    {id:'M3', role:'manager', title:'Резервирование на складе', full:'Резервирование товара под заказ (остаток есть на складе)', shape:'rect', cov:'part', status:['reserve'], cols:['stock_qty','reserve_qty','batch_fifo'], tz:'Резерв при наличии (§3.1).', code:'Остатки в РС; отдельного статуса «Резервирование» нет.', next:[{to:'M9', label:'задание на комплектацию'},{to:'K3', label:'сразу в сборку'}]},
     {id:'M4', role:'manager', title:'Заказ поставщику', full:'Оформление «Заказ поставщику» → статус «Заказано у поставщика»', shape:'rect', cov:'ok', status:['ordered'], cols:['supplier','price','qty','line_status'], tz:'Сценарий А закупки (§3.2).', code:'АС_АРМ2: создание ЗаказПоставщику, статус Заказано.', next:[{to:'M7', label:'заказ подтверждён'},{to:'M6', label:'не хватает кол-ва'}]},
     {id:'M6', role:'manager', title:'Аналог по кросс-коду', full:'Не хватает у поставщика — подбор аналога по кросс-коду + комментарий связей', shape:'rect', cov:'no', status:['ordered'], cols:['article','code_aa','comment'], tz:'Кросс-код / аналог (§3.2 п.5).', code:'Нет справочной связи аналогов; только UX-подсказки.', next:[{to:'P1', label:'аналог в заказ'}]},
     {id:'M7', role:'manager', title:'Контроль оплаты', full:'Контроль оплаты заказа → статус «Оплачено»', shape:'rect', cov:'ok', status:['paid'], cols:['paid_status','payment_form','price'], tz:'Статус Оплачено (§5).', code:'Статус Оплачено в Арм_СтатусыАРМ / снабжение.', next:[{to:'P1', label:'оплата произведена'}]},
@@ -288,9 +294,19 @@
     {id:'Z12', title:'Списание по ЗН', desc:'Расход в ремонт', cov:'no', role:'chief_mechanic'}
   ];
 
+  var SCENARIO_GROUPS = [
+    {id:'main', title:'A. Основные потоки заявки'},
+    {id:'purchase', title:'B. Закупка и поставка (исключения)'},
+    {id:'returns', title:'C. Возвраты'},
+    {id:'nsi', title:'D. НСИ / опознание'},
+    {id:'commercial', title:'E. Цена, контрагент, тип товара'},
+    {id:'repair', title:'F. Ремонт / механик'},
+    {id:'rights', title:'G. Права / админ'}
+  ];
+
   var SCENARIOS = [
     {
-      id:'happy',
+      id:'happy', group:'main',
       title:'Основной: закупка → отгрузка',
       steps:[
         {node:'N1', note:'Клиент передаёт заявку (Excel/фото).', status:'new'},
@@ -307,13 +323,14 @@
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Сборка заказа.', status:'assembly'},
         {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление менеджеру о готовности.', status:'ready_to_ship'},
         {node:'M11', note:'Ведомость / подписание.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2', note:'Клиент получил товар.', status:'closed'}
       ]
     },
     {
-      id:'stock',
+      id:'stock', group:'main',
       title:'Со склада (резерв)',
       steps:[
         {node:'N1', note:'Заявка клиента.', status:'new'},
@@ -331,54 +348,43 @@
       ]
     },
     {
-      id:'unknown',
-      title:'Неопознанная позиция',
+      id:'own_truck', group:'main',
+      title:'Своя машина (ожидаем поступление)',
       steps:[
-        {node:'N1', note:'Заявка с неизвестным артикулом.', status:'new'},
+        {node:'N1', note:'Заявка клиента.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск не дал результата.', status:'new'},
-        {node:'D1', note:'Не найдено.', status:'new'},
-        {node:'A1', note:'Админ: неопознанные + фото.', status:'new'},
-        {node:'A2', note:'Артикул и кроссы.', status:'new'},
-        {node:'M2', note:'Повторный поиск.', status:'new'},
-        {node:'M4', note:'Дальше в закупку.', status:'ordered'}
+        {node:'M4', note:'Заказ поставщику.', status:'ordered'},
+        {node:'M7', note:'Оплачено.', status:'paid'},
+        {node:'P1', note:'Поставщик подтвердил.', status:'paid'},
+        {node:'P2', note:'Ветка «своя машина» → статус матрицы «Ожидаем поступление» (в коде отдельного статуса нет).', status:'awaiting_receipt'},
+        {node:'K1', note:'Приёмка после прибытия своей машины.', status:'acceptance'},
+        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
       ]
     },
     {
-      id:'return',
-      title:'Возврат',
+      id:'mixed_order', group:'main',
+      title:'Смешанный заказ (склад + закупка)',
       steps:[
-        {node:'N3', note:'Клиент инициирует возврат.', status:'return'},
-        {node:'K6', note:'Приёмка возврата на складе.', status:'return'},
-        {node:'M12', note:'Менеджер оформляет возврат поставщику.', status:'return'},
-        {node:'K6', note:'Кладовщик готовит товар к возврату поставщику (повторный заход на склад).', status:'return'},
-        {node:'P3', note:'Поставщик принимает возврат.', status:'return'}
+        {node:'N1', note:'Заявка на несколько позиций.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M2', note:'Поиск: часть найдена на складе, часть нет.', status:'new'},
+        {node:'D1', note:'Ветвление по строкам.', status:'new'},
+        {node:'M3', note:'Строки со склада — резерв.', status:'reserve'},
+        {node:'M4', note:'Строки без остатка — заказ поставщику.', status:'ordered'},
+        {node:'M7', note:'Оплата закупочной части.', status:'paid'},
+        {node:'P2', note:'Закупка в пути.', status:'in_transit'},
+        {node:'K1', note:'Приход закупочной части.', status:'acceptance'},
+        {node:'M9', note:'Общее задание на комплектацию обеих частей.', status:'assembly'},
+        {node:'K3', note:'Сборка смешанного заказа.', status:'assembly'},
+        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление менеджеру.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'}
       ]
     },
     {
-      id:'return_mgr',
-      title:'Возврат поставщику (от менеджера)',
-      steps:[
-        {node:'M12', note:'Менеджер инициирует возврат поставщику.', status:'return'},
-        {node:'K6', note:'Передача кладовщику: подготовка/отбор товара со склада.', status:'return'},
-        {node:'P3', note:'Отгрузка возврата поставщику.', status:'return'}
-      ]
-    },
-    {
-      id:'repair',
-      title:'Ремонт / заказ-наряд',
-      steps:[
-        {node:'G1', note:'Открыт заказ-наряд.', status:'new'},
-        {node:'G2', note:'Заказ запчастей для ремонта.', status:'ordered'},
-        {node:'M2', note:'Общий контур поиска.', status:'new'},
-        {node:'K2', note:'Деталь на складе.', status:'acceptance'},
-        {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
-        {node:'G4', note:'Нормо-часы.', status:null},
-        {node:'G5', note:'Зарплатный фонд.', status:null}
-      ]
-    },
-    {
-      id:'partial',
+      id:'partial', group:'purchase',
       title:'Частичная поставка',
       steps:[
         {node:'N1', note:'Заявка на N штук.', status:'new'},
@@ -395,23 +401,20 @@
       ]
     },
     {
-      id:'own_truck',
-      title:'Своя машина (ожидаем поступление)',
+      id:'virtual_buy', group:'purchase',
+      title:'Виртуальный закуп (по чеку)',
       steps:[
-        {node:'N1', note:'Заявка клиента.', status:'new'},
+        {node:'N1', note:'Срочная заявка, документов поставщика нет.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M4', note:'Заказ поставщику.', status:'ordered'},
-        {node:'M7', note:'Оплачено.', status:'paid'},
-        {node:'P1', note:'Поставщик подтвердил.', status:'paid'},
-        {node:'P2', note:'Ветка «своя машина» → статус матрицы «Ожидаем поступление» (в коде отдельного статуса нет).', status:'awaiting_receipt'},
-        {node:'K1', note:'Приёмка после прибытия своей машины.', status:'acceptance'},
-        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
-        {node:'K3', note:'Комплектация.', status:'assembly'},
+        {node:'M4', note:'Виртуальный закуп: 3-й поставщик транзитом / компенсация по чеку (пометка ТЗ).', status:'ordered'},
+        {node:'M7', note:'Оплата вне стандартного УПД-контура.', status:'paid'},
+        {node:'K1', note:'Приход без полноценного УПД — разрыв чек-боксов/полей приёмки.', status:'acceptance'},
+        {node:'K2', note:'Размещение.', status:'acceptance'},
         {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
       ]
     },
     {
-      id:'defect',
+      id:'defect', group:'purchase',
       title:'Дефект на комплектации',
       steps:[
         {node:'K2', note:'Товар уже на складе.', status:'acceptance'},
@@ -427,49 +430,64 @@
       ]
     },
     {
-      id:'tender_nmck',
-      title:'Тендер / НМЦК (РРЦ×1.5)',
+      id:'cancel_supplier', group:'purchase',
+      title:'Отмена заказа у поставщика',
       steps:[
-        {node:'A0', note:'Админ/НСИ: РРЦ и формула НМЦК = РРЦ×1.5 (конфликт с ТЗ «РРЦ в карточке НЕ делаем» и кодом коэффициент×себестоимость).', status:null},
-        {node:'N1', note:'Тендерная заявка клиента.', status:'new'},
-        {node:'M1', note:'Загрузка заявки.', status:'new'},
-        {node:'M2', note:'Подбор позиции.', status:'new'},
-        {node:'M4', note:'Закупка; менеджер может поднять цену / сменить артикул на «дорогую подмену».', status:'ordered'},
-        {node:'M7', note:'Оплата по тендерной цене.', status:'paid'},
-        {node:'K1', note:'Приход по факту.', status:'acceptance'},
-        {node:'K5', note:'Отгрузка по НМЦК/договорной цене.', status:'shipped'}
+        {node:'N1', note:'Заявка клиента.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M4', note:'Заказ поставщику создан.', status:'ordered'},
+        {node:'M7', note:'Оплачено (или ещё нет).', status:'paid'},
+        {node:'P1', note:'Поставщик ещё не отгрузил / заказ в работе.', status:'paid'},
+        {node:'M12', note:'Менеджер отменяет / оформляет возврат-отказ до прихода на склад.', status:'return'},
+        {node:'P3', note:'Поставщик закрывает заказ / принимает отказ (без K6, товар физически не на складе Витавто).', status:'return'}
       ]
     },
     {
-      id:'white_grey',
-      title:'Белый vs серый контрагент',
+      id:'return', group:'returns',
+      title:'Возврат от клиента',
       steps:[
-        {node:'N1', note:'Заявка от контрагента.', status:'new'},
-        {node:'M1', note:'Создание заказа: тип КА белый/серый (в АРМ полей нет).', status:'new'},
-        {node:'A0', note:'НСИ: белые ↔ бухгалтерия/платежи; серые только в этой базе.', status:null},
-        {node:'M4', note:'Закупка под заказ.', status:'ordered'},
-        {node:'M7', note:'Оплата: у белого — связка с бухгалтерией; у серого — только локально.', status:'paid'},
-        {node:'K5', note:'Отгрузка; документооборот зависит от типа КА.', status:'shipped'},
-        {node:'N2', note:'Клиент получил.', status:'closed'}
+        {node:'N3', note:'Клиент инициирует возврат.', status:'return'},
+        {node:'K6', note:'Приёмка возврата на складе.', status:'return'},
+        {node:'M12', note:'Менеджер оформляет возврат поставщику.', status:'return'},
+        {node:'K6', note:'Кладовщик готовит товар к возврату поставщику.', status:'return'},
+        {node:'P3', note:'Поставщик принимает возврат.', status:'return'}
       ]
     },
     {
-      id:'liquids',
-      title:'Жидкости (литры / большой склад)',
+      id:'return_mgr', group:'returns',
+      title:'Возврат поставщику (от менеджера)',
       steps:[
-        {node:'N1', note:'Заявка на жидкость (кол-во + ЕИ).', status:'new'},
-        {node:'M1', note:'Загрузка; контроль ЕИ = литры (правило ТЗ).', status:'new'},
-        {node:'M2', note:'Поиск номенклатуры жидкости.', status:'new'},
-        {node:'D1', note:'Найдено / закупка при отсутствии.', status:'new'},
-        {node:'M4', note:'При необходимости — заказ поставщику.', status:'ordered'},
-        {node:'K1', note:'Приёмка.', status:'acceptance'},
-        {node:'K2', note:'Размещение на Большом складе (зона Z4 на вкладке «Складские зоны»).', status:'acceptance'},
-        {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+        {node:'M12', note:'Менеджер инициирует возврат поставщику.', status:'return'},
+        {node:'K6', note:'Передача кладовщику: подготовка/отбор товара со склада.', status:'return'},
+        {node:'P3', note:'Отгрузка возврата поставщику.', status:'return'}
       ]
     },
     {
-      id:'gbc_brand',
+      id:'return_internal', group:'returns',
+      title:'Возврат на склад (без поставщика)',
+      steps:[
+        {node:'N3', note:'Клиент возвращает товар.', status:'return'},
+        {node:'K6', note:'Приёмка возврата, акт, зона возвратов/неопознанных.', status:'return'},
+        {node:'K2', note:'Повторное размещение на складе (внутренний контур, без M12/P3).', status:'acceptance'},
+        {node:'M8', note:'Менеджер видит возврат на остатках.', status:'acceptance'}
+      ]
+    },
+    {
+      id:'unknown', group:'nsi',
+      title:'Неопознанная позиция',
+      steps:[
+        {node:'N1', note:'Заявка с неизвестным артикулом.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M2', note:'Поиск не дал результата.', status:'new'},
+        {node:'D1', note:'Не найдено.', status:'new'},
+        {node:'A1', note:'Админ: неопознанные + фото.', status:'new'},
+        {node:'A2', note:'Артикул и кроссы.', status:'new'},
+        {node:'M2', note:'Повторный поиск.', status:'new'},
+        {node:'M4', note:'Дальше в закупку.', status:'ordered'}
+      ]
+    },
+    {
+      id:'gbc_brand', group:'nsi',
       title:'ГБЦ / группа по бренду',
       steps:[
         {node:'N1', note:'Заявка на ГБЦ / сложный агрегат.', status:'new'},
@@ -484,46 +502,132 @@
       ]
     },
     {
-      id:'virtual_buy',
-      title:'Виртуальный закуп (по чеку)',
+      id:'disassembly_in', group:'nsi',
+      title:'Приход с разбора (A5)',
       steps:[
-        {node:'N1', note:'Срочная заявка, документов поставщика нет.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M4', note:'Виртуальный закуп: 3-й поставщик транзитом / компенсация по чеку (пометка ТЗ).', status:'ordered'},
-        {node:'M7', note:'Оплата вне стандартного УПД-контура.', status:'paid'},
-        {node:'K1', note:'Приход без полноценного УПД — разрыв чек-боксов/полей приёмки.', status:'acceptance'},
-        {node:'K2', note:'Размещение.', status:'acceptance'},
+        {node:'A5', note:'Админ/склад: приходование деталей с разбора / заказ-наряда (узел !!!!!!! на схеме).', status:null},
+        {node:'K2', note:'Размещение на малом/большом складе.', status:'acceptance'},
+        {node:'M8', note:'Менеджер видит новые остатки.', status:'acceptance'},
+        {node:'M3', note:'При заявке — можно резервировать с разбора.', status:'reserve'}
+      ]
+    },
+    {
+      id:'tender_nmck', group:'commercial',
+      title:'Тендер / НМЦК (РРЦ×1.5)',
+      steps:[
+        {node:'A0', note:'Админ/НСИ: РРЦ и формула НМЦК = РРЦ×1.5 (конфликт с ТЗ и кодом).', status:null},
+        {node:'N1', note:'Тендерная заявка клиента.', status:'new'},
+        {node:'M1', note:'Загрузка заявки.', status:'new'},
+        {node:'M2', note:'Подбор позиции.', status:'new'},
+        {node:'M4', note:'Закупка; «дорогая подмена» артикула/цены.', status:'ordered'},
+        {node:'M7', note:'Оплата по тендерной цене.', status:'paid'},
+        {node:'K1', note:'Приход по факту.', status:'acceptance'},
+        {node:'K5', note:'Отгрузка по НМЦК/договорной цене.', status:'shipped'}
+      ]
+    },
+    {
+      id:'white_grey', group:'commercial',
+      title:'Белый vs серый контрагент',
+      steps:[
+        {node:'N1', note:'Заявка от контрагента.', status:'new'},
+        {node:'M1', note:'Тип КА белый/серый (в АРМ полей нет).', status:'new'},
+        {node:'A0', note:'НСИ: белые ↔ бухгалтерия; серые только в базе.', status:null},
+        {node:'M4', note:'Закупка под заказ.', status:'ordered'},
+        {node:'M7', note:'Оплата зависит от типа КА.', status:'paid'},
+        {node:'K5', note:'Отгрузка; документооборот зависит от типа КА.', status:'shipped'},
+        {node:'N2', note:'Клиент получил.', status:'closed'}
+      ]
+    },
+    {
+      id:'liquids', group:'commercial',
+      title:'Жидкости (литры / большой склад)',
+      steps:[
+        {node:'N1', note:'Заявка на жидкость (кол-во + ЕИ).', status:'new'},
+        {node:'M1', note:'Контроль ЕИ = литры (правило ТЗ).', status:'new'},
+        {node:'M2', note:'Поиск номенклатуры жидкости.', status:'new'},
+        {node:'D1', note:'Найдено / закупка при отсутствии.', status:'new'},
+        {node:'M4', note:'При необходимости — заказ поставщику.', status:'ordered'},
+        {node:'K1', note:'Приёмка.', status:'acceptance'},
+        {node:'K2', note:'Размещение на Большом складе (Z4).', status:'acceptance'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
         {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
       ]
     },
     {
-      id:'parallel_repair',
+      id:'urgency', group:'commercial',
+      title:'Срочность заявки',
+      steps:[
+        {node:'N1', note:'Заявка со срочностью: срочно / очень срочно (поле матрицы urgency_fact).', status:'new'},
+        {node:'M1', note:'Загрузка; срочность в шапке/строке.', status:'new'},
+        {node:'M2', note:'Ускоренный поиск / приоритет.', status:'new'},
+        {node:'D1', note:'Ветвление склад/закупка.', status:'new'},
+        {node:'M4', note:'Срочный заказ поставщику при отсутствии.', status:'ordered'},
+        {node:'M9', note:'Приоритетное задание на комплектацию.', status:'assembly'},
+        {node:'K3', note:'Сборка вне очереди.', status:'assembly'},
+        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление менеджеру.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'}
+      ]
+    },
+    {
+      id:'repair', group:'repair',
+      title:'Ремонт / заказ-наряд',
+      steps:[
+        {node:'G1', note:'Открыт заказ-наряд.', status:'new'},
+        {node:'G2', note:'Заказ запчастей для ремонта.', status:'ordered'},
+        {node:'M2', note:'Общий контур поиска.', status:'new'},
+        {node:'K2', note:'Деталь на складе.', status:'acceptance'},
+        {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
+        {node:'G4', note:'Нормо-часы.', status:null},
+        {node:'G5', note:'Зарплатный фонд.', status:null}
+      ]
+    },
+    {
+      id:'parallel_repair', group:'repair',
       title:'Параллельно: запчасть + заказ-наряд',
       steps:[
         {node:'N1', note:'Клиентская заявка на запчасть.', status:'new'},
         {node:'G1', note:'Параллельно механик открывает заказ-наряд.', status:'new'},
         {node:'M1', note:'Менеджер ведёт клиентскую заявку.', status:'new'},
         {node:'G2', note:'Механик заказывает позицию для ремонта.', status:'ordered'},
-        {node:'M2', note:'Общий поиск номенклатуры для обоих контуров.', status:'new'},
-        {node:'K2', note:'Склад: общая номенклатура на зонах.', status:'acceptance'},
+        {node:'M2', note:'Общий поиск номенклатуры.', status:'new'},
+        {node:'K2', note:'Склад: общая номенклатура.', status:'acceptance'},
         {node:'K3', note:'Комплектация клиентской части.', status:'assembly'},
-        {node:'G3', note:'Выдача/списание в ремонтную зону по ЗН.', status:'assembly'},
+        {node:'G3', note:'Выдача в ремонтную зону по ЗН.', status:'assembly'},
         {node:'K5', note:'Отгрузка клиенту.', status:'shipped'},
-        {node:'G4', note:'Нормо-часы по ремонту.', status:null},
+        {node:'G4', note:'Нормо-часы.', status:null},
         {node:'G5', note:'ЗФ механиков.', status:null}
       ]
     },
     {
-      id:'rights_lock',
+      id:'labor_only', group:'repair',
+      title:'Только нормо-часы (без запчастей)',
+      steps:[
+        {node:'G1', note:'Открыт заказ-наряд на работы.', status:'new'},
+        {node:'G4', note:'Расчёт нормо-часов по типу техники (без G2/K*).', status:null},
+        {node:'G5', note:'Формирование ЗФ механиков.', status:null}
+      ]
+    },
+    {
+      id:'rights_lock', group:'rights',
       title:'Эскалация прав (чужой документ)',
       steps:[
         {node:'N1', note:'Заявка закреплена за менеджером А.', status:'new'},
-        {node:'M1', note:'Менеджер А создаёт/редактирует заказ (создатель).', status:'new'},
+        {node:'M1', note:'Менеджер А создаёт/редактирует заказ.', status:'new'},
         {node:'M4', note:'А оформляет закупку; документ «в работе».', status:'ordered'},
-        {node:'M10', note:'Менеджер Б той же роли: по ТЗ может, если назначен; иначе блок. В коде — ОтметкаСтроки/автор, не полное владение документом.', status:'assembly'},
-        {node:'A0', note:'Админ может править всё + история изменений (в АРМ истории нет).', status:null},
+        {node:'M10', note:'Менеджер Б: блок/назначение по ТЗ; в коде — ОтметкаСтроки/автор.', status:'assembly'},
+        {node:'A0', note:'Админ может править всё; истории изменений в АРМ нет.', status:null},
         {node:'M11', note:'После разблокировки — отгрузочные документы.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'}
+      ]
+    },
+    {
+      id:'admin_nsi', group:'rights',
+      title:'Админ: НСИ вне заявки',
+      steps:[
+        {node:'A0', note:'Ведение РРЦ / НМЦК, настройка прав и статусов (вне конкретной заявки).', status:null},
+        {node:'A1', note:'Разбор папки неопознанных + фото.', status:'new'},
+        {node:'A2', note:'Артикулы и кросс-коды в основную номенклатуру.', status:'new'}
       ]
     }
   ];
@@ -552,6 +656,7 @@
     coverage:true,
     gapsOnly:false,
     roleFilter:'',
+    groupFilter:'',
     selected:null,
     scenarioId:'happy',
     step: -1,
@@ -568,6 +673,7 @@
   var elSideContent = document.getElementById('sideContent');
   var elScenario = document.getElementById('scenarioSelect');
   var elScenarioGrid = document.getElementById('scenarioGrid');
+  var elScenarioFilters = document.getElementById('scenarioFilters');
   var elScenarioCount = document.getElementById('scenarioCount');
   var elRoleFilter = document.getElementById('roleFilter');
   var elPlayerTitle = document.getElementById('playerTitle');
@@ -578,6 +684,16 @@
   var elBody = document.body;
 
   function covLabel(c){ return COV[c] || c; }
+
+  function groupTitle(id){
+    var g = SCENARIO_GROUPS.filter(function(x){return x.id===id;})[0];
+    return g ? g.title : id;
+  }
+
+  function scenariosForFilter(){
+    if (!state.groupFilter) return SCENARIOS.slice();
+    return SCENARIOS.filter(function(s){ return s.group === state.groupFilter; });
+  }
 
   function countCov(){
     var t = {ok:0, part:0, no:0};
@@ -592,7 +708,8 @@
       '<div class="stat"><b>'+t.ok+'</b><span>есть в коде</span></div>'+
       '<div class="stat"><b>'+t.part+'</b><span>частично</span></div>'+
       '<div class="stat"><b>'+t.no+'</b><span>разрывов</span></div>'+
-      '<div class="stat"><b>'+SCENARIOS.length+'</b><span>сценариев</span></div>';
+      '<div class="stat"><b>'+SCENARIOS.length+'</b><span>сценариев</span></div>'+
+      '<div class="stat"><b>'+SCENARIO_GROUPS.length+'</b><span>групп</span></div>';
   }
 
   function fillSelectors(){
@@ -601,24 +718,96 @@
       o.value = r.id; o.textContent = r.title.replace(/\n/g,' ');
       elRoleFilter.appendChild(o);
     });
-    elScenario.innerHTML = '';
-    elScenarioGrid.innerHTML = '';
-    elScenarioCount.textContent = String(SCENARIOS.length);
-    SCENARIOS.forEach(function(s, idx){
-      var o = document.createElement('option');
-      o.value = s.id;
-      o.textContent = (idx+1) + '. ' + s.title + ' (' + s.steps.length + ' шагов)';
-      elScenario.appendChild(o);
+    renderScenarioFilters();
+    renderScenarioPickers();
+  }
 
+  function renderScenarioFilters(){
+    elScenarioFilters.innerHTML = '';
+    var allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.textContent = 'Все ('+SCENARIOS.length+')';
+    allBtn.className = state.groupFilter ? '' : 'active';
+    allBtn.addEventListener('click', function(){ state.groupFilter=''; renderScenarioFilters(); renderScenarioPickers(); });
+    elScenarioFilters.appendChild(allBtn);
+    SCENARIO_GROUPS.forEach(function(g){
+      var n = SCENARIOS.filter(function(s){return s.group===g.id;}).length;
       var b = document.createElement('button');
       b.type = 'button';
-      b.dataset.scenario = s.id;
-      b.innerHTML = '<span class="sid">'+(idx+1)+' / '+s.id+' · '+s.steps.length+' шагов</span>'+escapeHtml(s.title);
-      if (s.id === state.scenarioId) b.classList.add('active');
-      b.addEventListener('click', function(){ pickScenario(s.id); });
-      elScenarioGrid.appendChild(b);
+      b.textContent = g.title.replace(/^[A-G]\.\s*/, '') + ' ('+n+')';
+      b.title = g.title;
+      if (state.groupFilter === g.id) b.classList.add('active');
+      b.addEventListener('click', function(){
+        state.groupFilter = g.id;
+        renderScenarioFilters();
+        renderScenarioPickers();
+      });
+      elScenarioFilters.appendChild(b);
     });
+  }
+
+  function renderScenarioPickers(){
+    var list = scenariosForFilter();
+    elScenarioCount.textContent = String(list.length) + (state.groupFilter ? ' / '+SCENARIOS.length : '');
+    elScenario.innerHTML = '';
+    elScenarioGrid.innerHTML = '';
+
+    var byGroup = {};
+    SCENARIO_GROUPS.forEach(function(g){ byGroup[g.id] = []; });
+    list.forEach(function(s){
+      if (!byGroup[s.group]) byGroup[s.group] = [];
+      byGroup[s.group].push(s);
+    });
+
+    var globalIdx = 0;
+    SCENARIO_GROUPS.forEach(function(g){
+      var items = byGroup[g.id] || [];
+      if (!items.length) return;
+
+      var og = document.createElement('optgroup');
+      og.label = g.title;
+      items.forEach(function(s, i){
+        globalIdx++;
+        var o = document.createElement('option');
+        o.value = s.id;
+        o.textContent = (i+1) + '. ' + s.title + ' (' + s.steps.length + ' ш.)';
+        og.appendChild(o);
+      });
+      elScenario.appendChild(og);
+
+      var sec = document.createElement('div');
+      sec.className = 'scenario-section';
+      var h = document.createElement('h4');
+      h.textContent = g.title + ' · ' + items.length;
+      sec.appendChild(h);
+      var grid = document.createElement('div');
+      grid.className = 'scenario-grid';
+      items.forEach(function(s, i){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.scenario = s.id;
+        b.innerHTML = '<span class="sid">'+g.id.toUpperCase()+(i+1)+' / '+s.id+' · '+s.steps.length+' шагов</span>'+escapeHtml(s.title);
+        if (s.id === state.scenarioId) b.classList.add('active');
+        b.addEventListener('click', function(){ pickScenario(s.id); });
+        grid.appendChild(b);
+      });
+      sec.appendChild(grid);
+      elScenarioGrid.appendChild(sec);
+    });
+
+    if (!list.some(function(s){return s.id===state.scenarioId;})) {
+      // keep selection even if filtered out of grid; select may still need value
+    }
     elScenario.value = state.scenarioId;
+    if (elScenario.value !== state.scenarioId) {
+      // selected scenario not in current filter options — add hidden option
+      var o = document.createElement('option');
+      o.value = state.scenarioId;
+      var cur = currentScenario();
+      o.textContent = cur ? cur.title : state.scenarioId;
+      elScenario.appendChild(o);
+      elScenario.value = state.scenarioId;
+    }
   }
 
   function pickScenario(id){
@@ -632,7 +821,7 @@
   }
 
   function syncScenarioButtons(){
-    elScenarioGrid.querySelectorAll('button').forEach(function(b){
+    elScenarioGrid.querySelectorAll('button[data-scenario]').forEach(function(b){
       b.classList.toggle('active', b.dataset.scenario === state.scenarioId);
     });
   }
@@ -804,8 +993,9 @@
 
   function updatePlayerUI(){
     var sc = currentScenario();
+    var g = groupTitle(sc.group);
     if (state.step < 0){
-      elPlayerTitle.textContent = sc.title;
+      elPlayerTitle.textContent = g + ' · ' + sc.title;
       elPlayerNote.textContent = 'Нажмите «Плей» или ◀/▶. Шагов: '+sc.steps.length+'.';
       elPlayerProgress.style.width = '0%';
       return;
