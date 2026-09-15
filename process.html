@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v17</title>
+<title>Интерактивный процесс Витавто — ТЗ × схема × матрица × код · v18</title>
 <style>
   :root{
     --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
@@ -18,6 +18,7 @@
     --supplier:#d5e8d4; --supplier-bd:#82b366;
     --store:#fff2cc; --store-bd:#d6b656;
     --mech:#f8cecc; --mech-bd:#b85450;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;}
@@ -140,6 +141,52 @@
   .stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:88px;}
   .stat b{display:block;font-size:16px;}
   .stat span{color:var(--muted);font-size:10px;}
+  .stat.accent{border-color:#93c5fd;background:linear-gradient(#fff,#eff6ff);}
+  .stat.warn{border-color:var(--part-bd);background:linear-gradient(#fff,var(--part-bg));}
+  .stat.ok-s{border-color:var(--ok-bd);background:linear-gradient(#fff,var(--ok-bg));}
+
+  .scenario-toggle{
+    display:inline-flex;align-items:center;gap:6px;border:none;background:transparent;
+    padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;
+  }
+  .scenario-toggle:hover{color:var(--accent);}
+  .scenario-toggle .chev{display:inline-block;width:12px;font-size:10px;color:var(--muted);transition:transform .15s;}
+  .scenario-toggle[aria-expanded="true"] .chev{transform:rotate(90deg);}
+  .scenario-body[hidden]{display:none !important;}
+
+  .body.view-estimate .layout{grid-template-columns:1fr;}
+  .body.view-estimate #sidePanel,
+  .body.view-estimate .legend,
+  .body.view-estimate #playerBar,
+  .body.view-estimate #statsRow,
+  .body.view-estimate .process-chrome{display:none !important;}
+
+  .est-callout{
+    background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;
+    padding:10px 12px;margin-bottom:14px;line-height:1.45;font-size:12px;color:#9a3412;
+  }
+  .est-callout strong{color:#7c2d12;}
+  .est-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  @media (max-width:800px){.est-modes{grid-template-columns:1fr;}}
+  .est-mode{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .est-mode.pick{border-color:#93c5fd;box-shadow:inset 0 0 0 1px #93c5fd;}
+  .est-mode .tag{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+  .est-mode h3{margin:4px 0 6px;font-size:13px;}
+  .est-mode .big{font-size:22px;font-weight:700;margin:0 0 8px;font-variant-numeric:tabular-nums;}
+  .est-mode ul{margin:0;padding-left:16px;font-size:12px;line-height:1.45;color:var(--muted);}
+  .est-mode li{margin-bottom:4px;}
+  .est h2{font-size:14px;margin:18px 0 8px;}
+  .est .hint{color:var(--muted);font-size:11px;margin:0 0 10px;line-height:1.4;}
+  .est table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:12px;margin-bottom:8px;}
+  .est th,.est td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;line-height:1.4;}
+  .est th{background:#eef1f6;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;}
+  .est tr:last-child td{border-bottom:none;}
+  .est tr.alt td{background:#fafafa;}
+  .est tr.tot td{font-weight:700;background:#eef1f6;}
+  .est tr.excl td{color:var(--muted);font-style:italic;}
+  .est .num{white-space:nowrap;font-variant-numeric:tabular-nums;font-family:Consolas,monospace;font-size:11.5px;}
+  .est ul.audit{margin:0;padding-left:18px;font-size:12px;line-height:1.5;}
+  .est ul.audit li{margin-bottom:6px;}
 </style>
 </head>
 <body class="body">
@@ -154,18 +201,19 @@
     <div class="seg" id="viewSeg">
       <button data-view="process" class="active">Процесс заявки</button>
       <button data-view="zones">Складские зоны</button>
+      <button data-view="estimate">Оценка ТЗ</button>
     </div>
-    <label class="badge">Сценарий
+    <label class="badge process-chrome">Сценарий
       <select id="scenarioSelect" style="margin-left:6px" size="1"></select>
     </label>
-    <button id="btnPrev" title="Предыдущий шаг">◀</button>
-    <button id="btnPlay" class="primary">▶ Плей</button>
-    <button id="btnNext" title="Следующий шаг">▶</button>
-    <button id="btnStop">Сброс плеера</button>
+    <button id="btnPrev" class="process-chrome" title="Предыдущий шаг">◀</button>
+    <button id="btnPlay" class="primary process-chrome">▶ Плей</button>
+    <button id="btnNext" class="process-chrome" title="Следующий шаг">▶</button>
+    <button id="btnStop" class="process-chrome">Сброс плеера</button>
     <div class="grow"></div>
-    <button id="btnCoverage" class="toggle active" title="Подсветка покрытия кода">Покрытие кода</button>
-    <button id="btnGapsOnly" class="toggle" title="Показать только разрывы">Только разрывы</button>
-    <select id="roleFilter" title="Фильтр роли">
+    <button id="btnCoverage" class="toggle active process-chrome" title="Подсветка покрытия кода">Покрытие кода</button>
+    <button id="btnGapsOnly" class="toggle process-chrome" title="Показать только разрывы">Только разрывы</button>
+    <select id="roleFilter" class="process-chrome" title="Фильтр роли">
       <option value="">Все роли</option>
     </select>
     <a class="btn" href="index.html">← Матрица прав</a>
@@ -184,11 +232,16 @@
   <div class="main">
     <div class="player" id="playerBar">
       <div class="scenario-head">
-        <strong>Сценарии плеера — <span id="scenarioCount">0</span></strong>
-        <span class="badge">группы + фильтр; карточка или выпадающий список</span>
+        <button type="button" class="scenario-toggle" id="btnScenariosToggle" aria-expanded="false" title="Развернуть / свернуть список сценариев">
+          <span class="chev" aria-hidden="true">▶</span>
+          <strong>Сценарии плеера — <span id="scenarioCount">0</span></strong>
+        </button>
+        <span class="badge" id="scenariosCollapsedHint">свёрнуто · кликните заголовок</span>
       </div>
-      <div class="scenario-filters" id="scenarioFilters"></div>
-      <div class="scenario-sections" id="scenarioGrid"></div>
+      <div class="scenario-body" id="scenarioBody" hidden>
+        <div class="scenario-filters" id="scenarioFilters"></div>
+        <div class="scenario-sections" id="scenarioGrid"></div>
+      </div>
       <div class="player-top">
         <div class="step-meta">
           <div class="step-title" id="playerTitle">Выберите сценарий и нажмите «Плей» или кликните узел</div>
@@ -209,6 +262,10 @@
       <div class="edges-hint">Вторая страница блок-схемы: физическое движение деталей по зонам склада.</div>
       <div class="zones" id="zones"></div>
     </div>
+
+    <div class="view-panel est" id="estimateView" hidden>
+      <div id="estimateRoot"></div>
+    </div>
   </div>
 
   <aside class="side" id="sidePanel">
@@ -218,7 +275,8 @@
 </div>
 
 <footer class="app">
-  Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2). Покрытие — экспертная оценка по распакованному расширению, не runtime-метрика.
+  Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
+  Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
 </footer>
 
 <script>
@@ -657,11 +715,42 @@
     gapsOnly:false,
     roleFilter:'',
     groupFilter:'',
+    scenariosOpen:false,
     selected:null,
     scenarioId:'happy',
     step: -1,
     playing:false,
     playTimer:null
+  };
+
+  /** Остаток работ 1С: аврал = чистый код; комфорт = ×1,4. Обучение отдельно. */
+  var TZ_ESTIMATE = {
+    comfortCode:'430–620',
+    crunchCode:'310–440',
+    trainComfort:'24–40',
+    trainCrunch:'16–32',
+    packComfort:'455–660',
+    packCrunch:'326–472',
+    calendar:'3,5–5 мес',
+    layers:[
+      {name:'Согласования / решения (РРЦ, статусы, Снабжение↔Кладовщик)', hours:'30–50', why:'Иначе этапы 2–4 встают'},
+      {name:'Демо + ревью + правки', hours:'40–60', why:'Нормальный цикл поставки'},
+      {name:'Отладка УНФ 1.6 / регрессии', hours:'25–40', why:'Не в «идеальном» чистом коде'},
+      {name:'Неопределённость / мелкий реворк', hours:'25–40', why:'~8–10% базы; не буфер ТЗ 20–30%'}
+    ],
+    stages:[
+      {id:1, name:'НСИ', tz:'24–32', done:15, crunch:'20–27', comfort:'28–38', note:'Бренды, зоны, фото, статус поиска'},
+      {id:2, name:'Партии / РРЦ', tz:'40–56', done:20, crunch:'32–45', comfort:'45–63', note:'Ждёт решение по модели цены'},
+      {id:3, name:'Документы', tz:'80–120', done:25, crunch:'60–90', comfort:'84–126', note:'Самый тяжёлый блок'},
+      {id:4, name:'Роли / права', tz:'40–56', done:20, crunch:'32–45', comfort:'45–63', note:'Матрица колонок в 1С'},
+      {id:5, name:'Печать', tz:'40–56', done:0, crunch:'40–56', comfort:'56–78', note:'5+ форм + шаблоны КА'},
+      {id:6, name:'Интеграция', tz:'24–40', done:0, crunch:'24–40', comfort:'34–56', note:'Базовый вариант (кнопка / фиксация)'},
+      {id:7, name:'Статусы', tz:'32–48', done:35, crunch:'21–31', comfort:'29–43', note:'FSM + блокировки'},
+      {id:8, name:'АРМ по ролям', tz:'40–56', done:30, crunch:'28–39', comfort:'39–55', note:'Кладовщик 4 вкладки + механик'},
+      {id:9, name:'Кроссы', tz:'24–32', done:0, crunch:'24–32', comfort:'34–45', note:'Связь артикул↔артикул'},
+      {id:10, name:'QA кода', tz:'24–32', done:5, crunch:'23–30', comfort:'32–42', note:'Прогон 23 сценариев', qa:true},
+      {id:'10b', name:'Обучение', tz:'16–32', done:0, crunch:'16–32', comfort:'24–40', note:'Не код', train:true}
+    ]
   };
 
   var byId = {};
@@ -675,6 +764,10 @@
   var elScenarioGrid = document.getElementById('scenarioGrid');
   var elScenarioFilters = document.getElementById('scenarioFilters');
   var elScenarioCount = document.getElementById('scenarioCount');
+  var elScenarioBody = document.getElementById('scenarioBody');
+  var elScenariosToggle = document.getElementById('btnScenariosToggle');
+  var elScenariosHint = document.getElementById('scenariosCollapsedHint');
+  var elEstimateRoot = document.getElementById('estimateRoot');
   var elRoleFilter = document.getElementById('roleFilter');
   var elPlayerTitle = document.getElementById('playerTitle');
   var elPlayerNote = document.getElementById('playerNote');
@@ -684,6 +777,66 @@
   var elBody = document.body;
 
   function covLabel(c){ return COV[c] || c; }
+
+  function setScenariosOpen(open){
+    state.scenariosOpen = !!open;
+    elScenarioBody.hidden = !state.scenariosOpen;
+    elScenariosToggle.setAttribute('aria-expanded', state.scenariosOpen ? 'true' : 'false');
+    elScenariosHint.textContent = state.scenariosOpen
+      ? 'группы + фильтр; карточка или список'
+      : 'свёрнуто · кликните заголовок';
+  }
+
+  function pillDone(pct){
+    var cls = pct<=0 ? 'no' : (pct<50 ? 'part' : 'ok');
+    return '<span class="pill '+cls+'">'+pct+'%</span>';
+  }
+
+  function renderEstimate(){
+    var E = TZ_ESTIMATE;
+    var cov = countCov();
+    var layerRows = E.layers.map(function(L,i){
+      return '<tr class="'+(i%2?'alt':'')+'"><td>'+L.name+'</td><td class="num">'+L.hours+'</td><td>'+L.why+'</td></tr>';
+    }).join('');
+    var stageRows = E.stages.map(function(s,i){
+      var cls = s.train ? 'excl' : (i%2 ? 'alt' : '');
+      return '<tr class="'+cls+'"><td>'+s.id+'. '+s.name+'</td><td class="num">'+s.tz+'</td><td>'+pillDone(s.done)+'</td><td class="num">'+s.crunch+'</td><td class="num">'+s.comfort+'</td><td>'+s.note+'</td></tr>';
+    }).join('');
+    elEstimateRoot.innerHTML =
+      '<div class="est-callout"><strong>В план — комфортный темп (не аврал): '+E.comfortCode+' ч кода</strong> · '+E.calendar+
+      ' при 120–130 ч/мес. Аврал '+E.crunchCode+' — только нижняя граница. Комфорт = чистый код ×1,4 (согласования, демо, ревью, отладка УНФ). Буфер ТЗ 20–30% поверх ×1,4 не умножать.</div>'+
+      '<div class="est-modes">'+
+        '<div class="est-mode"><div class="tag">Аврал / чистый код</div><h3>Только руки в IDE</h3><div class="big">'+E.crunchCode+' ч</div>'+
+        '<ul><li>~160 ч/мес → 2–2,8 мес</li><li>Без запаса на согласования и реворк</li><li>Риск срыва при блокере РРЦ</li></ul></div>'+
+        '<div class="est-mode pick"><div class="tag">Комфорт — брать в план</div><h3>Устойчивая поставка</h3><div class="big">'+E.comfortCode+' ч</div>'+
+        '<ul><li>×1,4 к чистому коду</li><li>~120–130 ч/мес → '+E.calendar+'</li><li>+ обучение '+E.trainComfort+' → пакет <strong>'+E.packComfort+'</strong></li></ul></div>'+
+      '</div>'+
+      '<div class="stats">'+
+        '<div class="stat accent"><b>'+E.comfortCode+'</b><span>комфорт КОД, ч</span></div>'+
+        '<div class="stat"><b>'+E.crunchCode+'</b><span>аврал / чистый код</span></div>'+
+        '<div class="stat warn"><b>'+E.trainComfort+'</b><span>обучение (комфорт)</span></div>'+
+        '<div class="stat ok-s"><b>'+E.calendar+'</b><span>1 спец., 120–130 ч/мес</span></div>'+
+        '<div class="stat"><b>'+cov.ok+' / '+(cov.ok+cov.part+cov.no)+'</b><span>узлов cov=ok</span></div>'+
+      '</div>'+
+      '<h2>Слои комфорта (≈ ×1,4)</h2>'+
+      '<p class="hint">Поверх чистого кода '+E.crunchCode+'; без второго умножения буфера ТЗ.</p>'+
+      '<table><thead><tr><th>Слой</th><th>Часы</th><th>Зачем</th></tr></thead><tbody>'+layerRows+
+      '<tr class="tot"><td>Сумма слоёв</td><td class="num">120–190</td><td>→ итог комфорт '+E.comfortCode+'</td></tr></tbody></table>'+
+      '<h2>Блоки ТЗ → аврал vs комфорт</h2>'+
+      '<p class="hint">Готово — экспертно по src/ + cov узлов. Аврал = ТЗ×(1−готово). Комфорт = аврал×1,4.</p>'+
+      '<table><thead><tr><th>Этап ТЗ</th><th>ТЗ, ч</th><th>Готово</th><th>Аврал</th><th>Комфорт ×1,4</th><th>Комментарий</th></tr></thead><tbody>'+
+      stageRows+
+      '<tr class="tot"><td>Итого КОД (1–10a)</td><td class="num">—</td><td></td><td class="num">'+E.crunchCode+'</td><td class="num">'+E.comfortCode+'</td><td>В план — правая колонка</td></tr>'+
+      '<tr class="tot"><td>Пакет + обучение</td><td class="num">—</td><td></td><td class="num">'+E.packCrunch+'</td><td class="num">'+E.packComfort+'</td><td>Если этап 10 ТЗ целиком</td></tr>'+
+      '</tbody></table>'+
+      '<h2>Заметки аудита</h2>'+
+      '<ul class="audit">'+
+        '<li>Этап 3 «документы»: готовность ~25%, не 40% — главный прокол ранней оценки.</li>'+
+        '<li>Домены и этапы ТЗ не складывать (двойной счёт).</li>'+
+        '<li>Part ≠ половина работы. Реально «съедено» ~22–28% от mid ТЗ (384–560).</li>'+
+        '<li>Конфликт РРЦ (ТЗ vs схема vs код) и УНФ 1.6 vs оценка «как 3.0» — в комфорте через ×1,4.</li>'+
+      '</ul>';
+  }
 
   function groupTitle(id){
     var g = SCENARIO_GROUPS.filter(function(x){return x.id===id;})[0];
@@ -1044,23 +1197,40 @@
 
   function setView(v){
     state.view = v;
+    elBody.classList.toggle('view-estimate', v==='estimate');
     document.getElementById('processView').hidden = v!=='process';
     document.getElementById('zonesView').hidden = v!=='zones';
+    document.getElementById('estimateView').hidden = v!=='estimate';
     document.querySelectorAll('#viewSeg button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-view')===v);
     });
-    if (v==='zones') renderZones(); else renderLanes();
+    if (v==='estimate'){
+      stopPlay(false);
+      renderEstimate();
+    } else if (v==='zones') {
+      renderZones();
+    } else {
+      renderLanes();
+    }
+    try {
+      var q = new URLSearchParams(location.search);
+      if (v==='process') q.delete('view'); else q.set('view', v);
+      var qs = q.toString();
+      history.replaceState(null,'', qs ? ('?'+qs) : location.pathname);
+    } catch(e){}
   }
 
   function applyChrome(){
     elBody.classList.toggle('coverage-off', !state.coverage);
     document.getElementById('btnCoverage').classList.toggle('active', state.coverage);
     document.getElementById('btnGapsOnly').classList.toggle('active', state.gapsOnly);
-    if (state.view==='process') renderLanes(); else renderZones();
+    if (state.view==='process') renderLanes();
+    else if (state.view==='zones') renderZones();
   }
 
   function bootFromQuery(){
     var q = new URLSearchParams(location.search);
+    var view = q.get('view');
     var node = q.get('node');
     var sc = q.get('scenario');
     if (sc && SCENARIOS.some(function(s){return s.id===sc;})) {
@@ -1069,13 +1239,17 @@
       syncScenarioButtons();
       updatePlayerUI();
     }
-    if (node && byId[node]) selectNode(node, true);
+    if (view==='zones' || view==='estimate') setView(view);
+    if (node && byId[node] && state.view!=='estimate') selectNode(node, true);
   }
 
   // events
   document.getElementById('viewSeg').addEventListener('click', function(e){
     var b = e.target.closest('button[data-view]'); if(!b) return;
     setView(b.getAttribute('data-view'));
+  });
+  elScenariosToggle.addEventListener('click', function(){
+    setScenariosOpen(!state.scenariosOpen);
   });
   document.getElementById('btnCoverage').addEventListener('click', function(){
     state.coverage = !state.coverage; applyChrome();
@@ -1106,6 +1280,7 @@
   fillSelectors();
   renderStats();
   updatePlayerUI();
+  setScenariosOpen(false);
   renderLanes();
   bootFromQuery();
 })();
