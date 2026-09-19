@@ -282,7 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
-  Обновление плеера 19.09.2026: M2+D1; K3→M10→M11→M12; B2: M10→M9∥K8→…; без K9 списания; M17∥K9; B1→A3.
+  Обновление плеера 19.09.2026: M2+D1; K3→M10→M11→M12; B2: M10→M9∥K8→…; C3: N2a→N3→K6→M10→M9→K3→M11→M12→M15∥K7; M17∥K9; B1→A3.
 </footer>
 
 <script>
@@ -316,7 +316,7 @@
     {id:'M11', role:'manager', title:'Уведомление о готовности', full:'После контроля комплектации (M10): заказ укомплектован / готов к отгрузке. Дальше отгрузочная ведомость (M12). При отказе прав — M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['line_status','shipment_number'], tz:'K3→M10→M11→M12; опционально M11→M13→M12.', code:'Отдельного notify нет.', next:[{to:'M12', label:'ведомость'}, {to:'M13', label:'менеджер без прав', dashed:true}]},
     {id:'M12', role:'manager', title:'Отгрузочная ведомость', full:'Формирование отгрузочной ведомости — менеджер. Перед этим M11 (готовность); если прав нет — через M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'ПФ отгрузочная ведомость. K3→M10→M11→M12 (или M11→M13→M12).', code:'Печатных форм в расширении нет.', next:[{to:'K5', label:'документы готовы'}]},
     {id:'M13', role:'manager', title:'Недостаточно прав, обратись к админу', full:'Единый блок отказа прав: вирт. закуп / подтверждение чека и попытка сформировать отгрузочную ведомость. Текст менеджеру — обратиться к админу.', shape:'rect', cov:'no', status:['ordered','new','ready_to_ship'], cols:['comment'], tz:'Слиты бывшие M14+M15.', code:'Нет.', next:[{to:'A3', label:'админ: подтверждение чека'}, {to:'M12', label:'ведомость'}]},
-    {id:'M15', role:'manager', title:'Контроль документов', full:'Перенесено с клиента (бывш. N2b): физ. подпись на отгрузочном и отметка, что оригинал получен. Видно одновременно с K7 (кладовщик) — не последовательный handoff. Перед возвратом поставщику (M16). Зеркало у механика — G7.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Бывш. N2b → менеджер M15; параллельно K7.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[{to:'M16', label:'если возврат поставщику', dashed:true}]},
+    {id:'M15', role:'manager', title:'Контроль документов', full:'Перенесено с клиента (бывш. N2b): физ. подпись на отгрузочном и отметка, что оригинал получен (колонка doc_signed_original: галка true → строка не защищена). Видно одновременно с K7 (кладовщик) — не последовательный handoff. Перед заявкой на возврат поставщику (M16). Зеркало у механика — G7.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['doc_signed_original','shipment_date','shipment_number','comment'], tz:'Бывш. N2b → менеджер M15; параллельно K7.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[{to:'M16', label:'если возврат поставщику', dashed:true}]},
     {id:'M16', role:'manager', title:'Заявка на возврат поставщику', full:'Оформление заявки на возврат поставщику (ошибочный заказ / брак). Перед этим — контроль документов (M15). Перед отправкой товар передаётся кладовщику.', shape:'rect', cov:'no', status:['return'], cols:['supplier','comment'], tz:'Бывш. M15.', code:'Нет.', next:[{to:'K6', label:'передать кладовщику'}, {to:'P3', label:'уже со склада → поставщик'}]},
     {id:'M17', role:'manager', title:'Уведомление о самовывозе', full:'После самовывоза у внешнего поставщика (N4): менеджер фиксирует уведомление. Видно одновременно с K9 (кладовщик).', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date','shipment_number'], tz:'N4→M17∥K9.', code:'Нет.', next:[{to:'M15', label:'контроль документов', dashed:true}]},
     {id:'A1', role:'admin', title:'Неопознанные + фото', full:'Создание позиции в папке «Не опознанные», фотофиксация', shape:'rect', cov:'no', status:['new'], cols:['name','article','comment'], tz:'НСИ: неопознанные (§2.1).', code:'Папки/фотофиксации в АРМ нет.', next:[{to:'A2', label:'карточка заполнена'}]},
@@ -332,7 +332,7 @@
     {id:'K3', role:'storekeeper', title:'Комплектация + сборочный лист', full:'Комплектация: печать сборочного листа, отметка дефектов/недостач. Дальше контроль комплектации менеджером (M10).', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','name_fact','article_fact'], tz:'Комплектация + ПФ сборочный лист. K3→M10.', code:'Статусы Комплектуется/Собран; печати нет.', next:[{to:'M10', label:'сборка завершена → контроль'}, {to:'M4', label:'дефект → дозаказ', dashed:true}]},
     {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → «Отгружено». Клиент — N2a (товар); контроль документов — M15 и K7 одновременно.', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5). OCR: split N2.', code:'Дата/номер + РасходнаяНакладная.', next:[{to:'N2a', label:'клиент получил товар'}, {to:'K7', label:'контроль документов ∥ M15'}]},
     {id:'K6', role:'storekeeper', title:'Приёмка / подготовка возврата', full:'Два входа: (1) возврат от клиента; (2) от менеджера (M16). В конце дорожки — K7 контроль документов.', shape:'rect', cov:'no', status:['return'], cols:['comment','line_status','supplier'], tz:'Возвраты в АРМ кладовщика; склад обязателен и при возврате поставщику.', code:'Нет.', next:[{to:'M16', label:'согласование (от клиента)', dashed:true}, {to:'P3', label:'отгрузка возврата поставщику'}, {to:'K7', label:'контроль документов', dashed:true}]},
-    {id:'K7', role:'storekeeper', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал), что у менеджера M15 — видно одновременно с M15, не после handoff.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Зеркало M15 для склада; параллельно M15.', code:'Нет.', next:[]},
+    {id:'K7', role:'storekeeper', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал, колонка doc_signed_original), что у менеджера M15 — видно одновременно с M15, не после handoff.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['doc_signed_original','shipment_date','shipment_number','comment'], tz:'Зеркало M15 для склада; параллельно M15.', code:'Нет.', next:[]},
     {id:'K8', role:'storekeeper', title:'Розыск позиции', full:'После отклонения на контроле комплектации (M10): кладовщик ищет позицию. Идёт параллельно с M9 у менеджера.', shape:'rect', cov:'no', status:['assembly'], cols:['line_status','name_fact','article_fact','comment'], tz:'M10→K8∥M9 (B2).', code:'Нет.', next:[]},
     {id:'K9', role:'storekeeper', title:'Уведомление о самовывозе', full:'Зеркало M17: уведомление о самовывозе у внешнего поставщика — видно одновременно с менеджером, не после handoff.', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date','shipment_number'], tz:'Зеркало M17 для склада; параллельно M17.', code:'Нет.', next:[]},
     {id:'G1', role:'chief_mechanic', title:'Открытие заказ-наряда', full:'Открытие заказ-наряда (аналогично заявке менеджера)', shape:'rect', cov:'no', status:['new'], cols:['order_header','fact'], tz:'§4.3 Главный механик.', code:'Нет объектов заказ-наряда.', next:[{to:'G2', label:'заказ запчастей'}]},
@@ -516,12 +516,17 @@
     },
     {
       id:'return_internal', group:'returns',
-      title:'Возврат на склад (без поставщика)',
+      title:'Возврат от клиента → повторная комплектация (продолжение A)',
       steps:[
-        {node:'N3', note:'Клиент возвращает товар.', status:'return'},
-        {node:'K6', note:'Приёмка возврата.', status:'return'},
-        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе / остатках.', status:'acceptance'}
+        {node:'N2a', note:'Продолжение A1/A2/A3: клиент получил товар.', status:'shipped'},
+        {node:'N3', note:'Клиент инициирует возврат.', status:'return'},
+        {node:'K6', note:'Приёмка / подготовка возврата на складе.', status:'return'},
+        {node:'M10', note:'Контроль комплектации.', status:'assembly'},
+        {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
+        {node:'K3', note:'Комплектация + сборочный лист.', status:'assembly'},
+        {node:'M11', note:'Уведомление о готовности.', status:'ready_to_ship'},
+        {node:'M12', note:'Отгрузочная ведомость.', status:'ready_to_ship'},
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {

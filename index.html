@@ -98,6 +98,9 @@
   table.preview-table td.prev-editable input{background:#fff;border-color:var(--green-bd);}
   table.preview-table td.prev-readonly{background:var(--yellow-bg);}
   table.preview-table td.prev-readonly input{cursor:not-allowed;color:#4b5563;}
+  table.preview-table td.prev-bool{text-align:center;}
+  table.preview-table td.prev-bool input[type=checkbox]{width:16px;height:16px;cursor:pointer;}
+  table.preview-table td.prev-readonly.prev-bool input[type=checkbox]{cursor:not-allowed;}
   table.preview-table td.prev-required input{border-color:var(--danger);}
   table.preview-table .req-star{color:var(--danger);margin-left:2px;}
   .preview-empty{color:var(--muted);font-style:italic;padding:6px 4px;}
@@ -119,10 +122,13 @@
 
 <header class="app">
   <h1>Конфигуратор матрицы видимости и редактирования колонок — Витавто (1С:УНФ)</h1>
-  <div class="sub">Прототип для настройки прав «Роль × Статус × Колонка» с сохранением в localStorage браузера. Не подключается к 1С, не содержит реальных данных. Рядом: <a href="process.html">интерактивный процесс (схема × покрытие кода)</a>.</div>
+  <div class="sub">Прототип для настройки прав «Роль × Статус × Колонка» с сохранением в localStorage браузера. Не подключается к 1С, не содержит реальных данных. Рядом: <a href="process.html">интерактивный процесс</a>, <a href="br-fr-analysis.html">разбор БТ/ФТ</a>, <a href="bt.html">БТ</a>, <a href="ft.html">ФТ</a>, <a href="approve.html">протокол апрувов</a>, <a href="protocol-map.html">карта протокола</a>.</div>
 
   <div class="toolbar">
     <a href="process.html" style="display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;">Процесс B5</a>
+    <a href="br-fr-analysis.html" style="display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;">Разбор БТ/ФТ</a>
+    <a href="approve.html" style="display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;">Протокол апрувов</a>
+    <a href="protocol-map.html" style="display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;">Карта протокола</a>
     <div class="level-toggle" id="levelToggle">
       <button data-level="order" class="active">Уровень статуса: Заказ</button>
       <button data-level="line">Деталь (строка)</button>
@@ -188,7 +194,7 @@
 
 <div class="preview-panel" id="previewPanel">
   <h2>Как это увидит роль «<span id="previewRoleName"></span>» — пример строк таблицы (статус: <span id="previewStatusName"></span>)</h2>
-  <div class="preview-sub">Зелёные поля — доступны для редактирования, жёлтые — только для просмотра. Колонки, скрытые для роли на этом статусе, в примере не показываются.</div>
+  <div class="preview-sub">Зелёные поля — доступны для редактирования, жёлтые — только для просмотра. Колонки, скрытые для роли на этом статусе, в примере не показываются. Галка «Документ подписан оригинал» (true) снимает защиту строки: поля становятся редактируемыми.</div>
   <div class="preview-table-wrap">
     <table class="preview-table" id="previewTable"></table>
   </div>
@@ -260,6 +266,7 @@
 
   var COLUMNS = [
     {id:'row_number', title:'№ п/п', group:'system'},
+    {id:'doc_signed_original', title:'Документ подписан оригинал', group:'doc_flag', type:'bool'},
     {id:'shipment_date', title:'Дата отгрузки', group:'auto'},
     {id:'shipment_number', title:'Номер отгрузки', group:'auto'},
     {id:'order_date', title:'Дата заказа', group:'auto'},
@@ -304,7 +311,7 @@
   // Примеры строк реальной таблицы (для наглядного предпросмотра прав роли)
   var SAMPLE_ROWS = [
     { label:'Пример 1 — стандартная позиция в наличии', values:{
-      row_number:'1', shipment_date:'04.02.2026', shipment_number:'141', order_date:'02.02.2026',
+      row_number:'1', doc_signed_original:false, shipment_date:'04.02.2026', shipment_number:'141', order_date:'02.02.2026',
       order_internal_number:'ЗК-0141', order_client_number:'—', customer:'ООО «СтройТранс»', contract:'Д-22/2026',
       service_type:'Запчасть', urgency_fact:'—', vehicle_plate_fact:'А590СЕ197', territory_fact:'СПАК',
       name_fact:'Фонарь задний КАМАЗ левый ТЕХАВТОСВЕТ', article_fact:'7452-262', qty_fact:'1,00', unit_fact:'шт',
@@ -316,7 +323,7 @@
       upd_date:'04.02.2026', upd_number:'УПД-3391', supplier_ship_territory:'КЕТЧЕРСКАЯ', comment:'Стандартная отгрузка'
     }},
     { label:'Пример 2 — позиция ждёт опознания (артикул не найден)', values:{
-      row_number:'2', shipment_date:'—', shipment_number:'—', order_date:'02.02.2026',
+      row_number:'2', doc_signed_original:false, shipment_date:'—', shipment_number:'—', order_date:'02.02.2026',
       order_internal_number:'ЗК-0142', order_client_number:'—', customer:'Частный клиент', contract:'—',
       service_type:'Запчасть', urgency_fact:'срочно', vehicle_plate_fact:'М141МН777', territory_fact:'СПАК',
       name_fact:'Шкив ГАЗ-3302 Бизнес дв.УМЗ-4216', article_fact:'4216.1005074', qty_fact:'1,00', unit_fact:'шт',
@@ -327,7 +334,7 @@
       comment:'Ожидает опознания администратором, нужна фотофиксация'
     }},
     { label:'Пример 3 — заказ закрыт и отгружен клиенту', values:{
-      row_number:'3', shipment_date:'06.02.2026', shipment_number:'145', order_date:'06.02.2026',
+      row_number:'3', doc_signed_original:true, shipment_date:'06.02.2026', shipment_number:'145', order_date:'06.02.2026',
       order_internal_number:'ЗК-0145', order_client_number:'КЛ-778', customer:'ИП Кетчерская', contract:'Д-05/2026',
       service_type:'Запчасть', urgency_fact:'—', vehicle_plate_fact:'Е427ЕВ777', territory_fact:'АРМ',
       name_fact:'Крышка КАМАЗ редуктора среднего моста', article_fact:'54115-2502209', qty_fact:'1,00', unit_fact:'шт',
@@ -351,7 +358,7 @@
   // ---- Ролевые профили по умолчанию (визуальные группы колонок) ----
   var ROLE_PROFILES = {
     manager: {
-      system:{visible:true, editable:'none'}, auto:{visible:true, editable:'none'},
+      system:{visible:true, editable:'none'}, doc_flag:{visible:true, editable:'all'}, auto:{visible:true, editable:'none'},
       order_header:{visible:true, editable:'all'}, fact:{visible:true, editable:'all'},
       fact_editable:{visible:true, editable:'all'}, nomenclature:{visible:true, editable:'all'},
       stock:{visible:true, editable:'none'}, status:{visible:true, editable:'none'},
@@ -361,7 +368,7 @@
       comment:{visible:true, editable:'all'}
     },
     storekeeper: {
-      system:{visible:true, editable:'none'}, auto:{visible:true, editable:'none'},
+      system:{visible:true, editable:'none'}, doc_flag:{visible:true, editable:'all'}, auto:{visible:true, editable:'none'},
       order_header:{visible:true, editable:'none'}, fact:{visible:true, editable:'none'},
       fact_editable:{visible:true, editable:'all'}, nomenclature:{visible:true, editable:'all'},
       stock:{visible:true, editable:'all'}, status:{visible:true, editable:'none'},
@@ -371,7 +378,7 @@
       comment:{visible:true, editable:'all'}
     },
     admin: {
-      system:{visible:true, editable:'none'}, auto:{visible:true, editable:'all'},
+      system:{visible:true, editable:'none'}, doc_flag:{visible:true, editable:'all'}, auto:{visible:true, editable:'all'},
       order_header:{visible:true, editable:'all'}, fact:{visible:true, editable:'all'},
       fact_editable:{visible:true, editable:'all'}, nomenclature:{visible:true, editable:'all'},
       stock:{visible:true, editable:'all'}, status:{visible:true, editable:'all'},
@@ -381,7 +388,7 @@
       comment:{visible:true, editable:'all'}
     },
     supplier: {
-      system:{visible:false, editable:'none'}, auto:{visible:false, editable:'none'},
+      system:{visible:false, editable:'none'}, doc_flag:{visible:false, editable:'none'}, auto:{visible:false, editable:'none'},
       order_header:{visible:false, editable:'none'}, fact:{visible:false, editable:'none'},
       fact_editable:{visible:false, editable:'none'}, nomenclature:{visible:true, editable:'none'},
       stock:{visible:false, editable:'none'}, status:{visible:true, editable:'none'},
@@ -391,7 +398,7 @@
       comment:{visible:true, editable:'all'}
     },
     client: {
-      system:{visible:false, editable:'none'}, auto:{visible:true, editable:'none'},
+      system:{visible:false, editable:'none'}, doc_flag:{visible:false, editable:'none'}, auto:{visible:true, editable:'none'},
       order_header:{visible:true, editable:'none'}, fact:{visible:false, editable:'none'},
       fact_editable:{visible:false, editable:'none'}, nomenclature:{visible:true, editable:'none'},
       stock:{visible:false, editable:'none'}, status:{visible:true, editable:'none'},
@@ -431,7 +438,7 @@
     if (roleId === 'storekeeper' && statusId === 'acceptance' && (colId==='receipt_date'||colId==='upd_number')){
       cell.required = true;
     }
-    if (statusId === 'closed' && roleId !== 'admin'){
+    if (statusId === 'closed' && roleId !== 'admin' && colId !== 'doc_signed_original'){
       cell.editable = 'none';
     }
     return enforceConstraints(cell);
@@ -461,9 +468,32 @@
       settings: {statusLevel:'order', activeRole:'manager', statusViewMode:'all', currentStatusIndex:0},
       roles: ROLE_IDS.slice(),
       statuses: STATUSES.map(function(s){return {id:s.id, title:s.title};}),
-      columns: COLUMNS.map(function(c){return {id:c.id, title:c.title, group:c.group};}),
+      columns: COLUMNS.map(function(c){return {id:c.id, title:c.title, group:c.group, type:c.type||null};}),
       matrix: buildDefaultMatrix()
     };
+  }
+
+  function syncCanonicalColumns(st){
+    var prev = {};
+    (st.columns || []).forEach(function(c){ if (c && c.id) prev[c.id] = c; });
+    st.columns = COLUMNS.map(function(c){
+      return {id:c.id, title:c.title, group:c.group, type:c.type||null};
+    });
+    ['order','line'].forEach(function(level){
+      if (!st.matrix || !st.matrix[level]) return;
+      ROLES.forEach(function(r){
+        if (!st.matrix[level][r.id]) st.matrix[level][r.id] = {};
+        STATUSES.forEach(function(s){
+          if (!st.matrix[level][r.id][s.id]) st.matrix[level][r.id][s.id] = {};
+          COLUMNS.forEach(function(c){
+            if (!st.matrix[level][r.id][s.id][c.id]) {
+              st.matrix[level][r.id][s.id][c.id] = computeDefaultCell(r.id, c.id, s.id);
+            }
+          });
+        });
+      });
+    });
+    return st;
   }
 
   function validateImport(obj){
@@ -499,6 +529,7 @@
     if (ROLE_IDS.indexOf(st.settings.activeRole) === -1) st.settings.activeRole = 'manager';
     if (st.settings.statusViewMode !== 'single') st.settings.statusViewMode = 'all';
     if (typeof st.settings.currentStatusIndex !== 'number' || st.settings.currentStatusIndex < 0) st.settings.currentStatusIndex = 0;
+    syncCanonicalColumns(st);
     return st;
   }
 
@@ -651,6 +682,10 @@
     document.getElementById('btnNextStatus').disabled = idx >= statuses.length - 1;
   }
 
+  function isTruthyFlag(v){
+    return v === true || v === 'true' || v === 1 || v === '1' || v === 'да' || v === 'Да';
+  }
+
   function renderPreview(){
     var level = currentLevel();
     var statuses = getStatuses();
@@ -675,15 +710,30 @@
       return '<th>'+esc(col.title)+(cell.required ? '<span class="req-star">*</span>' : '')+'</th>';
     }).join('') + '</tr></thead>';
 
-    var bodyHtml = '<tbody>' + SAMPLE_ROWS.map(function(sample){
-      var row = '<tr><td style="font-weight:600;white-space:nowrap;color:var(--muted);">'+esc(sample.label)+'</td>';
+    var bodyHtml = '<tbody>' + SAMPLE_ROWS.map(function(sample, rowIdx){
+      var unlocked = isTruthyFlag(sample.values.doc_signed_original);
+      var row = '<tr data-sample="'+rowIdx+'"><td style="font-weight:600;white-space:nowrap;color:var(--muted);">'+esc(sample.label)+(unlocked?' <span class="badge" title="Галка true: строка не защищена">разблок.</span>':'')+'</td>';
       columns.forEach(function(col){
         var cell = ensureCell(level, activeRole, status.id, col.id);
-        var val = sample.values[col.id] != null ? sample.values[col.id] : '—';
+        var colMeta = COLUMNS_BY_ID[col.id] || col;
+        var isBool = colMeta.type === 'bool' || col.id === 'doc_signed_original';
+        var val = sample.values[col.id] != null ? sample.values[col.id] : (isBool ? false : '—');
         var readonly = cell.editable === 'none';
+        // Галка true → строка не защищена: остальные поля редактируются поверх матрицы
+        if (unlocked && col.id !== 'doc_signed_original' && col.id !== 'row_number' && cell.visible) {
+          readonly = false;
+        }
         var cls = (readonly ? 'prev-readonly' : 'prev-editable') + (cell.required ? ' prev-required' : '');
-        var title = readonly ? 'Только чтение' : ('Редактируется: ' + EDIT_LABELS[cell.editable]);
-        row += '<td class="'+cls+'"><input type="text" value="'+esc(val)+'" '+(readonly?'disabled':'')+' title="'+esc(title)+'"></td>';
+        var title = isBool
+          ? (isTruthyFlag(val) ? 'true: строка не защищена от изменения' : 'false: защита строки по матрице/статусу')
+          : (readonly ? 'Только чтение' : ('Редактируется: ' + EDIT_LABELS[cell.editable]));
+        if (unlocked && !isBool) title = 'Строка разблокирована галкой «оригинал» · ' + title;
+        if (isBool) {
+          var canToggle = cell.editable !== 'none';
+          row += '<td class="'+cls+' prev-bool"><input type="checkbox" class="prev-doc-flag" data-sample="'+rowIdx+'" '+(isTruthyFlag(val)?'checked':'')+' '+(canToggle?'':'disabled')+' title="'+esc(title)+'"></td>';
+        } else {
+          row += '<td class="'+cls+'"><input type="text" value="'+esc(val)+'" '+(readonly?'disabled':'')+' title="'+esc(title)+'"></td>';
+        }
       });
       row += '</tr>';
       return row;
@@ -866,6 +916,15 @@
   });
 
   // Bulk operations
+  document.getElementById('previewTable').addEventListener('change', function(e){
+    var el = e.target;
+    if (!el.classList.contains('prev-doc-flag')) return;
+    var idx = Number(el.getAttribute('data-sample'));
+    if (!SAMPLE_ROWS[idx]) return;
+    SAMPLE_ROWS[idx].values.doc_signed_original = !!el.checked;
+    renderPreview();
+  });
+
   document.getElementById('btnBulk').addEventListener('click', function(){
     elBulkPanel.classList.toggle('open');
   });
