@@ -282,7 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
-  Обновление плеера 19.09.2026: D1: K8→K2→M18∥G8; без D2; D3: K1→K2→G1→M2→K1→K2; C3/B2; M17∥K9; B1→A3.
+  Обновление плеера 19.09.2026: группы A–D; без E/F/G; D1/D3/C3/B2; M17∥K9; B1→A3.
 </footer>
 
 <script>
@@ -365,10 +365,7 @@
     {id:'main', title:'A. Основные потоки заявки'},
     {id:'purchase', title:'B. Закупка и поставка (исключения)'},
     {id:'returns', title:'C. Возвраты'},
-    {id:'nsi', title:'D. НСИ / опознание'},
-    {id:'commercial', title:'E. Цена, контрагент, тип товара'},
-    {id:'repair', title:'F. Ремонт / механик'},
-    {id:'rights', title:'G. Права / админ'}
+    {id:'nsi', title:'D. НСИ / опознание'}
   ];
 
   var SCENARIOS = [
@@ -550,165 +547,6 @@
         {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'K1', note:'Повторная приёмка.', status:'acceptance'},
         {node:'K2', note:'Повторное размещение.', status:'acceptance'}
-      ]
-    },
-    {
-      id:'tender_nmck', group:'commercial',
-      title:'Тендер / НМЦК (РРЦ×1.5)',
-      steps:[
-        {node:'A0', note:'НСИ: РРЦ / НМЦК.', status:null},
-        {node:'N1', note:'Тендерная заявка.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'M4', note:'Закуп.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата после P1.', status:'paid'},
-        {node:'K1', note:'Приход.', status:'acceptance'},
-        {node:'K2', note:'Размещение.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
-        {node:'M9', note:'Комплектация.', status:'assembly'},
-        {node:'K3', note:'Сборка.', status:'assembly'},
-        {node:'M10', note:'Контроль комплектации.', status:'assembly'},
-        {node:'M11', note:'Готовность.', status:'ready_to_ship'},
-        {node:'M12', note:'Менеджер: ведомость.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
-      ]
-    },
-    {
-      id:'white_grey', group:'commercial',
-      title:'Белый vs серый контрагент',
-      steps:[
-        {node:'N1', note:'Заявка контрагента.', status:'new'},
-        {node:'M1', note:'Тип КА.', status:'new'},
-        {node:'A0', note:'НСИ белые/серые.', status:null},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'M4', note:'Закуп.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата после P1.', status:'paid'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'}
-      ]
-    },
-    {
-      id:'liquids', group:'commercial',
-      title:'Жидкости (литры / большой склад)',
-      steps:[
-        {node:'N1', note:'Заявка на жидкость.', status:'new'},
-        {node:'M1', note:'ЕИ = литры.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'M4', note:'При необходимости заказ поставщику.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата после P1.', status:'paid'},
-        {node:'K1', note:'Приёмка.', status:'acceptance'},
-        {node:'K2', note:'Большой склад (Z4).', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
-        {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'M10', note:'Контроль комплектации.', status:'assembly'},
-        {node:'M11', note:'Готовность.', status:'ready_to_ship'},
-        {node:'M12', note:'Ведомость админ.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
-      ]
-    },
-    {
-      id:'urgency', group:'commercial',
-      title:'Срочность заявки',
-      steps:[
-        {node:'N1', note:'Срочная заявка.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры (приоритет).', status:'new'},
-        {node:'M4', note:'Срочный заказ поставщику.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата после P1.', status:'paid'},
-        {node:'K1', note:'Приёмка.', status:'acceptance'},
-        {node:'K2', note:'Размещение.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
-        {node:'M9', note:'Приоритетная комплектация.', status:'assembly'},
-        {node:'K3', note:'Сборка вне очереди.', status:'assembly'},
-        {node:'M10', note:'Контроль комплектации.', status:'assembly'},
-        {node:'M11', note:'Готовность.', status:'ready_to_ship'},
-        {node:'M12', note:'Ведомость админ.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
-      ]
-    },
-    {
-      id:'repair', group:'repair',
-      title:'Ремонт / заказ-наряд',
-      steps:[
-        {node:'G1', note:'Открыт заказ-наряд.', status:'new'},
-        {node:'G2', note:'Заказ запчастей.', status:'ordered'},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'K2', note:'Деталь на складе.', status:'acceptance'},
-        {node:'M8', note:'Уведомление (если с прихода).', status:'acceptance'},
-        {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
-        {node:'G4', note:'Нормо-часы.', status:null},
-        {node:'G5', note:'Зарплатный фонд.', status:null},
-        {node:'G7', note:'Контроль документов (механик).', status:'closed'}
-      ]
-    },
-    {
-      id:'parallel_repair', group:'repair',
-      title:'Параллельно: запчасть + заказ-наряд',
-      steps:[
-        {node:'N1', note:'Клиентская заявка.', status:'new'},
-        {node:'G1', note:'Параллельно ЗН.', status:'new'},
-        {node:'M1', note:'Менеджер ведёт заявку.', status:'new'},
-        {node:'G2', note:'Механик заказывает.', status:'ordered'},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'K2', note:'Склад.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
-        {node:'K3', note:'Комплектация клиентской части.', status:'assembly'},
-        {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
-        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'G4', note:'Нормо-часы.', status:null},
-        {node:'G5', note:'ЗФ.', status:null},
-        {node:'G7', note:'Контроль документов (механик).', status:'closed'}
-      ]
-    },
-    {
-      id:'labor_only', group:'repair',
-      title:'Только нормо-часы (без запчастей)',
-      steps:[
-        {node:'G1', note:'ЗН на работы.', status:'new'},
-        {node:'G4', note:'Нормо-часы.', status:null},
-        {node:'G5', note:'ЗФ механиков.', status:null},
-        {node:'G7', note:'Контроль документов (механик).', status:'closed'}
-      ]
-    },
-    {
-      id:'rights_lock', group:'rights',
-      title:'Эскалация прав (чужой документ / ведомость)',
-      steps:[
-        {node:'N1', note:'Заявка за менеджером А.', status:'new'},
-        {node:'M1', note:'А создаёт заказ.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
-        {node:'M4', note:'Закуп.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата.', status:'paid'},
-        {node:'M11', note:'Готовность.', status:'ready_to_ship'},
-        {node:'M13', note:'Недостаточно прав, обратись к админу.', status:'ready_to_ship'},
-        {node:'M12', note:'Менеджер: ведомость.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2a', note:'Товар.', status:'shipped'},
-        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
-      ]
-    },
-    {
-      id:'admin_nsi', group:'rights',
-      title:'Админ: НСИ вне заявки',
-      steps:[
-        {node:'A0', note:'РРЦ / НМЦК / права.', status:null},
-        {node:'A1', note:'Неопознанные + фото.', status:'new'},
-        {node:'A2', note:'Артикулы и кроссы.', status:'new'}
       ]
     }
   ];
