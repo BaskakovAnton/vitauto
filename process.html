@@ -306,8 +306,7 @@
     {id:'N3', role:'client', title:'Возврат товара', full:'Возврат товара (при необходимости)', shape:'rect', cov:'no', status:['return'], cols:['line_status','comment'], tz:'Возврат после отгрузки (§5, процессы возврата).', code:'Статуса/форм возврата в АРМ нет.', next:[{to:'K6', label:'инициирован возврат'}]},
     {id:'N4', role:'client', title:'Самовывоз у внешнего поставщика', full:'Клиент забирает товар у внешнего поставщика. Документы — M15 у менеджера.', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date'], tz:'Клиентский блок + сценарий.', code:'Нет.', next:[{to:'M15', label:'контроль документов (менеджер)'}]},
     {id:'M1', role:'manager', title:'Загрузка заявки в 1С', full:'Загрузка заявки в 1С: Excel-парсер / ручной ввод по фото', shape:'rect', cov:'part', status:['new'], cols:['order_header','fact'], tz:'Excel-парсер или ручной ввод (§3.1).', code:'ФормаЗагрузкиДанных — табличный ввод, не парсер Excel; номенклатура не матчится.', next:[{to:'M2', label:'поиск / решение'}]},
-    {id:'M2', role:'manager', title:'Поиск + аналог', full:'Один блок: поиск номенклатуры, решение (резерв / закуп / админ) и подбор аналога по кроссу с комментарием связей. Бывшие M2 и M6 слиты.', shape:'rect', cov:'no', status:['new'], cols:['article','name','code_aa','nomenclature','comment'], tz:'OCR: M2+M6 везде один блок.', code:'Автопоиска нет; справочника аналогов нет.', next:[{to:'D1', label:'результат поиска'}, {to:'M3', label:'остаток есть'}, {to:'M4', label:'закуп'}, {to:'A1', label:'не найдено'}]},
-    {id:'D1', role:'manager', title:'Подбор номенклатуры', full:'Подбор номенклатуры менеджером: если позиция есть в справочнике — менеджер сопоставил/выбрал её; если нет — создаётся новая и уходит админу на модерацию как неопознанная (A1 → A2).', shape:'decision', cov:'no', status:['new'], cols:['nomenclature'], tz:'Развилка: найдена → резерв/закуп; не найдена → A1 неопознанные.', code:'Ветвление UI не реализовано.', next:[{to:'M3', label:'есть → резерв'}, {to:'M4', label:'есть, остатка нет → закуп'}, {to:'A1', label:'нет → неопознанные (модерация админ)'}, {to:'M13', label:'вирт. / нехватка прав'}]},
+    {id:'M2', role:'manager', title:'Поиск + подбор номенклатуры', full:'Один блок (M2+D1): поиск и аналог по кроссу; подбор номенклатуры — если есть в справочнике, менеджер сопоставил/выбрал; если нет — создаётся новая и уходит админу на модерацию неопознанных (A1→A2). Дальше: резерв / закуп / вирт. права.', shape:'rect', cov:'no', status:['new'], cols:['article','name','code_aa','nomenclature','comment'], tz:'Слиты M2+D1 (+ранее M6).', code:'Автопоиска нет; справочника аналогов нет; ветвление UI не реализовано.', next:[{to:'M3', label:'есть → резерв'}, {to:'M4', label:'есть, остатка нет → закуп'}, {to:'A1', label:'нет → неопознанные (модерация админ)'}, {to:'M13', label:'вирт. / нехватка прав'}]},
     {id:'M3', role:'manager', title:'Резервирование на складе', full:'Резервирование товара под заказ (остаток есть на складе)', shape:'rect', cov:'part', status:['reserve'], cols:['stock_qty','reserve_qty','batch_fifo'], tz:'Резерв при наличии (§3.1).', code:'Остатки в РС; отдельного статуса «Резервирование» нет.', next:[{to:'M9', label:'задание на комплектацию'}, {to:'K3', label:'сразу в сборку'}]},
     {id:'M4', role:'manager', title:'Заказ поставщику', full:'Оформление «Заказ поставщику». Дальше всегда обработка у поставщика (P1), затем контроль оплаты (M7).', shape:'rect', cov:'ok', status:['ordered'], cols:['supplier','price','qty','line_status','comment'], tz:'Сценарий А закупки. Порядок: M4→P1→M7.', code:'АС_АРМ2: создание ЗаказПоставщику.', next:[{to:'P1', label:'к поставщику'}, {to:'M13', label:'вирт. контур → права', dashed:true}]},
     {id:'M7', role:'manager', title:'Контроль оплаты', full:'После обработки заказа поставщиком (P1): контроль оплаты → «Оплачено».', shape:'rect', cov:'ok', status:['paid'], cols:['paid_status','payment_form','price'], tz:'Статус Оплачено. Порядок: после P1.', code:'Статус Оплачено в Арм_СтатусыАРМ / снабжение.', next:[{to:'P2', label:'в путь'}]},
@@ -376,7 +375,7 @@
       steps:[
         {node:'N1', note:'Клиент передаёт заявку (Excel/фото).', status:'new'},
         {node:'M1', note:'Менеджер загружает заявку в 1С.', status:'new'},
-        {node:'M2', note:'Поиск + аналог: остатка нет → закуп.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры: остатка нет → закуп.', status:'new'},
         {node:'M4', note:'Заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик обработал заказ.', status:'ordered'},
         {node:'M7', note:'Контроль оплаты (после P1).', status:'paid'},
@@ -402,7 +401,7 @@
       steps:[
         {node:'N1', note:'Заявка клиента.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог: остаток есть.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры: остаток есть.', status:'new'},
         {node:'M3', note:'Резерв.', status:'reserve'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Комплектация.', status:'assembly'},
@@ -423,7 +422,7 @@
       steps:[
         {node:'N1', note:'Заявка на несколько позиций.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог по строкам.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры по строкам.', status:'new'},
         {node:'M3', note:'Строки со склада — резерв.', status:'reserve'},
         {node:'M4', note:'Строки без остатка — заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик обработал закупочную часть.', status:'ordered'},
@@ -450,7 +449,7 @@
       steps:[
         {node:'N1', note:'Болт и цепь, разный вывоз → две заявки.', status:'new'},
         {node:'M1', note:'Заявка A: болт, комментарий «такси».', status:'new'},
-        {node:'M2', note:'Поиск + аналог по болту.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры по болту.', status:'new'},
         {node:'M4', note:'Закуп по заявке A.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата.', status:'paid'},
@@ -458,7 +457,7 @@
         {node:'N2a', note:'Болт выдан.', status:'shipped'},
         {node:'N1', note:'Заявка B: цепь, комментарий «наша машина».', status:'new'},
         {node:'M1', note:'Вторая заявка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог по цепи.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры по цепи.', status:'new'},
         {node:'K5', note:'Отгрузка цепи.', status:'shipped'},
         {node:'N2a', note:'Цепь выдана.', status:'shipped'},
         {node:'M15', note:'Контроль документов (менеджер).', status:'closed'}
@@ -470,7 +469,7 @@
       steps:[
         {node:'N1', note:'Заявка: клиент заберёт у поставщика.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог → закуп.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры → закуп.', status:'new'},
         {node:'M4', note:'Заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик подтвердил.', status:'ordered'},
         {node:'M7', note:'Оплата после P1.', status:'paid'},
@@ -484,8 +483,7 @@
       steps:[
         {node:'N1', note:'Срочная заявка, документов поставщика нет.', status:'new'},
         {node:'M1', note:'Менеджер загружает.', status:'new'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
-        {node:'D1', note:'Развилка: вирт. контур / права.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры; Развилка: вирт. контур / права.', status:'new'},
         {node:'M13', note:'Недостаточно прав, обратись к админу.', status:'ordered'},
         {node:'A3', note:'Админ: подтверждение чека.', status:'paid'},
         {node:'K1', note:'Дальше как смешанный (A4) до M9: приёмка.', status:'acceptance'},
@@ -542,7 +540,7 @@
       steps:[
         {node:'N1', note:'Заявка клиента.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'Заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик ещё в работе.', status:'ordered'},
         {node:'M7', note:'Оплачено или нет — после P1.', status:'paid'},
@@ -589,11 +587,10 @@
       steps:[
         {node:'N1', note:'Неизвестный артикул.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог: номенклатуры нет → админ.', status:'new'},
-        {node:'D1', note:'Номенклатуры нет → админ → админ.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры: номенклатуры нет → админ (A1→A2).', status:'new'},
         {node:'A1', note:'Неопознанные + фото.', status:'new'},
         {node:'A2', note:'Артикул и кроссы.', status:'new'},
-        {node:'M2', note:'Повторный поиск + аналог.', status:'new'},
+        {node:'M2', note:'Повторный поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'Закуп.', status:'ordered'}
       ]
     },
@@ -603,8 +600,7 @@
       steps:[
         {node:'N1', note:'Заявка на ГБЦ.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог: номенклатуры нет → админ.', status:'new'},
-        {node:'D1', note:'→ админ.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры: номенклатуры нет → админ.', status:'new'},
         {node:'A1', note:'Неопознанные + фото.', status:'new'},
         {node:'A2', note:'Артикул, кросс.', status:'new'},
         {node:'M2', note:'Повторный поиск.', status:'new'},
@@ -633,7 +629,7 @@
         {node:'A0', note:'НСИ: РРЦ / НМЦК.', status:null},
         {node:'N1', note:'Тендерная заявка.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'Закуп.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата после P1.', status:'paid'},
@@ -659,7 +655,7 @@
         {node:'N1', note:'Заявка контрагента.', status:'new'},
         {node:'M1', note:'Тип КА.', status:'new'},
         {node:'A0', note:'НСИ белые/серые.', status:null},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'Закуп.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата после P1.', status:'paid'},
@@ -674,7 +670,7 @@
       steps:[
         {node:'N1', note:'Заявка на жидкость.', status:'new'},
         {node:'M1', note:'ЕИ = литры.', status:'new'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'При необходимости заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата после P1.', status:'paid'},
@@ -699,7 +695,7 @@
       steps:[
         {node:'N1', note:'Срочная заявка.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + аналог (приоритет).', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры (приоритет).', status:'new'},
         {node:'M4', note:'Срочный заказ поставщику.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата после P1.', status:'paid'},
@@ -724,7 +720,7 @@
       steps:[
         {node:'G1', note:'Открыт заказ-наряд.', status:'new'},
         {node:'G2', note:'Заказ запчастей.', status:'ordered'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'K2', note:'Деталь на складе.', status:'acceptance'},
         {node:'M8', note:'Уведомление (если с прихода).', status:'acceptance'},
         {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
@@ -741,7 +737,7 @@
         {node:'G1', note:'Параллельно ЗН.', status:'new'},
         {node:'M1', note:'Менеджер ведёт заявку.', status:'new'},
         {node:'G2', note:'Механик заказывает.', status:'ordered'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'K2', note:'Склад.', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'K3', note:'Комплектация клиентской части.', status:'assembly'},
@@ -770,7 +766,7 @@
       steps:[
         {node:'N1', note:'Заявка за менеджером А.', status:'new'},
         {node:'M1', note:'А создаёт заказ.', status:'new'},
-        {node:'M2', note:'Поиск + аналог.', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
         {node:'M4', note:'Закуп.', status:'ordered'},
         {node:'P1', note:'Поставщик.', status:'ordered'},
         {node:'M7', note:'Оплата.', status:'paid'},
