@@ -282,7 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
-  Обновление плеера 19.09.2026: M2+D1; K3→M10→M11→M12; B2: M10→M9∥K8→…; C3: N2a→N3→K6→M10→M9→K3→M11→M12→M15∥K7; M17∥K9; B1→A3.
+  Обновление плеера 19.09.2026: D1: K8→K2→M18∥G8; без D2 (ГБЦ); C3/B2/A обновления; M17∥K9; B1→A3.
 </footer>
 
 <script>
@@ -319,6 +319,7 @@
     {id:'M15', role:'manager', title:'Контроль документов', full:'Перенесено с клиента (бывш. N2b): физ. подпись на отгрузочном и отметка, что оригинал получен (колонка doc_signed_original: галка true → строка не защищена). Видно одновременно с K7 (кладовщик) — не последовательный handoff. Перед заявкой на возврат поставщику (M16). Зеркало у механика — G7.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['doc_signed_original','shipment_date','shipment_number','comment'], tz:'Бывш. N2b → менеджер M15; параллельно K7.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[{to:'M16', label:'если возврат поставщику', dashed:true}]},
     {id:'M16', role:'manager', title:'Заявка на возврат поставщику', full:'Оформление заявки на возврат поставщику (ошибочный заказ / брак). Перед этим — контроль документов (M15). Перед отправкой товар передаётся кладовщику.', shape:'rect', cov:'no', status:['return'], cols:['supplier','comment'], tz:'Бывш. M15.', code:'Нет.', next:[{to:'K6', label:'передать кладовщику'}, {to:'P3', label:'уже со склада → поставщик'}]},
     {id:'M17', role:'manager', title:'Уведомление о самовывозе', full:'После самовывоза у внешнего поставщика (N4): менеджер фиксирует уведомление. Видно одновременно с K9 (кладовщик).', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date','shipment_number'], tz:'N4→M17∥K9.', code:'Нет.', next:[{to:'M15', label:'контроль документов', dashed:true}]},
+    {id:'M18', role:'manager', title:'Неопознанная позиция', full:'Уведомление: позиция не опознана. Видно одновременно с главным механиком (G8). В D1 — после розыска (K8) и размещения (K2).', shape:'rect', cov:'no', status:['new','acceptance'], cols:['name_fact','article_fact','comment'], tz:'D1: K8→K2→M18∥G8.', code:'Нет.', next:[{to:'A1', label:'к админу: неопознанные', dashed:true}]},
     {id:'A1', role:'admin', title:'Неопознанные + фото', full:'Создание позиции в папке «Не опознанные», фотофиксация', shape:'rect', cov:'no', status:['new'], cols:['name','article','comment'], tz:'НСИ: неопознанные (§2.1).', code:'Папки/фотофиксации в АРМ нет.', next:[{to:'A2', label:'карточка заполнена'}]},
     {id:'A2', role:'admin', title:'Артикул и кроссы', full:'Присвоение артикула, привязка кросс-кодов, перенос в основную номенклатуру', shape:'rect', cov:'no', status:['new'], cols:['article','code_aa'], tz:'Доводка НСИ админом.', code:'Нет.', next:[{to:'M2', label:'обратно в поиск', dashed:true}]},
     {id:'A3', role:'admin', title:'Подтверждение чека админом', full:'Новый блок вирт. закупа: админ подтверждает чек / проводит. Менеджер доходит сюда через «Обратись к админу».', shape:'rect', cov:'no', status:['ordered','paid'], cols:['comment','price','supplier'], tz:'Вирт. закуп: после M13.', code:'Нет.', next:[{to:'K1', label:'к приёмке (как A4 до M9)'}]},
@@ -328,19 +329,20 @@
     {id:'P2', role:'supplier', title:'Отгрузка → В пути', full:'Статус «В пути». Способ доставки — только ручной комментарий (ветку своя/чужая машина не делаем).', shape:'rect', cov:'part', status:['in_transit'], cols:['line_status','ordered_in_transit_qty','comment'], tz:'Комментарий вместо машин.', code:'Есть ТоварВПути.', next:[{to:'K1', label:'доставлен'}]},
     {id:'P3', role:'supplier', title:'Приём возврата', full:'Приём возврата товара от Витавто', shape:'rect', cov:'no', status:['return'], cols:['supplier'], tz:'Возврат на сторону поставщика.', code:'Нет.', next:[]},
     {id:'K1', role:'storekeeper', title:'Приёмка (УПД)', full:'Приёмка по УПД. Дальше обязательно K2.', shape:'rect', cov:'part', status:['acceptance'], cols:['receipt','upd_date','upd_number','supplier'], tz:'K1→K2 обязательно.', code:'Статусы Приходуется/НаСкладе.', conflict:'В коде роль «Снабжение», в ТЗ — Кладовщик.', next:[{to:'K2', label:'→ размещение'}]},
-    {id:'K2', role:'storekeeper', title:'Размещение по складам', full:'После K1 всегда. Сразу затем M8 (уведомление о приходе).', shape:'rect', cov:'no', status:['acceptance','reserve'], cols:['stock_qty'], tz:'K2→M8 всегда.', code:'Зоны АРМ не сделаны.', next:[{to:'M8', label:'уведомление о приходе'}, {to:'G3', label:'в ремонт', dashed:true}]},
+    {id:'K2', role:'storekeeper', title:'Размещение по складам', full:'После K1 всегда. Сразу затем M8 (уведомление о приходе). В D1 после розыска (K8) — уведомление «Неопознанная позиция» (M18∥G8).', shape:'rect', cov:'no', status:['acceptance','reserve'], cols:['stock_qty'], tz:'K2→M8 всегда; D1: K2→M18∥G8.', code:'Зоны АРМ не сделаны.', next:[{to:'M8', label:'уведомление о приходе'}, {to:'M18', label:'неопознанная позиция ∥ G8', dashed:true}, {to:'G3', label:'в ремонт', dashed:true}]},
     {id:'K3', role:'storekeeper', title:'Комплектация + сборочный лист', full:'Комплектация: печать сборочного листа, отметка дефектов/недостач. Дальше контроль комплектации менеджером (M10).', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','name_fact','article_fact'], tz:'Комплектация + ПФ сборочный лист. K3→M10.', code:'Статусы Комплектуется/Собран; печати нет.', next:[{to:'M10', label:'сборка завершена → контроль'}, {to:'M4', label:'дефект → дозаказ', dashed:true}]},
     {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → «Отгружено». Клиент — N2a (товар); контроль документов — M15 и K7 одновременно.', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5). OCR: split N2.', code:'Дата/номер + РасходнаяНакладная.', next:[{to:'N2a', label:'клиент получил товар'}, {to:'K7', label:'контроль документов ∥ M15'}]},
     {id:'K6', role:'storekeeper', title:'Приёмка / подготовка возврата', full:'Два входа: (1) возврат от клиента; (2) от менеджера (M16). В конце дорожки — K7 контроль документов.', shape:'rect', cov:'no', status:['return'], cols:['comment','line_status','supplier'], tz:'Возвраты в АРМ кладовщика; склад обязателен и при возврате поставщику.', code:'Нет.', next:[{to:'M16', label:'согласование (от клиента)', dashed:true}, {to:'P3', label:'отгрузка возврата поставщику'}, {to:'K7', label:'контроль документов', dashed:true}]},
     {id:'K7', role:'storekeeper', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал, колонка doc_signed_original), что у менеджера M15 — видно одновременно с M15, не после handoff.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['doc_signed_original','shipment_date','shipment_number','comment'], tz:'Зеркало M15 для склада; параллельно M15.', code:'Нет.', next:[]},
-    {id:'K8', role:'storekeeper', title:'Розыск позиции', full:'После отклонения на контроле комплектации (M10): кладовщик ищет позицию. Идёт параллельно с M9 у менеджера.', shape:'rect', cov:'no', status:['assembly'], cols:['line_status','name_fact','article_fact','comment'], tz:'M10→K8∥M9 (B2).', code:'Нет.', next:[]},
+    {id:'K8', role:'storekeeper', title:'Розыск позиции', full:'Кладовщик ищет позицию (в т.ч. после отклонения M10). В D1 дальше — размещение (K2), затем уведомление «Неопознанная позиция» менеджеру и механику.', shape:'rect', cov:'no', status:['assembly','acceptance','new'], cols:['line_status','name_fact','article_fact','comment'], tz:'M10→K8∥M9 (B2); D1: K8→K2.', code:'Нет.', next:[{to:'K2', label:'к размещению (D1)', dashed:true}]},
     {id:'K9', role:'storekeeper', title:'Уведомление о самовывозе', full:'Зеркало M17: уведомление о самовывозе у внешнего поставщика — видно одновременно с менеджером, не после handoff.', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date','shipment_number'], tz:'Зеркало M17 для склада; параллельно M17.', code:'Нет.', next:[]},
     {id:'G1', role:'chief_mechanic', title:'Открытие заказ-наряда', full:'Открытие заказ-наряда (аналогично заявке менеджера)', shape:'rect', cov:'no', status:['new'], cols:['order_header','fact'], tz:'§4.3 Главный механик.', code:'Нет объектов заказ-наряда.', next:[{to:'G2', label:'заказ запчастей'}]},
     {id:'G2', role:'chief_mechanic', title:'Заказ для ремонта', full:'Заказ товаров/услуг для ремонта (интерфейс как у менеджера)', shape:'rect', cov:'no', status:['ordered'], cols:['nomenclature'], tz:'Механик ≈ менеджер в матрице.', code:'Нет. В матрице chief_mechanic = manager.', next:[{to:'M2', label:'в общий поиск', dashed:true}]},
     {id:'G3', role:'chief_mechanic', title:'Выдача в ремонтную зону', full:'Выдача запчастей в Ремонтную зону, списание по заказ-наряду', shape:'rect', cov:'no', status:['assembly'], cols:['stock'], tz:'Ремонтная зона (§2.4).', code:'Нет.', next:[{to:'G4', label:'работы выполнены'}]},
     {id:'G4', role:'chief_mechanic', title:'Нормо-часы', full:'Расчёт нормо-часов (стоимость часа — по типу техники)', shape:'rect', cov:'no', status:[], cols:[], tz:'Нормо-часы по типу техники.', code:'Нет.', next:[{to:'G5', label:'часы рассчитаны'}]},
     {id:'G5', role:'chief_mechanic', title:'Зарплатный фонд', full:'Формирование зарплатного фонда механиков', shape:'rect', cov:'no', status:[], cols:[], tz:'ЗФ механиков.', code:'Нет.', next:[{to:'G7', label:'контроль документов'}]},
-    {id:'G7', role:'chief_mechanic', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал), что у менеджера M15 — в конце дорожки главного механика.', shape:'rect', cov:'no', status:['closed','shipped'], cols:['comment','shipment_date','shipment_number'], tz:'Зеркало M15 для механика.', code:'Нет.', next:[]}
+    {id:'G7', role:'chief_mechanic', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал), что у менеджера M15 — в конце дорожки главного механика.', shape:'rect', cov:'no', status:['closed','shipped'], cols:['comment','shipment_date','shipment_number'], tz:'Зеркало M15 для механика.', code:'Нет.', next:[]},
+    {id:'G8', role:'chief_mechanic', title:'Неопознанная позиция', full:'Уведомление: позиция не опознана. Зеркало M18 — видно одновременно с менеджером, не после handoff.', shape:'rect', cov:'no', status:['new','acceptance'], cols:['name_fact','article_fact','comment'], tz:'Зеркало M18; параллельно M18 (D1).', code:'Нет.', next:[]}
   ];
 
   var ZONES = [
@@ -533,31 +535,9 @@
       id:'unknown', group:'nsi',
       title:'Неопознанная позиция',
       steps:[
-        {node:'N1', note:'Неизвестный артикул.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры: номенклатуры нет → админ (A1→A2).', status:'new'},
-        {node:'A1', note:'Неопознанные + фото.', status:'new'},
-        {node:'A2', note:'Артикул и кроссы.', status:'new'},
-        {node:'M2', note:'Повторный поиск + подбор номенклатуры.', status:'new'},
-        {node:'M4', note:'Закуп.', status:'ordered'}
-      ]
-    },
-    {
-      id:'gbc_brand', group:'nsi',
-      title:'ГБЦ / группа по бренду',
-      steps:[
-        {node:'N1', note:'Заявка на ГБЦ.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск + подбор номенклатуры: номенклатуры нет → админ.', status:'new'},
-        {node:'A1', note:'Неопознанные + фото.', status:'new'},
-        {node:'A2', note:'Артикул, кросс.', status:'new'},
-        {node:'M2', note:'Повторный поиск.', status:'new'},
-        {node:'M4', note:'Закуп.', status:'ordered'},
-        {node:'P1', note:'Поставщик.', status:'ordered'},
-        {node:'M7', note:'Оплата.', status:'paid'},
-        {node:'K1', note:'Приход.', status:'acceptance'},
+        {node:'K8', note:'Розыск позиции.', status:'acceptance'},
         {node:'K2', note:'Размещение.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'}
+        {nodes:['M18','G8'], node:'M18', note:'Уведомление «Неопознанная позиция» — менеджер и механик одновременно.', status:'new'}
       ]
     },
     {
