@@ -292,14 +292,14 @@
     {id:'ordered_in_transit_qty', title:'Кол-во заказанного в пути / свободное', group:'stock'},
     {id:'batch_fifo', title:'№ партии ФИФО / выбор партии', group:'stock'},
     {id:'line_status', title:'Статус заявки', group:'status'},
-    {id:'price', title:'Цена', group:'pricing'},
-    {id:'sum', title:'Сумма', group:'pricing'},
+    {id:'price', title:'Цена (себес.)', group:'pricing', type:'decimal'},
+    {id:'sum', title:'Сумма (себес.)', group:'pricing', type:'decimal'},
     {id:'payment_form', title:'Форма оплаты', group:'payment'},
     {id:'rrc', title:'РРЦ', group:'margin_locked'},
     {id:'paid_status', title:'Оплачено (счёт, оплата, постоплата)', group:'payment'},
     {id:'coefficient', title:'Коэфф', group:'margin_open'},
-    {id:'extra_field_1', title:'Доп. поле 1', group:'extra'},
-    {id:'extra_field_2', title:'Доп. поле 2', group:'extra'},
+    {id:'extra_field_1', title:'Цена продажи', group:'pricing', type:'decimal'},
+    {id:'extra_field_2', title:'Сумма продажи', group:'pricing', type:'decimal'},
     {id:'supplier', title:'Поставщик', group:'receipt'},
     {id:'receipt_date', title:'Дата получения', group:'receipt'},
     {id:'upd_date', title:'Дата УПД', group:'receipt'},
@@ -319,7 +319,7 @@
       unit:'шт', qty:'1,00', stock_qty:'12,00', reserve_qty:'1,00', ordered_in_transit_qty:'0,00 / 11,00',
       batch_fifo:'Партия №04-2026', line_status:'Резервирование', price:'1 164,49', sum:'1 164,49',
       payment_form:'Безнал', rrc:'2 048,00', paid_status:'Оплачено', coefficient:'15%',
-      extra_field_1:'—', extra_field_2:'—', supplier:'АЛЬЯНС', receipt_date:'04.02.2026',
+      extra_field_1:'1 339,16', extra_field_2:'1 339,16', supplier:'АЛЬЯНС', receipt_date:'04.02.2026',
       upd_date:'04.02.2026', upd_number:'УПД-3391', supplier_ship_territory:'КЕТЧЕРСКАЯ', comment:'Стандартная отгрузка'
     }},
     { label:'Пример 2 — позиция ждёт опознания (артикул не найден)', values:{
@@ -329,7 +329,7 @@
       name_fact:'Шкив ГАЗ-3302 Бизнес дв.УМЗ-4216', article_fact:'4216.1005074', qty_fact:'1,00', unit_fact:'шт',
       name:'—', article:'—', code_aa:'—', unit:'—', qty:'1,00', stock_qty:'0,00', reserve_qty:'0,00',
       ordered_in_transit_qty:'0,00', batch_fifo:'—', line_status:'Не опознан', price:'0,00', sum:'0,00',
-      payment_form:'—', rrc:'—', paid_status:'—', coefficient:'—', extra_field_1:'—', extra_field_2:'—',
+      payment_form:'—', rrc:'—', paid_status:'—', coefficient:'—', extra_field_1:'0,00', extra_field_2:'0,00',
       supplier:'—', receipt_date:'—', upd_date:'—', upd_number:'—', supplier_ship_territory:'—',
       comment:'Ожидает опознания администратором, нужна фотофиксация'
     }},
@@ -341,7 +341,7 @@
       name:'Крышка КАМАЗ редуктора среднего моста', article:'54115-2502209', code_aa:'633603', unit:'шт', qty:'1,00',
       stock_qty:'0,00', reserve_qty:'0,00', ordered_in_transit_qty:'0,00', batch_fifo:'Партия №01-2026',
       line_status:'Отгружено', price:'2 417,43', sum:'2 417,43', payment_form:'Безнал', rrc:'4 800,00',
-      paid_status:'Оплачено', coefficient:'12%', extra_field_1:'—', extra_field_2:'—', supplier:'АЛЬЯНС',
+      paid_status:'Оплачено', coefficient:'12%', extra_field_1:'2 780,04', extra_field_2:'2 780,04', supplier:'АЛЬЯНС',
       receipt_date:'06.02.2026', upd_date:'06.02.2026', upd_number:'УПД-3402', supplier_ship_territory:'КЕТЧЕРСКАЯ',
       comment:'Получено лично представителем клиента (САМИ)'
     }}
@@ -686,6 +686,13 @@
     return v === true || v === 'true' || v === 1 || v === '1' || v === 'да' || v === 'Да';
   }
 
+  function formatDecimal2(v){
+    if (v == null || v === '' || v === '—') return '0.00';
+    var n = Number(String(v).replace(/\s/g, '').replace(',', '.'));
+    if (!isFinite(n)) return '0.00';
+    return n.toFixed(2);
+  }
+
   function renderPreview(){
     var level = currentLevel();
     var statuses = getStatuses();
@@ -717,7 +724,8 @@
         var cell = ensureCell(level, activeRole, status.id, col.id);
         var colMeta = COLUMNS_BY_ID[col.id] || col;
         var isBool = colMeta.type === 'bool' || col.id === 'doc_signed_original';
-        var val = sample.values[col.id] != null ? sample.values[col.id] : (isBool ? false : '—');
+        var isDecimal = colMeta.type === 'decimal';
+        var val = sample.values[col.id] != null ? sample.values[col.id] : (isBool ? false : (isDecimal ? '0.00' : '—'));
         var readonly = cell.editable === 'none';
         // Галка true → строка не защищена: остальные поля редактируются поверх матрицы
         if (unlocked && col.id !== 'doc_signed_original' && col.id !== 'row_number' && cell.visible) {
@@ -727,10 +735,13 @@
         var title = isBool
           ? (isTruthyFlag(val) ? 'true: строка не защищена от изменения' : 'false: защита строки по матрице/статусу')
           : (readonly ? 'Только чтение' : ('Редактируется: ' + EDIT_LABELS[cell.editable]));
+        if (isDecimal) title = 'Число до сотых · ' + title;
         if (unlocked && !isBool) title = 'Строка разблокирована галкой «оригинал» · ' + title;
         if (isBool) {
           var canToggle = cell.editable !== 'none';
           row += '<td class="'+cls+' prev-bool"><input type="checkbox" class="prev-doc-flag" data-sample="'+rowIdx+'" '+(isTruthyFlag(val)?'checked':'')+' '+(canToggle?'':'disabled')+' title="'+esc(title)+'"></td>';
+        } else if (isDecimal) {
+          row += '<td class="'+cls+'"><input type="number" step="0.01" min="0" inputmode="decimal" value="'+esc(formatDecimal2(val))+'" '+(readonly?'disabled':'')+' title="'+esc(title)+'"></td>';
         } else {
           row += '<td class="'+cls+'"><input type="text" value="'+esc(val)+'" '+(readonly?'disabled':'')+' title="'+esc(title)+'"></td>';
         }
