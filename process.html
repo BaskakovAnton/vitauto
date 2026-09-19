@@ -282,7 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
-  Обновление плеера 19.09.2026: OCR-фиксы F1–F12 (N2a/N2b, без ветки машин, вирт. права, разъезд, K1→K2→M8, M13, M11 админ).
+  Обновление плеера 19.09.2026: M2+D1; без K4 в потоке; M10→M12→M11 (менеджер); M15∥K7; G7 зеркало механика.
 </footer>
 
 <script>
@@ -312,11 +312,11 @@
     {id:'M7', role:'manager', title:'Контроль оплаты', full:'После обработки заказа поставщиком (P1): контроль оплаты → «Оплачено».', shape:'rect', cov:'ok', status:['paid'], cols:['paid_status','payment_form','price'], tz:'Статус Оплачено. Порядок: после P1.', code:'Статус Оплачено в Арм_СтатусыАРМ / снабжение.', next:[{to:'P2', label:'в путь'}]},
     {id:'M8', role:'manager', title:'Уведомление о приходе', full:'Всегда сразу после размещения (K2). Приехавшее повторно не заказываем.', shape:'rect', cov:'part', status:['acceptance'], cols:['line_status'], tz:'K2→M8 всегда.', code:'Статусы прихода видны; отдельного notify нет.', next:[{to:'M9', label:'создать комплектацию'}]},
     {id:'M9', role:'manager', title:'Задание на комплектацию', full:'Менеджер выбирает позиции «на складе» и создаёт задание на комплектацию. В вирт. закупе здесь развилка на сценарий дефекта (B3).', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','stock'], tz:'Связка склад → комплектация.', code:'Статусы Комплектуется/Собран; отдельного «задания» нет.', next:[{to:'K3', label:'в сборку'}, {to:'K3', label:'вирт. → ветка дефекта (B3)', dashed:true}]},
-    {id:'M10', role:'manager', title:'Контроль комплектации', full:'Подтверждение или отклонение. Дальше M12 (готовность), затем M11 (ведомость админ) или через M13 при отказе прав.', shape:'rect', cov:'part', status:['assembly','ready_to_ship'], cols:['line_status','comment'], tz:'M10→M12→M11.', code:'Частично через статусы.', next:[{to:'M12', label:'ок → готовность'}, {to:'M4', label:'дефект → дозаказ', dashed:true}]},
-    {id:'M11', role:'admin', title:'Отгрузочная ведомость', full:'Формирование отгрузочной ведомости — только админ. Перед этим M12 (готовность); если у менеджера нет прав — через M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'ПФ отгрузочная ведомость. M10→M12→M11 (или M12→M13→M11).', code:'Печатных форм в расширении нет.', next:[{to:'K5', label:'документы готовы'}]},
-    {id:'M12', role:'manager', title:'Уведомление о готовности', full:'Заказ укомплектован / готов к отгрузке. Стоит после M10, перед отгрузочной ведомостью (M11). При отказе прав менеджера — M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['line_status','shipment_number'], tz:'M10→M12→M11; опционально M12→M13→M11.', code:'Отдельного notify нет.', next:[{to:'M11', label:'админ: ведомость'}, {to:'M13', label:'менеджер без прав', dashed:true}]},
-    {id:'M13', role:'manager', title:'Недостаточно прав, обратись к админу', full:'Единый блок отказа прав: вирт. закуп / подтверждение чека и попытка сформировать отгрузочную ведомость. Текст менеджеру — обратиться к админу.', shape:'rect', cov:'no', status:['ordered','new','ready_to_ship'], cols:['comment'], tz:'Слиты бывшие M14+M15.', code:'Нет.', next:[{to:'A3', label:'админ: подтверждение чека'}, {to:'M11', label:'админ: ведомость'}]},
-    {id:'M15', role:'manager', title:'Контроль документов', full:'Перенесено с клиента (бывш. N2b): физ. подпись на отгрузочном и отметка, что оригинал получен. Перед возвратом поставщику (M16). Тот же блок — у кладовщика (K7) и механика (G7) в конце дорожки.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Бывш. N2b → менеджер M15.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[{to:'M16', label:'если возврат поставщику', dashed:true}]},
+    {id:'M10', role:'manager', title:'Контроль комплектации', full:'Подтверждение или отклонение. Дальше M12 (готовность), затем M11 (ведомость менеджер) или через M13 при отказе прав.', shape:'rect', cov:'part', status:['assembly','ready_to_ship'], cols:['line_status','comment'], tz:'M10→M12→M11.', code:'Частично через статусы.', next:[{to:'M12', label:'ок → готовность'}, {to:'M4', label:'дефект → дозаказ', dashed:true}]},
+    {id:'M11', role:'manager', title:'Отгрузочная ведомость', full:'Формирование отгрузочной ведомости — менеджер. Перед этим M12 (готовность); если прав нет — через M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'ПФ отгрузочная ведомость. M10→M12→M11 (или M12→M13→M11).', code:'Печатных форм в расширении нет.', next:[{to:'K5', label:'документы готовы'}]},
+    {id:'M12', role:'manager', title:'Уведомление о готовности', full:'Заказ укомплектован / готов к отгрузке. Стоит после M10, перед отгрузочной ведомостью (M11). При отказе прав — M13.', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['line_status','shipment_number'], tz:'M10→M12→M11; опционально M12→M13→M11.', code:'Отдельного notify нет.', next:[{to:'M11', label:'ведомость'}, {to:'M13', label:'менеджер без прав', dashed:true}]},
+    {id:'M13', role:'manager', title:'Недостаточно прав, обратись к админу', full:'Единый блок отказа прав: вирт. закуп / подтверждение чека и попытка сформировать отгрузочную ведомость. Текст менеджеру — обратиться к админу.', shape:'rect', cov:'no', status:['ordered','new','ready_to_ship'], cols:['comment'], tz:'Слиты бывшие M14+M15.', code:'Нет.', next:[{to:'A3', label:'админ: подтверждение чека'}, {to:'M11', label:'ведомость'}]},
+    {id:'M15', role:'manager', title:'Контроль документов', full:'Перенесено с клиента (бывш. N2b): физ. подпись на отгрузочном и отметка, что оригинал получен. Видно одновременно с K7 (кладовщик) — не последовательный handoff. Перед возвратом поставщику (M16). Зеркало у механика — G7.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Бывш. N2b → менеджер M15; параллельно K7.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[{to:'M16', label:'если возврат поставщику', dashed:true}]},
     {id:'M16', role:'manager', title:'Возврат поставщику', full:'Оформление возврата поставщику (ошибочный заказ / брак). Перед этим — контроль документов (M15). Перед отправкой товар передаётся кладовщику.', shape:'rect', cov:'no', status:['return'], cols:['supplier','comment'], tz:'Бывш. M15.', code:'Нет.', next:[{to:'K6', label:'передать кладовщику'}, {to:'P3', label:'уже со склада → поставщик'}]},
     {id:'A1', role:'admin', title:'Неопознанные + фото', full:'Создание позиции в папке «Не опознанные», фотофиксация', shape:'rect', cov:'no', status:['new'], cols:['name','article','comment'], tz:'НСИ: неопознанные (§2.1).', code:'Папки/фотофиксации в АРМ нет.', next:[{to:'A2', label:'карточка заполнена'}]},
     {id:'A2', role:'admin', title:'Артикул и кроссы', full:'Присвоение артикула, привязка кросс-кодов, перенос в основную номенклатуру', shape:'rect', cov:'no', status:['new'], cols:['article','code_aa'], tz:'Доводка НСИ админом.', code:'Нет.', next:[{to:'M2', label:'обратно в поиск', dashed:true}]},
@@ -328,11 +328,10 @@
     {id:'P3', role:'supplier', title:'Приём возврата', full:'Приём возврата товара от Витавто', shape:'rect', cov:'no', status:['return'], cols:['supplier'], tz:'Возврат на сторону поставщика.', code:'Нет.', next:[]},
     {id:'K1', role:'storekeeper', title:'Приёмка (УПД)', full:'Приёмка по УПД. Дальше обязательно K2.', shape:'rect', cov:'part', status:['acceptance'], cols:['receipt','upd_date','upd_number','supplier'], tz:'K1→K2 обязательно.', code:'Статусы Приходуется/НаСкладе.', conflict:'В коде роль «Снабжение», в ТЗ — Кладовщик.', next:[{to:'K2', label:'→ размещение'}]},
     {id:'K2', role:'storekeeper', title:'Размещение по складам', full:'После K1 всегда. Сразу затем M8 (уведомление о приходе).', shape:'rect', cov:'no', status:['acceptance','reserve'], cols:['stock_qty'], tz:'K2→M8 всегда.', code:'Зоны АРМ не сделаны.', next:[{to:'M8', label:'уведомление о приходе'}, {to:'G3', label:'в ремонт', dashed:true}]},
-    {id:'K3', role:'storekeeper', title:'Комплектация + сборочный лист', full:'Комплектация: печать сборочного листа, отметка дефектов/недостач', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','name_fact','article_fact'], tz:'Комплектация + ПФ сборочный лист.', code:'Статусы Комплектуется/Собран; печати нет.', next:[{to:'K4', label:'сборка завершена'}, {to:'M10', label:'дефект', dashed:true}]},
-    {id:'K4', role:'storekeeper', title:'Готово к отгрузке', full:'Зона укомплектованных. Дальше контроль комплектации при необходимости, затем M12 → ведомость админа (M11).', shape:'rect', cov:'part', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'Статус Готово к отгрузке (§5).', code:'≈ Собран / Подготовлено.', next:[{to:'M10', label:'контроль комплектации'}, {to:'M12', label:'сразу уведомление готовности'}]},
-    {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → «Отгружено». Клиент — N2a (товар); документы — M15 (менеджер) и K7 (кладовщик в конце).', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5). OCR: split N2.', code:'Дата/номер + РасходнаяНакладная.', next:[{to:'N2a', label:'клиент получил товар'}, {to:'K7', label:'контроль документов (склад)'}]},
+    {id:'K3', role:'storekeeper', title:'Комплектация + сборочный лист', full:'Комплектация: печать сборочного листа, отметка дефектов/недостач. Дальше контроль комплектации (M10), без отдельного шага «Готово к отгрузке».', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','name_fact','article_fact'], tz:'Комплектация + ПФ сборочный лист. K3→M10.', code:'Статусы Комплектуется/Собран; печати нет.', next:[{to:'M10', label:'сборка завершена → контроль'}, {to:'M10', label:'дефект', dashed:true}]},
+    {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → «Отгружено». Клиент — N2a (товар); контроль документов — M15 и K7 одновременно.', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5). OCR: split N2.', code:'Дата/номер + РасходнаяНакладная.', next:[{to:'N2a', label:'клиент получил товар'}, {to:'K7', label:'контроль документов ∥ M15'}]},
     {id:'K6', role:'storekeeper', title:'Приёмка / подготовка возврата', full:'Два входа: (1) возврат от клиента; (2) от менеджера (M16). В конце дорожки — K7 контроль документов.', shape:'rect', cov:'no', status:['return'], cols:['comment','line_status','supplier'], tz:'Возвраты в АРМ кладовщика; склад обязателен и при возврате поставщику.', code:'Нет.', next:[{to:'M16', label:'согласование (от клиента)', dashed:true}, {to:'P3', label:'отгрузка возврата поставщику'}, {to:'K7', label:'контроль документов', dashed:true}]},
-    {id:'K7', role:'storekeeper', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал), что у менеджера M15 — в конце дорожки кладовщика.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Зеркало M15 для склада.', code:'Нет.', next:[]},
+    {id:'K7', role:'storekeeper', title:'Контроль документов', full:'Тот же контроль документов (подпись / оригинал), что у менеджера M15 — видно одновременно с M15, не после handoff.', shape:'rect', cov:'no', status:['closed','shipped','return'], cols:['shipment_date','shipment_number','comment'], tz:'Зеркало M15 для склада; параллельно M15.', code:'Нет.', next:[]},
     {id:'G1', role:'chief_mechanic', title:'Открытие заказ-наряда', full:'Открытие заказ-наряда (аналогично заявке менеджера)', shape:'rect', cov:'no', status:['new'], cols:['order_header','fact'], tz:'§4.3 Главный механик.', code:'Нет объектов заказ-наряда.', next:[{to:'G2', label:'заказ запчастей'}]},
     {id:'G2', role:'chief_mechanic', title:'Заказ для ремонта', full:'Заказ товаров/услуг для ремонта (интерфейс как у менеджера)', shape:'rect', cov:'no', status:['ordered'], cols:['nomenclature'], tz:'Механик ≈ менеджер в матрице.', code:'Нет. В матрице chief_mechanic = manager.', next:[{to:'M2', label:'в общий поиск', dashed:true}]},
     {id:'G3', role:'chief_mechanic', title:'Выдача в ремонтную зону', full:'Выдача запчастей в Ремонтную зону, списание по заказ-наряду', shape:'rect', cov:'no', status:['assembly'], cols:['stock'], tz:'Ремонтная зона (§2.4).', code:'Нет.', next:[{to:'G4', label:'работы выполнены'}]},
@@ -384,15 +383,13 @@
         {node:'K2', note:'Размещение.', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе (всегда после K2).', status:'acceptance'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Сборка.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'K3', note:'Сборка.', status:'assembly'},
         {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
-        {node:'M12', note:'Уведомление о готовности (между M10 и M11).', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: отгрузочная ведомость.', status:'ready_to_ship'},
+        {node:'M12', note:'Уведомление о готовности (после контроля комплектации).', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: отгрузочная ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар у клиента.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -404,16 +401,14 @@
         {node:'M2', note:'Поиск + подбор номенклатуры: остаток есть.', status:'new'},
         {node:'M3', note:'Резерв.', status:'reserve'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
         {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
         {node:'M12', note:'Уведомление о готовности.', status:'ready_to_ship'},
         {node:'M13', note:'Недостаточно прав, обратись к админу.', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -432,15 +427,13 @@
         {node:'K2', note:'Размещение.', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Общее задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Сборка смешанного заказа.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'K3', note:'Сборка смешанного заказа.', status:'assembly'},
         {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
         {node:'M12', note:'Уведомление о готовности.', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -499,11 +492,10 @@
         {node:'M16', note:'Возврат брака поставщику.', status:'return'},
         {node:'K6', note:'Подготовка возврата.', status:'return'},
         {node:'P3', note:'Поставщик принял возврат.', status:'return'},
-        {node:'K3', note:'Повторная комплектация.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'K3', note:'Повторная комплектация.', status:'assembly'},
         {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
         {node:'M12', note:'Уведомление о готовности.', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'G6', note:'Акт сверки — одна личность механика.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
@@ -527,11 +519,10 @@
         {node:'M16', note:'Возврат поставщику.', status:'return'},
         {node:'K6', note:'Подготовка брака.', status:'return'},
         {node:'P3', note:'Поставщик принял возврат.', status:'return'},
-        {node:'K3', note:'Повторная комплектация.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'K3', note:'Повторная комплектация.', status:'assembly'},
         {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
         {node:'M12', note:'Уведомление о готовности.', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'}
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'}
       ]
     },
     {
@@ -637,15 +628,13 @@
         {node:'K2', note:'Размещение.', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Комплектация.', status:'assembly'},
-        {node:'K3', note:'Сборка.', status:'assembly'},
-        {node:'K4', note:'Готово.', status:'ready_to_ship'},
+        {node:'K3', note:'Сборка.', status:'assembly'},
         {node:'M10', note:'Контроль.', status:'ready_to_ship'},
         {node:'M12', note:'Готовность.', status:'ready_to_ship'},
-        {node:'M11', note:'Ведомость админ.', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -678,15 +667,13 @@
         {node:'K2', note:'Большой склад (Z4).', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'K4', note:'Готово.', status:'ready_to_ship'},
+        {node:'K3', note:'Комплектация.', status:'assembly'},
         {node:'M10', note:'Контроль.', status:'ready_to_ship'},
         {node:'M12', note:'Готовность.', status:'ready_to_ship'},
         {node:'M11', note:'Ведомость админ.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -703,15 +690,13 @@
         {node:'K2', note:'Размещение.', status:'acceptance'},
         {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Приоритетная комплектация.', status:'assembly'},
-        {node:'K3', note:'Сборка вне очереди.', status:'assembly'},
-        {node:'K4', note:'Готово.', status:'ready_to_ship'},
+        {node:'K3', note:'Сборка вне очереди.', status:'assembly'},
         {node:'M10', note:'Контроль.', status:'ready_to_ship'},
         {node:'M12', note:'Готовность.', status:'ready_to_ship'},
         {node:'M11', note:'Ведомость админ.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -773,11 +758,10 @@
         {node:'M10', note:'Блок/назначение для Б.', status:'assembly'},
         {node:'M12', note:'Готовность.', status:'ready_to_ship'},
         {node:'M13', note:'Недостаточно прав, обратись к админу.', status:'ready_to_ship'},
-        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'M11', note:'Менеджер: ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
         {node:'N2a', note:'Товар.', status:'shipped'},
-        {node:'M15', note:'Контроль документов (менеджер).', status:'closed'},
-        {node:'K7', note:'Контроль документов (кладовщик).', status:'closed'}
+        {nodes:['M15','K7'], node:'M15', note:'Контроль документов — менеджер и кладовщик одновременно.', status:'closed'}
       ]
     },
     {
@@ -1083,6 +1067,16 @@
     });
   }
 
+  function stepNodes(st){
+    if (!st) return [];
+    if (st.nodes && st.nodes.length) return st.nodes.slice();
+    return st.node ? [st.node] : [];
+  }
+  function stepPrimary(st){
+    var ids = stepNodes(st);
+    return ids.length ? ids[0] : null;
+  }
+
   function currentScenario(){
     return SCENARIOS.filter(function(s){return s.id===state.scenarioId;})[0] || SCENARIOS[0];
   }
@@ -1090,7 +1084,11 @@
   function playPathIds(){
     if (state.step < 0) return [];
     var sc = currentScenario();
-    return sc.steps.slice(0, state.step+1).map(function(s){return s.node;});
+    var out = [];
+    sc.steps.slice(0, state.step+1).forEach(function(s){
+      stepNodes(s).forEach(function(id){ if (out.indexOf(id) < 0) out.push(id); });
+    });
+    return out;
   }
 
   function nodeVisible(n){
@@ -1103,7 +1101,10 @@
     var path = playPathIds();
     var pathSet = {};
     path.forEach(function(id){ pathSet[id]=true; });
-    var activeId = state.step >= 0 ? currentScenario().steps[state.step].node : null;
+    var activeSet = {};
+    if (state.step >= 0) {
+      stepNodes(currentScenario().steps[state.step]).forEach(function(id){ activeSet[id] = true; });
+    }
 
     elLanes.innerHTML = '';
     ROLES.forEach(function(role){
@@ -1125,7 +1126,7 @@
         btn.type = 'button';
         btn.className = 'node cov-'+n.cov + (n.shape==='decision'?' decision':'');
         if (state.selected === n.id) btn.classList.add('selected');
-        if (activeId === n.id) btn.classList.add('play-active');
+        if (activeSet[n.id]) btn.classList.add('play-active');
         if (state.step >= 0 && !pathSet[n.id] && state.roleFilter==='' && !state.gapsOnly) {
           // soft dim nodes not yet reached in player
           if (path.length) btn.style.opacity = pathSet[n.id] ? '1' : '0.45';
@@ -1258,8 +1259,9 @@
       return;
     }
     var st = sc.steps[state.step];
-    var n = byId[st.node];
-    elPlayerTitle.textContent = (state.step+1)+'/'+sc.steps.length+' · '+(n?n.title:st.node);
+    var ids = stepNodes(st);
+    var titles = ids.map(function(id){ var n = byId[id]; return n ? n.title : id; }).join(' ∥ ');
+    elPlayerTitle.textContent = (state.step+1)+'/'+sc.steps.length+' · '+titles;
     elPlayerNote.textContent = st.note + (st.status ? ' · статус матрицы: '+(STATUS_TITLE[st.status]||st.status) : '');
     elPlayerProgress.style.width = Math.round(((state.step+1)/sc.steps.length)*100) + '%';
   }
@@ -1269,10 +1271,11 @@
     if (i < 0 || i >= sc.steps.length) { stopPlay(true); return; }
     state.step = i;
     var st = sc.steps[i];
-    state.selected = st.node;
+    var primary = stepPrimary(st);
+    state.selected = primary;
     updatePlayerUI();
     renderLanes();
-    if (byId[st.node]) showNodeSide(byId[st.node]);
+    if (primary && byId[primary]) showNodeSide(byId[primary]);
     elStatusLine.textContent = 'Сценарий: '+sc.title+' · шаг '+(i+1)+'/'+sc.steps.length;
   }
 
