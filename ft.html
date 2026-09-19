@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Функциональные требования (ФТ) — Витавто v1</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
+    --accent:#2563eb; --accent-dark:#1d4ed8;
+    --ok-bg:#d9f2df; --ok-bd:#8fd6a4;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+    --no-bg:#fde8e6; --no-bd:#f0a8a0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;line-height:1.45;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  header.app,footer.app{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 18px;}
+  footer.app{border-top:1px solid var(--border);border-bottom:none;color:var(--muted);font-size:11px;margin-top:24px;}
+  h1{font-size:18px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:8px;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .btn{display:inline-flex;border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);}
+  .btn:hover{background:#eef1f5;text-decoration:none;}
+  .btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  main{max-width:980px;margin:0 auto;padding:16px 18px 40px;}
+  h2{font-size:15px;margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  h3{font-size:13px;margin:14px 0 6px;}
+  p,li{font-size:13px;}
+  .hint{color:var(--muted);font-size:12px;}
+  .callout{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px;color:#9a3412;}
+  .callout.ok{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .callout.info{background:#eff6ff;border-color:#93c5fd;color:#1e40af;}
+  .callout.bad{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);margin:8px 0 12px;}
+  th,td{border:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top;}
+  th{background:#f8fafc;color:var(--muted);font-weight:600;font-size:11px;}
+  tr.alt td{background:#fafbfc;}
+  code{font-family:Consolas,monospace;font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px;}
+  .toc{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 16px;font-size:12px;}
+  .meta{display:grid;grid-template-columns:140px 1fr;gap:4px 10px;font-size:12px;margin:10px 0 16px;}
+  .meta .k{color:var(--muted);}
+  ul.tight li{margin:3px 0;}
+  .fr-id{font-family:Consolas,monospace;font-weight:600;color:#1e40af;}
+  @media print{
+    header.app .toolbar,.no-print{display:none !important;}
+    body{background:#fff;}
+    main{max-width:none;padding:0;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Функциональные требования (ФТ) — Витавто v1</h1>
+  <div class="sub">Витавто · АС_АРМ2 / УНФ 1.6 · проект v0.1 · проект на согласование владельцем продукта (C3)</div>
+  
+  <div class="toolbar no-print">
+    <a class="btn" href="bt.html">БТ</a>
+    <a class="btn primary" href="ft.html">ФТ</a>
+    <a class="btn" href="protocol-map.html">Карта протокола</a>
+    <a class="btn" href="approve.html">Протокол апрувов</a>
+    <a class="btn" href="process.html">Процесс</a>
+    <a class="btn" href="br-fr-analysis.html">Разбор источников</a>
+    <button class="btn" onclick="window.print()">Печать / PDF</button>
+  </div>
+</header>
+
+<main>
+  <div class="callout ok"><strong>Статус:</strong> проект функциональных требований только по <code>approved</code> протокола (C2).
+  Пункты <code>out</code>/<code>parked</code>/<code>later</code> приведены как явные исключения.</div>
+
+  <div class="meta">
+    <div class="k">Версия</div><div>проект v0.1</div>
+    <div class="k">БТ</div><div><a href="bt.html">bt.html</a></div>
+    <div class="k">Основание</div><div>protocol-lock.json ← Approve/…(45).json от 2026-09-17</div>
+    <div class="k">Карта / смета</div><div><a href="protocol-map.html">protocol-map.html</a></div>
+  </div>
+
+  <div class="toc">
+    <a href="#FR-SCOPE">FR-SCOPE</a>
+<a href="#FR-PRICE">FR-PRICE</a>
+<a href="#FR-MATCH">FR-MATCH</a>
+<a href="#FR-ORDER">FR-ORDER</a>
+<a href="#FR-ARM">FR-ARM</a>
+<a href="#FR-BUY">FR-BUY</a>
+<a href="#FR-WH">FR-WH</a>
+<a href="#FR-RET">FR-RET</a>
+<a href="#FR-NSI">FR-NSI</a>
+<a href="#FR-ACL">FR-ACL</a>
+<a href="#FR-NFR">FR-NFR</a>
+    <a href="#trace">Сводка трассировки</a>
+  </div>
+
+  <div class="callout info"><strong>Как читать:</strong> идентификатор FR → пункт(ы) протокола → формулировка для разработки и приёмки.
+  Детали UI (имена кнопок в 1С) уточняются на пусконаладке; бизнес-смысл не менять без <code>C5</code>.</div>
+
+  
+  <h2 id="FR-SCOPE">FR-SCOPE. Границы и платформа</h2>
+  <p class="hint">Трассировка к БТ: BR-1, BR-6</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-SCOPE-01</td><td><code>S1</code></td><td>Контур v1: заказ покупателя + АРМ + складские статусы/колонки без механика.</td></tr>
+<tr class="alt"><td class="fr-id">FR-SCOPE-02</td><td><code>S2</code></td><td>Контур механика / нормочасов не реализуется в v1 (later); комментарий S2 — в backlog.</td></tr>
+<tr class=""><td class="fr-id">FR-SCOPE-03</td><td><code>S3</code></td><td>В НСИ поддерживаются все 6 складских зон схемы.</td></tr>
+<tr class="alt"><td class="fr-id">FR-SCOPE-04</td><td><code>S4,S5,S8</code></td><td>ПФ этапа печати, сайт поставщика, обмен с внешней бухгалтерией — не реализуются.</td></tr>
+<tr class=""><td class="fr-id">FR-SCOPE-05</td><td><code>S7</code></td><td>Целевая платформа: 1С:УНФ 1.6 (уточнить конфликт с комментарием «свежая редакция»).</td></tr>
+<tr class="alt"><td class="fr-id">FR-SCOPE-06</td><td><code>S6</code></td><td>Документ внутренних нужд / теги КА — не в объёме до отдельного апрува.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-PRICE">FR-PRICE. Ценообразование</h2>
+  <p class="hint">Трассировка к БТ: BR-4</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-PRICE-01</td><td><code>B1</code></td><td>В строке заказа: коэффициент наценки, вводимый вручную.</td></tr>
+<tr class="alt"><td class="fr-id">FR-PRICE-02</td><td><code>B1</code></td><td>Если РРЦ (рекомендованная розничная цена) не указана — цена = себестоимость × коэффициент.</td></tr>
+<tr class=""><td class="fr-id">FR-PRICE-03</td><td><code>B1</code></td><td>Если РРЦ указана — цена = РРЦ × коэффициент.</td></tr>
+<tr class="alt"><td class="fr-id">FR-PRICE-04</td><td><code>B1</code></td><td>Если пользователь задаёт цену напрямую — коэффициент пересчитывается относительно себестоимости и проставляется.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-MATCH">FR-MATCH. Сопоставление номенклатуры</h2>
+  <p class="hint">Трассировка к БТ: BR-3, BR-4</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-MATCH-01</td><td><code>B2</code></td><td>Сопоставление «номенклатура факт → справочник» — отдельная обработка в интерфейсе АРМ (не в форме заказа как единственный UX).</td></tr>
+<tr class="alt"><td class="fr-id">FR-MATCH-02</td><td><code>B2</code></td><td>Основной рабочий контур незакрытых позиций — АРМ; при ошибке — корректировка и возврат в контур заказа/АРМ.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-ORDER">FR-ORDER. Заказ покупателя</h2>
+  <p class="hint">Трассировка к БТ: BR-3, BR-4</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-ORDER-01</td><td><code>O1</code></td><td>Загрузка/вставка заявки ctrl+c/ctrl+v с проверкой типов данных (формат «как УКД» / согласованные колонки).</td></tr>
+<tr class="alt"><td class="fr-id">FR-ORDER-02</td><td><code>O2</code></td><td>Поля: гос. номер, срочно, база — по образцу 1с.xlsx.</td></tr>
+<tr class=""><td class="fr-id">FR-ORDER-03</td><td><code>O3</code></td><td>Срочность — визуальная метка (без отдельной бизнес-логики закупа по срочности).</td></tr>
+<tr class="alt"><td class="fr-id">FR-ORDER-04</td><td><code>O4</code></td><td>Резерв только по кнопке; если указано «хочет продать» и есть на складе — постановка в резерв по правилам кнопки.</td></tr>
+<tr class=""><td class="fr-id">FR-ORDER-05</td><td><code>O5</code></td><td>Снятие с резерва — только создатель, по кнопке.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ORDER-06</td><td><code>O9</code></td><td>Кнопка «Добавить строку заказа»: частичный резерв имеющегося + новая строка на недостающее.</td></tr>
+<tr class=""><td class="fr-id">FR-ORDER-07</td><td><code>O10</code></td><td>Проведение/поведение проведения — типовое УНФ, без отдельной кастомной схемы (если не пересекается с B3).</td></tr>
+<tr class="alt"><td class="fr-id">FR-ORDER-08</td><td><code>O11</code></td><td>Одна деталь с разными поставщиками/ценами — возможность выбора варианта в строке.</td></tr>
+<tr class=""><td class="fr-id">FR-ORDER-09</td><td><code>O12</code></td><td>Колонка AD (доп. признак) — по согласованному смыслу из комментария.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ORDER-10</td><td><code>O13</code></td><td>Универсальный текстовый столбец комментария.</td></tr>
+<tr class=""><td class="fr-id">FR-ORDER-11</td><td><code>O14 out</code></td><td>Автоконтроль «верно ли сопоставили» — не требуется.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-ARM">FR-ARM. АРМ менеджера / снабжения</h2>
+  <p class="hint">Трассировка к БТ: BR-2, BR-3</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-ARM-01</td><td><code>A1</code></td><td>АРМ показывает незакрытые позиции контура продаж (включая связанные заказ-наряды в списке — без реализации механика).</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-02</td><td><code>A2 out</code></td><td>Отдельные колонки «дозаказать / остаток / в пути» как требование A2 — out (не путать с прочим гридом).</td></tr>
+<tr class=""><td class="fr-id">FR-ARM-03</td><td><code>A3,A5,A6</code></td><td>Грид АРМ: согласованные колонки; набор колонок — «свой список» по 1c.xls; обновление данных — да.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-04</td><td><code>A7</code></td><td>Доступ к действиям/колонкам — по матрице прав.</td></tr>
+<tr class=""><td class="fr-id">FR-ARM-05</td><td><code>A8</code></td><td>Фильтры на все поля грида.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-06</td><td><code>A9</code></td><td>Группировки/представления — да (как утверждено).</td></tr>
+<tr class=""><td class="fr-id">FR-ARM-07</td><td><code>A10 out</code></td><td>Массовая установка статуса «Заказано» с ПКМ — не делаем.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-08</td><td><code>A11</code></td><td>Предварительный сбор требований (листики) — в v1.</td></tr>
+<tr class=""><td class="fr-id">FR-ARM-09</td><td><code>A12</code></td><td>Отдельный UX «возврат как заказ от клиента» в АРМ — нет; возвраты — по контуру R* / принципу комментария A12 не как отдельная FR-форма A12.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-10</td><td><code>A13</code></td><td>Отказ/отмена — метка «Отменен» / «заказчик отказался» без сложного алгоритма.</td></tr>
+<tr class=""><td class="fr-id">FR-ARM-11</td><td><code>A14</code></td><td>Удаление позиций/документов пользователем запрещено.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ARM-12</td><td><code>A4 out</code></td><td>Создание расходной накладной набором из АРМ — out.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-BUY">FR-BUY. Закуп / заказ поставщику / приёмка</h2>
+  <p class="hint">Трассировка к БТ: BR-3, BR-4</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-BUY-01</td><td><code>B3</code></td><td>Создание заказа поставщику — только вручную/кнопкой из АРМ.</td></tr>
+<tr class="alt"><td class="fr-id">FR-BUY-02</td><td><code>B3</code></td><td>Сценарий: заказ клиента → привязка к нашей номенклатуре → при отсутствии на складе указание кол-ва к закупке (комментарий B3).</td></tr>
+<tr class=""><td class="fr-id">FR-BUY-03</td><td><code>P1</code></td><td>Алгоритм закупа не учитывает срочность.</td></tr>
+<tr class="alt"><td class="fr-id">FR-BUY-04</td><td><code>P4</code></td><td>Создание/ведение ЗП — из АРМ.</td></tr>
+<tr class=""><td class="fr-id">FR-BUY-05</td><td><code>P5</code></td><td>Заполнение ключевых полей ЗП — всегда вручную; колонка AD — проверить расчёт 1С.</td></tr>
+<tr class="alt"><td class="fr-id">FR-BUY-06</td><td><code>P6</code></td><td>Сортировка/группировка поставщиков — по алфавиту (Максим).</td></tr>
+<tr class=""><td class="fr-id">FR-BUY-07</td><td><code>P7</code></td><td>Связь ЗП со строкой покупателя — как в текущем коде (без ломки), с донастройкой по апрувам.</td></tr>
+<tr class="alt"><td class="fr-id">FR-BUY-08</td><td><code>P8</code></td><td>Подсказки аналогов со связью без отдельного справочника «как сущность».</td></tr>
+<tr class=""><td class="fr-id">FR-BUY-09</td><td><code>P9</code></td><td>Если позиция есть — показать у кого и за сколько; при отличиях — сигнализировать (проверить реализацию).</td></tr>
+<tr class="alt"><td class="fr-id">FR-BUY-10</td><td><code>P2,P3,P10 out</code></td><td>Учёт поставщика при вводе на основании / снятие «по основанию» / виртуальный закуп — out.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-WH">FR-WH. Склад / комплектация / отгрузка</h2>
+  <p class="hint">Трассировка к БТ: BR-3</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-WH-01</td><td><code>B4</code></td><td>Отображение движения — столбцы (оплата, приёмка, return и др. по матрице/process), не только короткий enum статусов.</td></tr>
+<tr class="alt"><td class="fr-id">FR-WH-02</td><td><code>W1,W2,W3</code></td><td>Комплектация/складские шаги — как в ТЗ для утверждённых пунктов W1–W3.</td></tr>
+<tr class=""><td class="fr-id">FR-WH-03</td><td><code>W4</code></td><td>Напоминания — внутренними средствами 1С (отдельный notify).</td></tr>
+<tr class="alt"><td class="fr-id">FR-WH-04</td><td><code>W5,W8,W9</code></td><td>Сценарии склада/отгрузки по утверждённым W5,W8,W9.</td></tr>
+<tr class=""><td class="fr-id">FR-WH-05</td><td><code>W7</code></td><td>Привязка к зоне: достаточно статуса/колонки без обязательной зоны в каждом шаге.</td></tr>
+<tr class="alt"><td class="fr-id">FR-WH-06</td><td><code>W6 out</code></td><td>Формирование РН из АРМ как отдельное требование W6 — out.</td></tr>
+<tr class=""><td class="fr-id">FR-WH-07</td><td><code>B5</code></td><td>Роль исполнителя склада в v1 = «кладовщик-грузчик».</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-RET">FR-RET. Возвраты</h2>
+  <p class="hint">Трассировка к БТ: BR-3</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-RET-01</td><td><code>R1</code></td><td>Если нет документов на возврат — кладовщик идентифицирует позицию.</td></tr>
+<tr class="alt"><td class="fr-id">FR-RET-02</td><td><code>R2</code></td><td>Заявку на возврат поставщику могут создать менеджер и кладовщик.</td></tr>
+<tr class=""><td class="fr-id">FR-RET-03</td><td><code>R3</code></td><td>Возврат клиента — да (по утверждённому сценарию).</td></tr>
+<tr class="alt"><td class="fr-id">FR-RET-04</td><td><code>R4</code></td><td>Операции возврата из АРМ — по роли.</td></tr>
+<tr class=""><td class="fr-id">FR-RET-05</td><td><code>R5,R6 out</code></td><td>Возврат на склад без возврата поставщику как отдельный сценарий и ПФ/акты возвратов — out.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-NSI">FR-NSI. НСИ</h2>
+  <p class="hint">Трассировка к БТ: BR-1, BR-4</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-NSI-01</td><td><code>N3</code></td><td>Доработка номенклатуры новыми полями — проверить/довести реализацию.</td></tr>
+<tr class="alt"><td class="fr-id">FR-NSI-02</td><td><code>N4</code></td><td>Наименование/поля для печати из файла «БТ» — проверить работоспособность (без пакета печатных форм S4).</td></tr>
+<tr class=""><td class="fr-id">FR-NSI-03</td><td><code>N6</code></td><td>Поле правил — донастроить.</td></tr>
+<tr class="alt"><td class="fr-id">FR-NSI-04</td><td><code>N8</code></td><td>Поле на уровне номенклатуры есть; внешняя интеграция — later.</td></tr>
+<tr class=""><td class="fr-id">FR-NSI-05</td><td><code>N9</code></td><td>Рекомендация ед. изм. шт на складе без жёсткого запрета.</td></tr>
+<tr class="alt"><td class="fr-id">FR-NSI-06</td><td><code>N1,N2,N5,N7 out</code></td><td>РРЦ только в карточке как отдельное N1, фото неопознанных, запрет бренда КАМАЗ, группа ГБЦ — out.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-ACL">FR-ACL. Права и роли (функционально)</h2>
+  <p class="hint">Трассировка к БТ: BR-2</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-ACL-01</td><td><code>K1r</code></td><td>Типовые профили УНФ; редактирует создатель, читают все (в рамках профиля).</td></tr>
+<tr class="alt"><td class="fr-id">FR-ACL-02</td><td><code>K2r</code></td><td>Ограничения по матрице колонок (роль × статус/колонка).</td></tr>
+<tr class=""><td class="fr-id">FR-ACL-03</td><td><code>K3r,K4r,K5r</code></td><td>Утверждённые расширения прав/видимости — да / как ТЗ.</td></tr>
+<tr class="alt"><td class="fr-id">FR-ACL-04</td><td><code>K7r</code></td><td>Администратор = полный доступ + НСИ вне заявки.</td></tr>
+<tr class=""><td class="fr-id">FR-ACL-05</td><td><code>K6r out</code></td><td>Внешний портал поставщика — не в v1.</td></tr></tbody>
+  </table>
+
+  <h2 id="FR-NFR">FR-NFR. Нефункциональные и поставка</h2>
+  <p class="hint">Трассировка к БТ: BR-5, BR-6</p>
+  <table>
+    <thead><tr><th>FR</th><th>Протокол</th><th>Требование</th></tr></thead>
+    <tbody><tr class=""><td class="fr-id">FR-NFR-01</td><td><code>X4</code></td><td>Регрессия/проверка согласованных сценариев — да.</td></tr>
+<tr class="alt"><td class="fr-id">FR-NFR-02</td><td><code>X7</code></td><td>Обучение пользователей — в пакете поставки 24–40 ч комфорт.</td></tr>
+<tr class=""><td class="fr-id">FR-NFR-03</td><td><code>X5</code></td><td>Пересчёт сметы — после утверждения и приёмки пусконаладки.</td></tr>
+<tr class="alt"><td class="fr-id">FR-NFR-04</td><td><code>C2,C5</code></td><td>Изменения scope — только через протокол апрувов.</td></tr>
+<tr class=""><td class="fr-id">FR-NFR-05</td><td><code>C4</code></td><td>Артефакты требований: HTML в репо; выгрузка Word/PDF через печать.</td></tr></tbody>
+  </table>
+
+  <h2 id="trace">Сводка: approved → пакет (карта)</h2>
+  <p class="hint">Пакеты трудозатрат — на карте протокола; здесь только привязка для разработки.</p>
+  <table>
+    <thead><tr><th>Пакет</th><th>Ключевые FR / блокеры</th></tr></thead>
+    <tbody>
+      <tr><td><code>PKG-PRICE</code></td><td>FR-PRICE-*, B1</td></tr>
+      <tr class="alt"><td><code>PKG-MATCH</code></td><td>FR-MATCH-*, B2</td></tr>
+      <tr><td><code>PKG-ORDER</code></td><td>FR-ORDER-*</td></tr>
+      <tr class="alt"><td><code>PKG-ARM-MGR</code></td><td>FR-ARM-*, B5, S1</td></tr>
+      <tr><td><code>PKG-BUY</code></td><td>FR-BUY-*, B3</td></tr>
+      <tr class="alt"><td><code>PKG-WH</code> / <code>PKG-STATUS</code></td><td>FR-WH-*, B4</td></tr>
+      <tr><td><code>PKG-RETURN</code></td><td>FR-RET-*</td></tr>
+      <tr class="alt"><td><code>PKG-NSI</code></td><td>FR-NSI-*, S3</td></tr>
+      <tr><td><code>PKG-ROLES</code></td><td>FR-ACL-*</td></tr>
+      <tr class="alt"><td><code>PKG-QA</code> / <code>PKG-TRAIN</code></td><td>FR-NFR-*</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout bad"><strong>Не делать по out:</strong> O6, O7, O14, A2, A4, A10, P2, P3, P10, W6, R5, R6, N1, N2, N5, N7, K6r, X1, X2, X3, X6.
+  Parked: O8.</div>
+</main>
+<footer class="app">
+  Источник решений: protocol-lock.json. Изменения — только через approve.html (C5).
+  Печать: кнопка «Печать / PDF» или Ctrl+P.
+</footer>
+</body>
+</html>
