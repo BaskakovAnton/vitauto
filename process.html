@@ -989,14 +989,28 @@
     }
   }
 
+  function syncUrlFromState(){
+    try {
+      var q = new URLSearchParams();
+      if (state.view && state.view !== 'process') q.set('view', state.view);
+      if (state.scenarioId) q.set('scenario', state.scenarioId);
+      if (state.selected) q.set('node', state.selected);
+      var qs = q.toString();
+      history.replaceState(null, '', qs ? ('?' + qs) : location.pathname);
+    } catch (e) {}
+  }
+
   function pickScenario(id){
     if (!SCENARIOS.some(function(s){return s.id===id;})) return;
     stopPlay(true);
     state.scenarioId = id;
+    state.selected = null;
     elScenario.value = id;
     syncScenarioButtons();
     updatePlayerUI();
     renderLanes();
+    syncUrlFromState();
+    elStatusLine.textContent = 'Сценарий: ' + (currentScenario().title || id);
   }
 
   function syncScenarioButtons(){
@@ -1140,7 +1154,7 @@
     if (fromClick) stopPlay(false);
     renderLanes();
     showNodeSide(n);
-    try { history.replaceState(null,'','?node='+encodeURIComponent(id)+(state.scenarioId!=='happy'?'&scenario='+state.scenarioId:'')); } catch(e){}
+    syncUrlFromState();
     elStatusLine.textContent = n.id + ' · ' + roleTitle(n.role) + ' · ' + covLabel(n.cov);
   }
 
@@ -1258,10 +1272,7 @@
       renderLanes();
     }
     try {
-      var q = new URLSearchParams(location.search);
-      if (v==='process') q.delete('view'); else q.set('view', v);
-      var qs = q.toString();
-      history.replaceState(null,'', qs ? ('?'+qs) : location.pathname);
+      syncUrlFromState();
     } catch(e){}
   }
 
@@ -1286,6 +1297,7 @@
     }
     if (view==='zones' || view==='estimate') setView(view);
     if (node && byId[node] && state.view!=='estimate') selectNode(node, true);
+    else syncUrlFromState();
   }
 
   // events
