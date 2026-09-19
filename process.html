@@ -217,6 +217,11 @@
       <option value="">Все роли</option>
     </select>
     <a class="btn" href="index.html">← Матрица прав</a>
+    <a class="btn" href="br-fr-analysis.html">Разбор БТ/ФТ</a>
+    <a class="btn" href="bt.html">БТ</a>
+    <a class="btn" href="ft.html">ФТ</a>
+    <a class="btn" href="approve.html">Протокол апрувов</a>
+    <a class="btn" href="protocol-map.html">Карта протокола</a>
   </div>
 </header>
 
@@ -277,6 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
+  Обновление плеера 19.09.2026: OCR-фиксы F1–F12 (N2a/N2b, без ветки машин, вирт. права, разъезд, K1→K2→M8, M13, M11 админ).
 </footer>
 
 <script>
@@ -295,45 +301,50 @@
   ];
 
   var NODES = [
-    {id:'N1', role:'client', title:'Заявка: Excel / фото', full:'Заявка от клиента: Excel по шаблону или фото — артикул, наименование, кол-во, гос.номер авто', shape:'rect', cov:'part', status:['new'], cols:['article_fact','name_fact','qty_fact','vehicle_plate_fact'], tz:'Входные данные заявки (§3.1).', code:'Контрагент заказа; отдельного клиентского UI нет.', next:[{to:'M1', label:'заявка в 1С'}]},
-    {id:'N2', role:'client', title:'Получение товара и документов', full:'Получение товара и подписанных документов', shape:'rect', cov:'part', status:['shipped','closed'], cols:['shipment_date','shipment_number'], tz:'Завершение отгрузки клиенту.', code:'Есть дата/номер отгрузки и РН; клиентского кабинета нет.', next:[]},
+    {id:'N1', role:'client', title:'Заявка: Excel / фото', full:'Заявка от клиента: Excel по шаблону или фото — артикул, наименование, кол-во, гос.номер авто. При разном способе вывоза (такси / наша машина) — две отдельные заявки, способ в комментарии.', shape:'rect', cov:'part', status:['new'], cols:['article_fact','name_fact','qty_fact','vehicle_plate_fact','comment'], tz:'Входные данные заявки (§3.1). OCR 09.2026: разъезд → две заявки.', code:'Контрагент заказа; отдельного клиентского UI нет.', next:[{to:'M1', label:'заявка в 1С'}]},
+    {id:'N2a', role:'client', title:'Получение товара', full:'Физическая отгрузка / выдача товара клиенту (первый шаг бывшего N2)', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'OCR: N2 режется — сначала товар.', code:'Дата/номер отгрузки и РН; клиентского кабинета нет.', next:[{to:'N2b', label:'далее контроль документов'}]},
+    {id:'N2b', role:'client', title:'Контроль документов', full:'После товара: физ. подпись на отгрузочном документе и отметка, что оригинал получен', shape:'rect', cov:'no', status:['closed'], cols:['shipment_date','shipment_number','comment'], tz:'OCR: второй шаг N2 + аннотация на K5.', code:'Отдельных полей подписи/оригинала в АРМ нет.', next:[]},
     {id:'N3', role:'client', title:'Возврат товара', full:'Возврат товара (при необходимости)', shape:'rect', cov:'no', status:['return'], cols:['line_status','comment'], tz:'Возврат после отгрузки (§5, процессы возврата).', code:'Статуса/форм возврата в АРМ нет.', next:[{to:'K6', label:'инициирован возврат'}]},
+    {id:'N4', role:'client', title:'Самовывоз у поставщика', full:'Клиент забирает товар у внешнего поставщика, минуя склад Витавто. Документы всё равно через N2b.', shape:'rect', cov:'no', status:['shipped'], cols:['comment','shipment_date'], tz:'OCR: новый узел N4.', code:'Нет.', next:[{to:'N2b', label:'контроль документов'}]},
 
-    {id:'M1', role:'manager', title:'Загрузка заявки в 1С', full:'Загрузка заявки в 1С: Excel-парсер / ручной ввод по фото', shape:'rect', cov:'part', status:['new'], cols:['order_header','fact'], tz:'Excel-парсер или ручной ввод (§3.1).', code:'ФормаЗагрузкиДанных — табличный ввод, не парсер Excel; номенклатура не матчится.', next:[{to:'M2', label:'поиск по артикулу'}]},
-    {id:'M2', role:'manager', title:'Поиск номенклатуры', full:'Поиск номенклатуры по артикулу / наименованию', shape:'rect', cov:'no', status:['new'], cols:['article','name','code_aa'], tz:'Алгоритм поиска (§3.1 п.2).', code:'При загрузке номенклатура часто пустая; автопоиска нет.', next:[{to:'D1', label:'результат'}]},
-    {id:'D1', role:'manager', title:'Позиция найдена?', full:'Позиция найдена в 1С?', shape:'decision', cov:'no', status:['new'], cols:['nomenclature'], tz:'Ветвление найден / не найден.', code:'Ветвление UI не реализовано как decision flow.', next:[{to:'M3', label:'да, остаток есть'},{to:'M4', label:'да, остатка нет'},{to:'A1', label:'нет'}]},
+    {id:'M1', role:'manager', title:'Загрузка заявки в 1С', full:'Загрузка заявки в 1С: Excel-парсер / ручной ввод по фото', shape:'rect', cov:'part', status:['new'], cols:['order_header','fact'], tz:'Excel-парсер или ручной ввод (§3.1).', code:'ФормаЗагрузкиДанных — табличный ввод, не парсер Excel; номенклатура не матчится.', next:[{to:'M2', label:'поиск / решение'}]},
+    {id:'M2', role:'manager', title:'Поиск и решение', full:'Один оперблок (OCR): поиск номенклатуры + решение — резерв / заказ поставщику / к админу. Аналог по кроссу — внутри блока (комментарий), не отдельный шаг плеера.', shape:'rect', cov:'no', status:['new'], cols:['article','name','code_aa','nomenclature','comment'], tz:'OCR: схлоп M2+D1(+M6).', code:'Автопоиска нет; аналогов как справочника нет.', next:[{to:'M3', label:'остаток есть → резерв'},{to:'M4', label:'остатка нет → закуп'},{to:'A1', label:'не найдено → админ'}]},
+    {id:'D1', role:'manager', title:'Позиция найдена? (в M2)', full:'Историческое ветвление; в плеере схлопнуто в M2. Оставлено для покрытия/ссылок.', shape:'decision', cov:'no', status:['new'], cols:['nomenclature'], tz:'Слито в M2 (OCR).', code:'Ветвление UI не реализовано.', next:[{to:'M3', label:'да, остаток есть'},{to:'M4', label:'да, остатка нет'},{to:'A1', label:'нет'}]},
     {id:'M3', role:'manager', title:'Резервирование на складе', full:'Резервирование товара под заказ (остаток есть на складе)', shape:'rect', cov:'part', status:['reserve'], cols:['stock_qty','reserve_qty','batch_fifo'], tz:'Резерв при наличии (§3.1).', code:'Остатки в РС; отдельного статуса «Резервирование» нет.', next:[{to:'M9', label:'задание на комплектацию'},{to:'K3', label:'сразу в сборку'}]},
-    {id:'M4', role:'manager', title:'Заказ поставщику', full:'Оформление «Заказ поставщику» → статус «Заказано у поставщика»', shape:'rect', cov:'ok', status:['ordered'], cols:['supplier','price','qty','line_status'], tz:'Сценарий А закупки (§3.2).', code:'АС_АРМ2: создание ЗаказПоставщику, статус Заказано.', next:[{to:'M7', label:'заказ подтверждён'},{to:'M6', label:'не хватает кол-ва'}]},
-    {id:'M6', role:'manager', title:'Аналог по кросс-коду', full:'Не хватает у поставщика — подбор аналога по кросс-коду + комментарий связей', shape:'rect', cov:'no', status:['ordered'], cols:['article','code_aa','comment'], tz:'Кросс-код / аналог (§3.2 п.5).', code:'Нет справочной связи аналогов; только UX-подсказки.', next:[{to:'P1', label:'аналог в заказ'}]},
+    {id:'M4', role:'manager', title:'Заказ поставщику', full:'Оформление «Заказ поставщику». Нехватка / аналог — комментарий в строке, без отдельного узла M6 в плеере.', shape:'rect', cov:'ok', status:['ordered'], cols:['supplier','price','qty','line_status','comment'], tz:'Сценарий А закупки (§3.2). OCR: M6 снят как шаг.', code:'АС_АРМ2: создание ЗаказПоставщику, статус Заказано.', next:[{to:'M7', label:'к оплате / подтверждению'},{to:'A3', label:'вирт. закуп → проводка админом'}]},
+    {id:'M6', role:'manager', title:'Аналог (снят в плеере)', full:'Бывший отдельный шаг. По OCR схлопнут в M2/M4 (комментарий связей). Узел оставлен для истории покрытия.', shape:'rect', cov:'no', status:['ordered'], cols:['article','code_aa','comment'], tz:'OCR: «объединить / уйдёт».', code:'Нет справочной связи аналогов.', next:[{to:'M7', label:'дальше как M4'}]},
     {id:'M7', role:'manager', title:'Контроль оплаты', full:'Контроль оплаты заказа → статус «Оплачено»', shape:'rect', cov:'ok', status:['paid'], cols:['paid_status','payment_form','price'], tz:'Статус Оплачено (§5).', code:'Статус Оплачено в Арм_СтатусыАРМ / снабжение.', next:[{to:'P1', label:'оплата произведена'}]},
-    {id:'M8', role:'manager', title:'Уведомление о приходе', full:'Уведомление менеджера о поступлении товара на склад', shape:'rect', cov:'part', status:['acceptance'], cols:['line_status'], tz:'Информ. поток после приёмки.', code:'Статусы прихода видны менеджеру; отдельного notify нет.', next:[{to:'M9', label:'создать комплектацию'}]},
+    {id:'M8', role:'manager', title:'Уведомление о приходе', full:'Обязательно после размещения (K2): менеджер видит факт прихода. Приехавшее повторно не заказываем.', shape:'rect', cov:'part', status:['acceptance'], cols:['line_status'], tz:'OCR: вернуть между K2 и M9.', code:'Статусы прихода видны; отдельного notify нет.', next:[{to:'M9', label:'создать комплектацию'}]},
     {id:'M9', role:'manager', title:'Задание на комплектацию', full:'Менеджер выбирает позиции «на складе» и создаёт задание на комплектацию', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','stock'], tz:'Связка склад → комплектация.', code:'Статусы Комплектуется/Собран; отдельного «задания» нет.', next:[{to:'K3', label:'в сборку'}]},
-    {id:'M10', role:'manager', title:'Контроль комплектации', full:'Подтверждение или отклонение позиций с дефектом/недостачей', shape:'rect', cov:'part', status:['assembly','ready_to_ship'], cols:['line_status','comment'], tz:'Отказ комплектации (§5).', code:'Частично через статусы; красной подсветки дефектов как в ТЗ нет.', next:[{to:'K4', label:'решение принято'}]},
-    {id:'M11', role:'manager', title:'Отгрузочная ведомость', full:'Подписание документов, формирование отгрузочной ведомости', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'ПФ отгрузочная ведомость (§6).', code:'Печатных форм в расширении нет.', next:[{to:'K5', label:'документы подписаны'}]},
+    {id:'M10', role:'manager', title:'Контроль комплектации', full:'Подтверждение или отклонение позиций с дефектом/недостачей. Дальше — уведомление о готовности (M13), не сразу ведомость.', shape:'rect', cov:'part', status:['assembly','ready_to_ship'], cols:['line_status','comment'], tz:'Отказ комплектации (§5). OCR: M13 после M10.', code:'Частично через статусы; красной подсветки дефектов как в ТЗ нет.', next:[{to:'M13', label:'ок → готовность'},{to:'M4', label:'дефект → дозаказ', dashed:true}]},
+    {id:'M14', role:'manager', title:'Недостаточно прав на ведомость', full:'Менеджер пытается сформировать отгрузочную ведомость → отказ: недостаточно прав, обратиться к админу', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['comment'], tz:'OCR: права на ведомость только у админа.', code:'Нет.', next:[{to:'M11', label:'админ формирует ведомость'}]},
+    {id:'M11', role:'admin', title:'Отгрузочная ведомость', full:'Формирование отгрузочной ведомости и подписание — только админ. Менеджер сюда через M14 (отказ прав).', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'ПФ отгрузочная ведомость (§6). OCR: роль admin.', code:'Печатных форм в расширении нет.', next:[{to:'K5', label:'документы готовы'}]},
     {id:'M12', role:'manager', title:'Возврат поставщику', full:'Оформление возврата поставщику (ошибочный заказ / брак). Перед отправкой поставщику товар передаётся кладовщику.', shape:'rect', cov:'no', status:['return'], cols:['supplier','comment'], tz:'Возврат поставщику; склад участвует в физической подготовке.', code:'Нет.', next:[{to:'K6', label:'передать кладовщику'},{to:'P3', label:'уже со склада → поставщик'}]},
-    {id:'M13', role:'manager', title:'Уведомление о готовности', full:'Уведомление менеджера: заказ укомплектован / готов к отгрузке (после K4)', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['line_status','shipment_number'], tz:'Информ. поток склад→менеджер перед отгрузочной ведомостью.', code:'Отдельного notify о готовности нет (есть лишь видимость статусов).', next:[{to:'M11', label:'к ведомости / подписанию'}]},
+    {id:'M13', role:'manager', title:'Уведомление о готовности', full:'Заказ укомплектован / готов к отгрузке. Стоит между M10 и M11 (OCR). Дальше ведомость у админа (напрямую или через M14).', shape:'rect', cov:'no', status:['ready_to_ship'], cols:['line_status','shipment_number'], tz:'OCR: между M10 и M11.', code:'Отдельного notify нет.', next:[{to:'M11', label:'админ: ведомость'},{to:'M14', label:'менеджер без прав', dashed:true}]},
 
     {id:'A1', role:'admin', title:'Неопознанные + фото', full:'Создание позиции в папке «Не опознанные», фотофиксация', shape:'rect', cov:'no', status:['new'], cols:['name','article','comment'], tz:'НСИ: неопознанные (§2.1).', code:'Папки/фотофиксации в АРМ нет.', next:[{to:'A2', label:'карточка заполнена'}]},
     {id:'A2', role:'admin', title:'Артикул и кроссы', full:'Присвоение артикула, привязка кросс-кодов, перенос в основную номенклатуру', shape:'rect', cov:'no', status:['new'], cols:['article','code_aa'], tz:'Доводка НСИ админом.', code:'Нет.', next:[{to:'M2', label:'обратно в поиск', dashed:true}]},
+    {id:'A3', role:'admin', title:'Проводка вирт. закупа', full:'Менеджер вёл виртуальный закуп (чек/вне контура); проводит только админ со своими правами. Чеки админом «не пропускаем» как обход.', shape:'rect', cov:'no', status:['ordered','paid'], cols:['comment','price','supplier'], tz:'OCR: вирт. закуп — менеджер ведёт, админ проводит.', code:'Нет.', next:[{to:'K1', label:'к приёмке'},{to:'G6', label:'акт сверки при вирт. отгрузке', dashed:true}]},
     {id:'A5', role:'admin', title:'Приход с разбора / ЗН', full:'Приходование деталей с разбора / заказ-наряда: источник, дата, описание агрегата', shape:'rect', cov:'no', status:[], cols:[], tz:'Черновик на схеме (!!!!!!!).', code:'Нет.', conflict:'Узел на схеме помечен как незавершённый.', next:[{to:'K2', label:'оприходовано'}]},
     {id:'A0', role:'admin', title:'НСИ: РРЦ / НМЦК / права', full:'Вне заявки: РРЦ, расчёт НМЦК = РРЦ × 1,5; настройка прав и статусов', shape:'rect', cov:'no', status:[], cols:['rrc','coefficient'], tz:'§3.3 и note схемы. ТЗ также: «РРЦ в карточке НЕ делаем».', code:'Цена = коэффициент × себестоимость; матрица прав не в 1С.', conflict:'Схема/матрица vs ТЗ §3.3 vs код — три разные модели цены.', next:[]},
 
     {id:'P1', role:'supplier', title:'Обработка заказа', full:'Обработка заказа, подтверждение наличия и остатка', shape:'rect', cov:'no', status:['ordered','paid'], cols:['supplier','qty'], tz:'Внешний портал (Авто-Альянс).', code:'Ручной контур; интеграции нет.', next:[{to:'P2', label:'в работу'}]},
-    {id:'P2', role:'supplier', title:'Отгрузка → В пути', full:'Отгрузка → статус «В пути» (или «Ожидаем поступление» — своя машина)', shape:'rect', cov:'part', status:['in_transit','awaiting_receipt'], cols:['line_status','ordered_in_transit_qty'], tz:'§5 В пути / Ожидаем поступление.', code:'Есть ТоварВПути; отдельного «Ожидаем поступление» нет.', next:[{to:'K1', label:'доставлен'}]},
+    {id:'P2', role:'supplier', title:'Отгрузка → В пути', full:'Статус «В пути». Ветку «своя / чужая машина» не предусматриваем — способ доставки только ручным комментарием в заказе/строке.', shape:'rect', cov:'part', status:['in_transit'], cols:['line_status','ordered_in_transit_qty','comment'], tz:'OCR: машины убраны, комментарий.', code:'Есть ТоварВПути.', next:[{to:'K1', label:'доставлен'}]},
     {id:'P3', role:'supplier', title:'Приём возврата', full:'Приём возврата товара от Витавто', shape:'rect', cov:'no', status:['return'], cols:['supplier'], tz:'Возврат на сторону поставщика.', code:'Нет.', next:[]},
 
-    {id:'K1', role:'storekeeper', title:'Приёмка (УПД)', full:'Приёмка: чек-боксы факта, корректировка кол-ва/цены по УПД, дата прихода', shape:'rect', cov:'part', status:['acceptance'], cols:['receipt','upd_date','upd_number','supplier'], tz:'АРМ кладовщика — Приход.', code:'Статусы Приходуется/НаСкладе + снабжение; УПД-колонок и чек-боксов ТЗ нет. Роль в коде = Снабжение, не Кладовщик.', conflict:'В коде роль «Снабжение», в ТЗ/схеме/матрице — Кладовщик.', next:[{to:'K2', label:'приход оформлен'}]},
-    {id:'K2', role:'storekeeper', title:'Размещение по складам', full:'Размещение: Малый склад / Большой склад', shape:'rect', cov:'no', status:['acceptance','reserve'], cols:['stock_qty'], tz:'6 складских зон (§2.4).', code:'Зоны как справочник/логика АРМ не сделаны.', next:[{to:'M8', label:'оповещение', dashed:true},{to:'G3', label:'в ремонт', dashed:true},{to:'K3', label:'в резерв/сборку'}]},
+    {id:'K1', role:'storekeeper', title:'Приёмка (УПД)', full:'Приёмка: чек-боксы факта, корректировка кол-ва/цены по УПД, дата прихода. Дальше обязательно размещение (K2).', shape:'rect', cov:'part', status:['acceptance'], cols:['receipt','upd_date','upd_number','supplier'], tz:'АРМ кладовщика — Приход. OCR: K2 обязателен.', code:'Статусы Приходуется/НаСкладе + снабжение; УПД-колонок ТЗ нет.', conflict:'В коде роль «Снабжение», в ТЗ/схеме — Кладовщик.', next:[{to:'K2', label:'приход оформлен → размещение'}]},
+    {id:'K2', role:'storekeeper', title:'Размещение по складам', full:'Обязательный шаг после K1. Размещение: Малый / Большой склад. Затем уведомление о приходе (M8).', shape:'rect', cov:'no', status:['acceptance','reserve'], cols:['stock_qty'], tz:'6 складских зон (§2.4). OCR: не skip.', code:'Зоны как справочник/логика АРМ не сделаны.', next:[{to:'M8', label:'уведомление о приходе'},{to:'G3', label:'в ремонт', dashed:true}]},
     {id:'K3', role:'storekeeper', title:'Комплектация + сборочный лист', full:'Комплектация: печать сборочного листа, отметка дефектов/недостач', shape:'rect', cov:'part', status:['assembly'], cols:['line_status','name_fact','article_fact'], tz:'Комплектация + ПФ сборочный лист.', code:'Статусы Комплектуется/Собран; печати нет.', next:[{to:'K4', label:'сборка завершена'},{to:'M10', label:'дефект', dashed:true}]},
-    {id:'K4', role:'storekeeper', title:'Готово к отгрузке', full:'Зона укомплектованных; документ создаёт кладовщик или менеджер. После статуса — уведомление менеджеру.', shape:'rect', cov:'part', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'Статус Готово к отгрузке (§5).', code:'≈ Собран / Подготовлено; отдельного статуса ТЗ нет.', next:[{to:'M13', label:'уведомление менеджеру'},{to:'M11', label:'сразу к ведомости'}]},
-    {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → статус «Отгружено»', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5).', code:'Дата/номер + РасходнаяНакладная; ведомости нет.', next:[{to:'N2', label:'клиент получил'}]},
+    {id:'K4', role:'storekeeper', title:'Готово к отгрузке', full:'Зона укомплектованных. Дальше контроль комплектации при необходимости, затем M13 → ведомость админа.', shape:'rect', cov:'part', status:['ready_to_ship'], cols:['shipment_date','shipment_number'], tz:'Статус Готово к отгрузке (§5).', code:'≈ Собран / Подготовлено.', next:[{to:'M10', label:'контроль комплектации'},{to:'M13', label:'сразу уведомление готовности'}]},
+    {id:'K5', role:'storekeeper', title:'Отгрузка клиенту / ТК', full:'Формирование отгрузки → «Отгружено». Затем клиент: N2a товар, потом N2b документы (подпись, оригинал).', shape:'rect', cov:'part', status:['shipped'], cols:['shipment_date','shipment_number'], tz:'Отгрузка (§5). OCR: split N2.', code:'Дата/номер + РасходнаяНакладная.', next:[{to:'N2a', label:'клиент получил товар'}]},
     {id:'K6', role:'storekeeper', title:'Приёмка / подготовка возврата', full:'Два входа: (1) возврат от клиента — приёмка, акт, зона возвратов; (2) от менеджера (M12) — подготовка товара к возврату поставщику.', shape:'rect', cov:'no', status:['return'], cols:['comment','line_status','supplier'], tz:'Возвраты в АРМ кладовщика; склад обязателен и при возврате поставщику.', code:'Нет.', next:[{to:'M12', label:'согласование (от клиента)', dashed:true},{to:'P3', label:'отгрузка возврата поставщику'}]},
 
     {id:'G1', role:'chief_mechanic', title:'Открытие заказ-наряда', full:'Открытие заказ-наряда (аналогично заявке менеджера)', shape:'rect', cov:'no', status:['new'], cols:['order_header','fact'], tz:'§4.3 Главный механик.', code:'Нет объектов заказ-наряда.', next:[{to:'G2', label:'заказ запчастей'}]},
     {id:'G2', role:'chief_mechanic', title:'Заказ для ремонта', full:'Заказ товаров/услуг для ремонта (интерфейс как у менеджера)', shape:'rect', cov:'no', status:['ordered'], cols:['nomenclature'], tz:'Механик ≈ менеджер в матрице.', code:'Нет. В матрице chief_mechanic = manager.', next:[{to:'M2', label:'в общий поиск', dashed:true}]},
     {id:'G3', role:'chief_mechanic', title:'Выдача в ремонтную зону', full:'Выдача запчастей в Ремонтную зону, списание по заказ-наряду', shape:'rect', cov:'no', status:['assembly'], cols:['stock'], tz:'Ремонтная зона (§2.4).', code:'Нет.', next:[{to:'G4', label:'работы выполнены'}]},
     {id:'G4', role:'chief_mechanic', title:'Нормо-часы', full:'Расчёт нормо-часов (стоимость часа — по типу техники)', shape:'rect', cov:'no', status:[], cols:[], tz:'Нормо-часы по типу техники.', code:'Нет.', next:[{to:'G5', label:'часы рассчитаны'}]},
-    {id:'G5', role:'chief_mechanic', title:'Зарплатный фонд', full:'Формирование зарплатного фонда механиков', shape:'rect', cov:'no', status:[], cols:[], tz:'ЗФ механиков.', code:'Нет.', next:[]}
+    {id:'G5', role:'chief_mechanic', title:'Зарплатный фонд', full:'Формирование зарплатного фонда механиков', shape:'rect', cov:'no', status:[], cols:[], tz:'ЗФ механиков.', code:'Нет.', next:[]},
+    {id:'G6', role:'chief_mechanic', title:'Акт сверки (вирт. отгрузка)', full:'При виртуальной отгрузке акт сверки делает одна личность механика в системе (две физ. роли не плодим).', shape:'rect', cov:'no', status:['shipped','closed'], cols:['comment'], tz:'OCR: два механика → одна учётка.', code:'Нет.', next:[{to:'N2b', label:'документы закрыты'}]}
   ];
 
   var ZONES = [
@@ -369,22 +380,23 @@
       steps:[
         {node:'N1', note:'Клиент передаёт заявку (Excel/фото).', status:'new'},
         {node:'M1', note:'Менеджер загружает заявку в 1С.', status:'new'},
-        {node:'M2', note:'Поиск номенклатуры.', status:'new'},
-        {node:'D1', note:'Позиция найдена, остатка нет → закупка.', status:'new'},
+        {node:'M2', note:'Поиск и решение: найдено, остатка нет → закуп.', status:'new'},
         {node:'M4', note:'Создан заказ поставщику.', status:'ordered'},
         {node:'M7', note:'Оплата подтверждена.', status:'paid'},
         {node:'P1', note:'Поставщик принял заказ.', status:'paid'},
-        {node:'P2', note:'Товар в пути.', status:'in_transit'},
-        {node:'K1', note:'Кладовщик принимает по УПД.', status:'acceptance'},
-        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
-        {node:'M8', note:'Менеджер видит приход.', status:'acceptance'},
+        {node:'P2', note:'Товар в пути; способ доставки — в комментарии.', status:'in_transit'},
+        {node:'K1', note:'Приёмка по УПД.', status:'acceptance'},
+        {node:'K2', note:'Размещение (обязательно после K1).', status:'acceptance'},
+        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Сборка заказа.', status:'assembly'},
         {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
-        {node:'M13', note:'Уведомление менеджеру о готовности.', status:'ready_to_ship'},
-        {node:'M11', note:'Ведомость / подписание.', status:'ready_to_ship'},
+        {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление о готовности (между M10 и M11).', status:'ready_to_ship'},
+        {node:'M11', note:'Админ: отгрузочная ведомость.', status:'ready_to_ship'},
         {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2', note:'Клиент получил товар.', status:'closed'}
+        {node:'N2a', note:'Клиент получил товар.', status:'shipped'},
+        {node:'N2b', note:'Контроль документов: подпись, оригинал получен.', status:'closed'}
       ]
     },
     {
@@ -393,32 +405,18 @@
       steps:[
         {node:'N1', note:'Заявка клиента.', status:'new'},
         {node:'M1', note:'Загрузка в 1С.', status:'new'},
-        {node:'M2', note:'Поиск.', status:'new'},
-        {node:'D1', note:'Найдено, остаток есть.', status:'new'},
+        {node:'M2', note:'Поиск и решение: остаток есть.', status:'new'},
         {node:'M3', note:'Резерв под заказ.', status:'reserve'},
-        {node:'M9', note:'Менеджер создаёт задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Кладовщик комплектует по заданию.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
-        {node:'M13', note:'Уведомление менеджеру о готовности.', status:'ready_to_ship'},
-        {node:'M11', note:'Ведомость / подписание.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'},
-        {node:'N2', note:'Клиент получил.', status:'closed'}
-      ]
-    },
-    {
-      id:'own_truck', group:'main',
-      title:'Своя машина (ожидаем поступление)',
-      steps:[
-        {node:'N1', note:'Заявка клиента.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M4', note:'Заказ поставщику.', status:'ordered'},
-        {node:'M7', note:'Оплачено.', status:'paid'},
-        {node:'P1', note:'Поставщик подтвердил.', status:'paid'},
-        {node:'P2', note:'Ветка «своя машина» → статус матрицы «Ожидаем поступление» (в коде отдельного статуса нет).', status:'awaiting_receipt'},
-        {node:'K1', note:'Приёмка после прибытия своей машины.', status:'acceptance'},
-        {node:'K2', note:'Размещение на складе.', status:'acceptance'},
+        {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'M10', note:'Контроль комплектации.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление о готовности.', status:'ready_to_ship'},
+        {node:'M14', note:'Менеджер без прав на ведомость → к админу.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ формирует ведомость.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'},
+        {node:'N2a', note:'Товар у клиента.', status:'shipped'},
+        {node:'N2b', note:'Документы закрыты.', status:'closed'}
       ]
     },
     {
@@ -427,48 +425,74 @@
       steps:[
         {node:'N1', note:'Заявка на несколько позиций.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск: часть найдена на складе, часть нет.', status:'new'},
-        {node:'D1', note:'Ветвление по строкам.', status:'new'},
+        {node:'M2', note:'Поиск и решение по строкам.', status:'new'},
         {node:'M3', note:'Строки со склада — резерв.', status:'reserve'},
         {node:'M4', note:'Строки без остатка — заказ поставщику.', status:'ordered'},
         {node:'M7', note:'Оплата закупочной части.', status:'paid'},
-        {node:'P2', note:'Закупка в пути.', status:'in_transit'},
+        {node:'P2', note:'Закупка в пути (комментарий доставки).', status:'in_transit'},
         {node:'K1', note:'Приход закупочной части.', status:'acceptance'},
-        {node:'M9', note:'Общее задание на комплектацию обеих частей.', status:'assembly'},
+        {node:'K2', note:'Размещение.', status:'acceptance'},
+        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
+        {node:'M9', note:'Общее задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Сборка смешанного заказа.', status:'assembly'},
         {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
-        {node:'M13', note:'Уведомление менеджеру.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'}
+        {node:'M13', note:'Уведомление о готовности.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
-      id:'partial', group:'purchase',
-      title:'Частичная поставка',
+      id:'delivery_split', group:'main',
+      title:'Разъезд: две заявки (болт / цепь)',
       steps:[
-        {node:'N1', note:'Заявка на N штук.', status:'new'},
-        {node:'M1', note:'Загрузка в 1С.', status:'new'},
-        {node:'M2', note:'Номенклатура найдена.', status:'new'},
-        {node:'D1', note:'Остатка нет → закупка.', status:'new'},
-        {node:'M4', note:'Заказ поставщику на полное кол-во.', status:'ordered'},
-        {node:'M6', note:'У поставщика нехватка → аналог + частичный заказ (ЧастичноЗаказано).', status:'ordered'},
-        {node:'M7', note:'Оплата доступной части.', status:'paid'},
-        {node:'P2', note:'Часть товара в пути.', status:'in_transit'},
-        {node:'K1', note:'Приёмка: раздвоение «принято / нету» по УПД (разрыв UI).', status:'acceptance'},
-        {node:'K2', note:'Принятое размещено; недостача ждёт дозаказ.', status:'acceptance'},
-        {node:'M4', note:'Дозаказ недостающего.', status:'ordered'}
+        {node:'N1', note:'Клиент просит болт и цепь. Разный вывоз → две заявки.', status:'new'},
+        {node:'M1', note:'Заявка A: болт, комментарий «такси».', status:'new'},
+        {node:'M2', note:'Поиск/решение по болту.', status:'new'},
+        {node:'M4', note:'Закуп/резерв по заявке A.', status:'ordered'},
+        {node:'K5', note:'Отгрузка болта (такси).', status:'shipped'},
+        {node:'N2a', note:'Болт выдан.', status:'shipped'},
+        {node:'N1', note:'Заявка B: цепь, комментарий «наша машина».', status:'new'},
+        {node:'M1', note:'Вторая заявка того же клиента.', status:'new'},
+        {node:'M2', note:'Поиск/решение по цепи.', status:'new'},
+        {node:'K5', note:'Отгрузка цепи (наша машина — только в комментарии).', status:'shipped'},
+        {node:'N2a', note:'Цепь выдана.', status:'shipped'},
+        {node:'N2b', note:'Документы по каждой заявке отдельно (без автосклейки отгрузки).', status:'closed'}
+      ]
+    },
+    {
+      id:'pickup_n4', group:'main',
+      title:'Самовывоз у внешнего поставщика (N4)',
+      steps:[
+        {node:'N1', note:'Заявка: клиент заберёт у поставщика.', status:'new'},
+        {node:'M1', note:'Загрузка.', status:'new'},
+        {node:'M2', note:'Поиск и решение → закуп.', status:'new'},
+        {node:'M4', note:'Заказ поставщику.', status:'ordered'},
+        {node:'M7', note:'Оплата.', status:'paid'},
+        {node:'N4', note:'Клиент самовывоз у поставщика (склад Витавто мимо).', status:'shipped'},
+        {node:'N2b', note:'Контроль документов всё равно нужен.', status:'closed'}
       ]
     },
     {
       id:'virtual_buy', group:'purchase',
-      title:'Виртуальный закуп (по чеку)',
+      title:'Виртуальный закуп (менеджер → админ)',
       steps:[
         {node:'N1', note:'Срочная заявка, документов поставщика нет.', status:'new'},
-        {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M4', note:'Виртуальный закуп: 3-й поставщик транзитом / компенсация по чеку (пометка ТЗ).', status:'ordered'},
-        {node:'M7', note:'Оплата вне стандартного УПД-контура.', status:'paid'},
-        {node:'K1', note:'Приход без полноценного УПД — разрыв чек-боксов/полей приёмки.', status:'acceptance'},
+        {node:'M1', note:'Менеджер загружает и ведёт контур.', status:'new'},
+        {node:'M2', note:'Поиск/решение.', status:'new'},
+        {node:'M4', note:'Вирт. закуп по чеку — заполняет менеджер.', status:'ordered'},
+        {node:'A3', note:'Проводку делает только админ (не «пропуск чеков»).', status:'paid'},
+        {node:'K1', note:'Приёмка.', status:'acceptance'},
         {node:'K2', note:'Размещение.', status:'acceptance'},
-        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
+        {node:'M13', note:'Готовность к отгрузке.', status:'ready_to_ship'},
+        {node:'M14', note:'Менеджер: недостаточно прав на ведомость → к админу.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ: отгрузочная ведомость.', status:'ready_to_ship'},
+        {node:'K5', note:'Вирт. / физ. отгрузка.', status:'shipped'},
+        {node:'G6', note:'Акт сверки — одна личность механика.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
@@ -476,15 +500,18 @@
       title:'Дефект на комплектации',
       steps:[
         {node:'K2', note:'Товар уже на складе.', status:'acceptance'},
+        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
-        {node:'K3', note:'Сборка: обнаружен дефект / недостача.', status:'assembly'},
-        {node:'M10', note:'Менеджер отклоняет позицию (красная подсветка в ТЗ — в коде нет).', status:'assembly'},
-        {node:'M4', note:'Дозаказ замены у поставщика.', status:'ordered'},
-        {node:'M12', note:'Оформление возврата поставщику.', status:'return'},
-        {node:'K6', note:'Кладовщик готовит брак к возврату.', status:'return'},
+        {node:'K3', note:'Сборка: дефект / недостача.', status:'assembly'},
+        {node:'M10', note:'Менеджер отклоняет позицию.', status:'assembly'},
+        {node:'M4', note:'Дозаказ замены.', status:'ordered'},
+        {node:'M12', note:'Возврат поставщику.', status:'return'},
+        {node:'K6', note:'Кладовщик готовит брак.', status:'return'},
         {node:'P3', note:'Поставщик принимает возврат.', status:'return'},
-        {node:'K3', note:'Повторная комплектация после прихода замены.', status:'assembly'},
-        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'}
+        {node:'K3', note:'Повторная комплектация.', status:'assembly'},
+        {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
+        {node:'M13', note:'Уведомление о готовности.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'}
       ]
     },
     {
@@ -536,11 +563,10 @@
       steps:[
         {node:'N1', note:'Заявка с неизвестным артикулом.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск не дал результата.', status:'new'},
-        {node:'D1', note:'Не найдено.', status:'new'},
+        {node:'M2', note:'Поиск и решение: не найдено → админ.', status:'new'},
         {node:'A1', note:'Админ: неопознанные + фото.', status:'new'},
         {node:'A2', note:'Артикул и кроссы.', status:'new'},
-        {node:'M2', note:'Повторный поиск.', status:'new'},
+        {node:'M2', note:'Повторный поиск/решение.', status:'new'},
         {node:'M4', note:'Дальше в закупку.', status:'ordered'}
       ]
     },
@@ -550,20 +576,20 @@
       steps:[
         {node:'N1', note:'Заявка на ГБЦ / сложный агрегат.', status:'new'},
         {node:'M1', note:'Загрузка.', status:'new'},
-        {node:'M2', note:'Поиск не дал точного совпадения.', status:'new'},
-        {node:'D1', note:'Не найдено → админ.', status:'new'},
+        {node:'M2', note:'Поиск/решение: не найдено → админ.', status:'new'},
         {node:'A1', note:'Неопознанные + фотофиксация.', status:'new'},
-        {node:'A2', note:'Артикул, кросс, перенос; ТЗ спорит: «группы НЕ ДЕЛАЕМ» vs ГБЦ по брендам.', status:'new'},
+        {node:'A2', note:'Артикул, кросс, перенос.', status:'new'},
         {node:'M2', note:'Повторный поиск после НСИ.', status:'new'},
         {node:'M4', note:'Закупка опознанной позиции.', status:'ordered'},
-        {node:'K1', note:'Приход.', status:'acceptance'}
+        {node:'K1', note:'Приход.', status:'acceptance'},
+        {node:'K2', note:'Размещение.', status:'acceptance'}
       ]
     },
     {
       id:'disassembly_in', group:'nsi',
       title:'Приход с разбора (A5)',
       steps:[
-        {node:'A5', note:'Админ/склад: приходование деталей с разбора / заказ-наряда (узел !!!!!!! на схеме).', status:null},
+        {node:'A5', note:'Админ/склад: приходование деталей с разбора / заказ-наряда.', status:null},
         {node:'K2', note:'Размещение на малом/большом складе.', status:'acceptance'},
         {node:'M8', note:'Менеджер видит новые остатки.', status:'acceptance'},
         {node:'M3', note:'При заявке — можно резервировать с разбора.', status:'reserve'}
@@ -573,14 +599,17 @@
       id:'tender_nmck', group:'commercial',
       title:'Тендер / НМЦК (РРЦ×1.5)',
       steps:[
-        {node:'A0', note:'Админ/НСИ: РРЦ и формула НМЦК = РРЦ×1.5 (конфликт с ТЗ и кодом).', status:null},
+        {node:'A0', note:'Админ/НСИ: РРЦ и формула НМЦК = РРЦ×1.5.', status:null},
         {node:'N1', note:'Тендерная заявка клиента.', status:'new'},
         {node:'M1', note:'Загрузка заявки.', status:'new'},
-        {node:'M2', note:'Подбор позиции.', status:'new'},
-        {node:'M4', note:'Закупка; «дорогая подмена» артикула/цены.', status:'ordered'},
+        {node:'M2', note:'Поиск и решение.', status:'new'},
+        {node:'M4', note:'Закупка.', status:'ordered'},
         {node:'M7', note:'Оплата по тендерной цене.', status:'paid'},
         {node:'K1', note:'Приход по факту.', status:'acceptance'},
-        {node:'K5', note:'Отгрузка по НМЦК/договорной цене.', status:'shipped'}
+        {node:'K2', note:'Размещение.', status:'acceptance'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
@@ -593,7 +622,8 @@
         {node:'M4', note:'Закупка под заказ.', status:'ordered'},
         {node:'M7', note:'Оплата зависит от типа КА.', status:'paid'},
         {node:'K5', note:'Отгрузка; документооборот зависит от типа КА.', status:'shipped'},
-        {node:'N2', note:'Клиент получил.', status:'closed'}
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
@@ -601,30 +631,34 @@
       title:'Жидкости (литры / большой склад)',
       steps:[
         {node:'N1', note:'Заявка на жидкость (кол-во + ЕИ).', status:'new'},
-        {node:'M1', note:'Контроль ЕИ = литры (правило ТЗ).', status:'new'},
-        {node:'M2', note:'Поиск номенклатуры жидкости.', status:'new'},
-        {node:'D1', note:'Найдено / закупка при отсутствии.', status:'new'},
+        {node:'M1', note:'Контроль ЕИ = литры.', status:'new'},
+        {node:'M2', note:'Поиск и решение.', status:'new'},
         {node:'M4', note:'При необходимости — заказ поставщику.', status:'ordered'},
         {node:'K1', note:'Приёмка.', status:'acceptance'},
         {node:'K2', note:'Размещение на Большом складе (Z4).', status:'acceptance'},
+        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
         {node:'K3', note:'Комплектация.', status:'assembly'},
-        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'}
+        {node:'K5', note:'Отгрузка клиенту.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
       id:'urgency', group:'commercial',
       title:'Срочность заявки',
       steps:[
-        {node:'N1', note:'Заявка со срочностью: срочно / очень срочно (поле матрицы urgency_fact).', status:'new'},
+        {node:'N1', note:'Заявка со срочностью.', status:'new'},
         {node:'M1', note:'Загрузка; срочность в шапке/строке.', status:'new'},
-        {node:'M2', note:'Ускоренный поиск / приоритет.', status:'new'},
-        {node:'D1', note:'Ветвление склад/закупка.', status:'new'},
+        {node:'M2', note:'Поиск и решение (приоритет).', status:'new'},
         {node:'M4', note:'Срочный заказ поставщику при отсутствии.', status:'ordered'},
         {node:'M9', note:'Приоритетное задание на комплектацию.', status:'assembly'},
         {node:'K3', note:'Сборка вне очереди.', status:'assembly'},
         {node:'K4', note:'Готово к отгрузке.', status:'ready_to_ship'},
-        {node:'M13', note:'Уведомление менеджеру.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'}
+        {node:'M13', note:'Уведомление о готовности.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ: ведомость.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
@@ -633,7 +667,7 @@
       steps:[
         {node:'G1', note:'Открыт заказ-наряд.', status:'new'},
         {node:'G2', note:'Заказ запчастей для ремонта.', status:'ordered'},
-        {node:'M2', note:'Общий контур поиска.', status:'new'},
+        {node:'M2', note:'Общий контур поиска/решения.', status:'new'},
         {node:'K2', note:'Деталь на складе.', status:'acceptance'},
         {node:'G3', note:'Выдача в ремонтную зону.', status:'assembly'},
         {node:'G4', note:'Нормо-часы.', status:null},
@@ -648,11 +682,13 @@
         {node:'G1', note:'Параллельно механик открывает заказ-наряд.', status:'new'},
         {node:'M1', note:'Менеджер ведёт клиентскую заявку.', status:'new'},
         {node:'G2', note:'Механик заказывает позицию для ремонта.', status:'ordered'},
-        {node:'M2', note:'Общий поиск номенклатуры.', status:'new'},
+        {node:'M2', note:'Общий поиск/решение.', status:'new'},
         {node:'K2', note:'Склад: общая номенклатура.', status:'acceptance'},
         {node:'K3', note:'Комплектация клиентской части.', status:'assembly'},
         {node:'G3', note:'Выдача в ремонтную зону по ЗН.', status:'assembly'},
         {node:'K5', note:'Отгрузка клиенту.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'},
         {node:'G4', note:'Нормо-часы.', status:null},
         {node:'G5', note:'ЗФ механиков.', status:null}
       ]
@@ -668,15 +704,18 @@
     },
     {
       id:'rights_lock', group:'rights',
-      title:'Эскалация прав (чужой документ)',
+      title:'Эскалация прав (чужой документ / ведомость)',
       steps:[
         {node:'N1', note:'Заявка закреплена за менеджером А.', status:'new'},
         {node:'M1', note:'Менеджер А создаёт/редактирует заказ.', status:'new'},
         {node:'M4', note:'А оформляет закупку; документ «в работе».', status:'ordered'},
-        {node:'M10', note:'Менеджер Б: блок/назначение по ТЗ; в коде — ОтметкаСтроки/автор.', status:'assembly'},
-        {node:'A0', note:'Админ может править всё; истории изменений в АРМ нет.', status:null},
-        {node:'M11', note:'После разблокировки — отгрузочные документы.', status:'ready_to_ship'},
-        {node:'K5', note:'Отгрузка.', status:'shipped'}
+        {node:'M10', note:'Менеджер Б: блок/назначение.', status:'assembly'},
+        {node:'M13', note:'Готовность к отгрузке.', status:'ready_to_ship'},
+        {node:'M14', note:'Менеджер: недостаточно прав на ведомость.', status:'ready_to_ship'},
+        {node:'M11', note:'Админ формирует отгрузочную ведомость.', status:'ready_to_ship'},
+        {node:'K5', note:'Отгрузка.', status:'shipped'},
+        {node:'N2a', note:'Товар.', status:'shipped'},
+        {node:'N2b', note:'Документы.', status:'closed'}
       ]
     },
     {
@@ -748,7 +787,7 @@
       {id:7, name:'Статусы', tz:'32–48', done:35, crunch:'21–31', comfort:'29–43', note:'FSM + блокировки'},
       {id:8, name:'АРМ по ролям', tz:'40–56', done:30, crunch:'28–39', comfort:'39–55', note:'Кладовщик 4 вкладки + механик'},
       {id:9, name:'Кроссы', tz:'24–32', done:0, crunch:'24–32', comfort:'34–45', note:'Связь артикул↔артикул'},
-      {id:10, name:'QA кода', tz:'24–32', done:5, crunch:'23–30', comfort:'32–42', note:'Прогон 23 сценариев', qa:true},
+      {id:10, name:'QA кода', tz:'24–32', done:5, crunch:'23–30', comfort:'32–42', note:'Прогон сценариев плеера (OCR-фиксы 09.2026)', qa:true},
       {id:'10b', name:'Обучение', tz:'16–32', done:0, crunch:'16–32', comfort:'24–40', note:'Не код', train:true}
     ]
   };
