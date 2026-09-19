@@ -282,7 +282,7 @@
 <footer class="app">
   Источники: ТЗ Витавто, <code>витвто.drawio</code>, матрица колонок, gap-анализ <code>src/</code> (АС_АРМ2).
   Покрытие — экспертная оценка по распакованному расширению. Вкладка «Оценка ТЗ» — остаток часов на код (комфорт ×1,4), не КП.
-  Обновление плеера 19.09.2026: D1: K8→K2→M18∥G8; без D2 (ГБЦ); C3/B2/A обновления; M17∥K9; B1→A3.
+  Обновление плеера 19.09.2026: D1: K8→K2→M18∥G8; без D2; D3: K1→K2→G1→M2→K1→K2; C3/B2; M17∥K9; B1→A3.
 </footer>
 
 <script>
@@ -518,10 +518,10 @@
     },
     {
       id:'return_internal', group:'returns',
-      title:'Возврат от клиента → повторная комплектация (продолжение A)',
+      title:'Отказ клиента при получении товара',
       steps:[
-        {node:'N2a', note:'Продолжение A1/A2/A3: клиент получил товар.', status:'shipped'},
-        {node:'N3', note:'Клиент инициирует возврат.', status:'return'},
+        {node:'N2a', note:'Продолжение A1/A2/A3: клиент при получении отказывается от товара.', status:'shipped'},
+        {node:'N3', note:'Оформление отказа / возврата.', status:'return'},
         {node:'K6', note:'Приёмка / подготовка возврата на складе.', status:'return'},
         {node:'M10', note:'Контроль комплектации.', status:'assembly'},
         {node:'M9', note:'Задание на комплектацию.', status:'assembly'},
@@ -542,12 +542,14 @@
     },
     {
       id:'disassembly_in', group:'nsi',
-      title:'Приход с разбора (A5)',
+      title:'Приход с разбора / продолжение поставки',
       steps:[
-        {node:'A5', note:'Приходование с разбора / ЗН.', status:null},
+        {node:'K1', note:'Продолжение поставки: приёмка (УПД).', status:'acceptance'},
         {node:'K2', note:'Размещение.', status:'acceptance'},
-        {node:'M8', note:'Уведомление о приходе.', status:'acceptance'},
-        {node:'M3', note:'Можно резервировать.', status:'reserve'}
+        {node:'G1', note:'Открытие заказ-наряда (механик).', status:'new'},
+        {node:'M2', note:'Поиск + подбор номенклатуры.', status:'new'},
+        {node:'K1', note:'Повторная приёмка.', status:'acceptance'},
+        {node:'K2', note:'Повторное размещение.', status:'acceptance'}
       ]
     },
     {
