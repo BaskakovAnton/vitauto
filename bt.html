@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Бизнес-требования (БТ) — Витавто v1</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
+    --accent:#2563eb; --accent-dark:#1d4ed8;
+    --ok-bg:#d9f2df; --ok-bd:#8fd6a4;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+    --no-bg:#fde8e6; --no-bd:#f0a8a0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;line-height:1.45;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  header.app,footer.app{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 18px;}
+  footer.app{border-top:1px solid var(--border);border-bottom:none;color:var(--muted);font-size:11px;margin-top:24px;}
+  h1{font-size:18px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:8px;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .btn{display:inline-flex;border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);}
+  .btn:hover{background:#eef1f5;text-decoration:none;}
+  .btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  main{max-width:980px;margin:0 auto;padding:16px 18px 40px;}
+  h2{font-size:15px;margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  h3{font-size:13px;margin:14px 0 6px;}
+  p,li{font-size:13px;}
+  .hint{color:var(--muted);font-size:12px;}
+  .callout{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px;color:#9a3412;}
+  .callout.ok{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .callout.info{background:#eff6ff;border-color:#93c5fd;color:#1e40af;}
+  .callout.bad{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);margin:8px 0 12px;}
+  th,td{border:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top;}
+  th{background:#f8fafc;color:var(--muted);font-weight:600;font-size:11px;}
+  tr.alt td{background:#fafbfc;}
+  code{font-family:Consolas,monospace;font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px;}
+  .toc{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 16px;font-size:12px;}
+  .meta{display:grid;grid-template-columns:140px 1fr;gap:4px 10px;font-size:12px;margin:10px 0 16px;}
+  .meta .k{color:var(--muted);}
+  ul.tight li{margin:3px 0;}
+  .fr-id{font-family:Consolas,monospace;font-weight:600;color:#1e40af;}
+  @media print{
+    header.app .toolbar,.no-print{display:none !important;}
+    body{background:#fff;}
+    main{max-width:none;padding:0;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Бизнес-требования (БТ) — Витавто v1</h1>
+  <div class="sub">Витавто · АС_АРМ2 / УНФ 1.6 · проект v0.1 · проект на согласование владельцем продукта (C3)</div>
+  
+  <div class="toolbar no-print">
+    <a class="btn primary" href="bt.html">БТ</a>
+    <a class="btn" href="ft.html">ФТ</a>
+    <a class="btn" href="protocol-map.html">Карта протокола</a>
+    <a class="btn" href="approve.html">Протокол апрувов</a>
+    <a class="btn" href="process.html">Процесс</a>
+    <a class="btn" href="br-fr-analysis.html">Разбор источников</a>
+    <button class="btn" onclick="window.print()">Печать / PDF</button>
+  </div>
+</header>
+
+<main>
+  <div class="callout ok"><strong>Статус:</strong> проект бизнес-требований по зафиксированному протоколу апрувов.
+  Не путать с legacy-файлом «БТ_ВИТ_Авто_20260121» (тот был черновиком ФТ).</div>
+
+  <div class="meta">
+    <div class="k">Версия</div><div>проект v0.1</div>
+    <div class="k">Основание</div><div>protocol-lock.json ← Approve/…(45).json от 2026-09-17</div>
+    <div class="k">Смета</div><div>protocol-map.html · смета пакетами ~422–617 ч комфорт (с обучением)</div>
+    <div class="k">Формат (C4)</div><div>HTML в репо + печать/PDF из браузера</div>
+    <div class="k">Владелец (C3)</div><div>Один владелец продукта со стороны заказчика</div>
+  </div>
+
+  <div class="toc">
+    <a href="#br1">BR-1 Цели и границы</a>
+    <a href="#br2">BR-2 Роли</a>
+    <a href="#br3">BR-3 Процессы</a>
+    <a href="#br4">BR-4 Правила</a>
+    <a href="#br5">BR-5 Приёмка</a>
+    <a href="#br6">BR-6 Ограничения</a>
+    <a href="#br7">Приложения</a>
+  </div>
+
+  <h2 id="br1">BR-1. Цели и границы v1</h2>
+  <h3>1.1. Цель</h3>
+  <p>Дать менеджеру продаж и связанным ролям единый контур в <strong>1С:УНФ 1.6</strong>:
+  заявка/заказ покупателя → сопоставление номенклатуры в АРМ → резерв/закуп → приёмка → складские статусы (колонки движения) → отгрузка/возврат —
+  без отдельного контура механика/заказ-наряда в первом релизе.</p>
+
+  <h3>1.2. Граница релиза (<code>S1</code>)</h3>
+  <p><strong>В v1:</strong> Заказ+АРМ+складские статусы без механика.
+  Комментарий заказчика: скаченая база копия ( если какой-то  функционал не работает  то должна быть сделана).</p>
+
+  <table>
+    <thead><tr><th>ID</th><th>Решение</th><th>Смысл для границы</th></tr></thead>
+    <tbody>
+      <tr><td><code>S2</code></td><td>Нет, later</td><td>У механика будет все тоже самое но унего добавятся не шт а норма часы - количество 1 себестоимость это цена которую механик получает наруки - потомо добавляется коеффциент для выставления счета клиенту (есть поле грз) новый столбец тип техники, у менеджера есть поставщик этот столбец отключается если единицы измерения норма/час - то в столбце Поставщик появляется сотрудник-механик (у каждого механика своя стоимость норма часа ) и к нему будет привязан коффециент для выставления счета заказчику работ, еще добавится один столбец с после Фактическое которое мы хоти отгрузить 2,00 Кол-во еще одно количество нормно часов для заказчика отдельно от внутрених фактических нормочасов</td></tr>
+      <tr class="alt"><td><code>S3</code></td><td>Да, все 6</td><td>—</td></tr>
+      <tr><td><code>S4</code></td><td>Не в v1</td><td>—</td></tr>
+      <tr class="alt"><td><code>S5</code></td><td>Не нужно</td><td>—</td></tr>
+      <tr><td><code>S6</code></td><td>Уточнить у заказчика</td><td>пример из менеджерской части (с исключением персон некоторых видов конт агентов которые не видны будут в арме либо видны определеным пользователям) заказчик кухня товар кофе поставщик святой источник , заказчик : ремзона внутреняя - товар инструмент - поставщик Мастак (когда появляется заказчик то идет на списанку на конкретных пользоветеле-сотркдников) если сотрудник купит деталь компании то это спишется и из зарплатты основывается на заказчике (живой, внутренний, серый, белый - теги может быть несколько этих значений одновременно)</td></tr>
+      <tr class="alt"><td><code>S7</code></td><td>Да, только 1.6</td><td>сразу делаем на самой свежей редакции</td></tr>
+      <tr><td><code>S8</code></td><td>Не в v1</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><strong>Открыто:</strong> <code>S6</code> — внутренние нужды / теги контрагентов — «уточнить у заказчика» (не включать в объём разработки до отдельного апрува).
+  <code>S7</code> — choice «только 1.6», комментарий «самая свежая редакция»: зафиксировать платформу до старта (см. BR-6).</div>
+
+  <h3>1.3. Явно вне v1 (approved как «не делаем» / out)</h3>
+  <ul class="tight">
+    <li>Механик / нормочасы / заказ-наряд — <strong>later</strong> (<code>S2</code>); требования later сохраняются в комментарии протокола.</li>
+    <li>Печатные формы ведомостей / сборочный / УПД как отдельный пакет — <strong>не в v1</strong> (<code>S4</code>).</li>
+    <li>Интеграция с сайтом поставщика — <strong>не нужно</strong> (<code>S5</code>).</li>
+    <li>Белые/серые контрагенты + обмен с внешней бухгалтерией — <strong>не в v1</strong> (<code>S8</code>); ЭДО (<code>X6</code>) — вне.</li>
+    <li>Портал «Поставщик» (<code>K6r</code>), виртуальный закуп (<code>P10</code>), автоконтроль сопоставления (<code>O14</code>), фото «не опознанные» (<code>N2</code>) — out.</li>
+  </ul>
+
+  <h2 id="br2">BR-2. Роли и ответственность</h2>
+  <table>
+    <thead><tr><th>Роль (бизнес)</th><th>Как в системе v1</th><th>Основание</th></tr></thead>
+    <tbody>
+      <tr><td>Менеджер / снабжение</td><td><strong>Снабжение</strong> = менеджер, который ведёт клиента (не складская МОЛ)</td><td><code>B5</code></td></tr>
+      <tr class="alt"><td>Кладовщик</td><td><strong>Грузчик</strong> (операции склада без полной мат. ответственности начальника склада)</td><td><code>B5</code></td></tr>
+      <tr><td>Начальник склада</td><td>Later (не в v1)</td><td><code>B5</code> comment</td></tr>
+      <tr class="alt"><td>Администратор</td><td>Полный доступ + НСИ; профили — типовые УНФ + матрица колонок</td><td><code>K7r</code>, <code>K1r</code>, <code>K2r</code></td></tr>
+      <tr><td>Редактирование документа</td><td>Кто создал — редактирует; читать могут все (в рамках прав)</td><td><code>K1r</code> comment</td></tr>
+      <tr class="alt"><td>Владелец продукта (заказчик)</td><td>Один подписант протокола и изменений после старта</td><td><code>C3</code>, <code>C5</code></td></tr>
+    </tbody>
+  </table>
+  <p class="hint">Права на колонки/действия — по матрице (<code>K2r</code>, <code>K3r</code>–<code>K5r</code>). Детали — в ФТ и <a href="index.html">матрице</a>.</p>
+
+  <h2 id="br3">BR-3. Процессы as-is → to-be</h2>
+  <h3>3.1. Happy path v1</h3>
+  <ol>
+    <li><strong>Заявка / заказ покупателя</strong> — ввод или вставка из буфера (ctrl+c/v) с проверкой типов; поля гос. номер / срочно / база.</li>
+    <li><strong>Сопоставление</strong> — не в форме заказа, а в <em>отдельной обработке в АРМ</em>: менеджер дорабатывает незакрытое в АРМ; при ошибке — корректировка и возврат в контур.</li>
+    <li><strong>Цена</strong> — коэффициент наценки; если РРЦ задана — от РРЦ, иначе от себестоимости; ручная цена пересчитывает коэффициент.</li>
+    <li><strong>Резерв</strong> — только по кнопке; снятие — создателем по кнопке.</li>
+    <li><strong>Закуп</strong> — заказ поставщику создаётся <em>только вручную/кнопкой из АРМ</em> (не автоматом при проведении заказа покупателя).</li>
+    <li><strong>Приёмка / склад</strong> — статусы как <em>столбцы движения</em> (не узкий enum); 6 складских зон в НСИ.</li>
+    <li><strong>Отгрузка / возврат</strong> — в рамках ролей; возврат поставщику может инициировать менеджер и кладовщик; идентификация без документов — на складе.</li>
+  </ol>
+  <p class="hint">Узлы process: см. трассировку в ФТ и <a href="process.html">process.html</a>. Блокеры: <code>B1</code>–<code>B5</code>.</p>
+
+  <h3>3.2. As-is (кратко)</h3>
+  <p>Работа размазана между заказом, отдельными обработками и АРМ; менеджер не успевает закрыть сопоставление в заказе и уходит в АРМ;
+  риск двойного UX и автосоздания ЗП при проведении. To-be фиксирует единый АРМ-контур и ручной закуп.</p>
+
+  <h2 id="br4">BR-4. Бизнес-правила</h2>
+  <table>
+    <thead><tr><th>Тема</th><th>Правило</th><th>ID</th></tr></thead>
+    <tbody>
+      <tr><td>Цена</td><td>Коэффициент вручную; база = РРЦ если указана, иначе себестоимость; прямая цена → пересчёт коэффициента от себестоимости</td><td><code>B1</code></td></tr>
+      <tr class="alt"><td>Сопоставление</td><td>Отдельная обработка в интерфейсе АРМ; вся операционная работа по незакрытому — в АРМ</td><td><code>B2</code></td></tr>
+      <tr><td>Заказ поставщику</td><td>Только кнопка/ручной ввод из АРМ</td><td><code>B3</code></td></tr>
+      <tr class="alt"><td>Движение / «статусы»</td><td>Модель столбцов движения деталей (как матрица/process), не урезанный список статусов из старого «БТ»</td><td><code>B4</code></td></tr>
+      <tr><td>Резерв</td><td>По кнопке; снять — создатель</td><td><code>O4</code>, <code>O5</code></td></tr>
+      <tr class="alt"><td>Срочность</td><td>Визуальная метка; закуп без учёта срочности в алгоритме</td><td><code>O3</code>, <code>P1</code></td></tr>
+      <tr><td>Дозаказ строк</td><td>Кнопка «Добавить строку заказа»; частичный резерв + новая строка</td><td><code>O9</code></td></tr>
+      <tr class="alt"><td>Удаление</td><td>Удалять нельзя — достаточно запрета</td><td><code>A14</code></td></tr>
+      <tr><td>Отказ клиента</td><td>Достаточно статуса/метки «Отменен» / «отказался»</td><td><code>A13</code></td></tr>
+      <tr class="alt"><td>Ед. изм.</td><td>На складе рекомендация шт без жёсткого запрета иных</td><td><code>N9</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="br5">BR-5. Критерии успеха и приёмки</h2>
+  <ul class="tight">
+    <li>ФТ пишется и принимается только по пунктам со статусом «утверждено» (<code>C2</code>).</li>
+    <li>Изменение утверждённого пункта после старта — только через новый апрув в протоколе (<code>C5</code>).</li>
+    <li>Критерии готовности БТ дополняются отработкой вопросов Александра после приёмки совместной рабочей версии (<code>C1</code>).</li>
+    <li>Пусконаладка и проверка функционала — до финальной приёмки ФТ (<code>C2</code> comment).</li>
+    <li>Обучение пользователей входит в поставку пакетом 24–40 ч комфорт (<code>X7</code>).</li>
+    <li>Пересчёт сметы — после утверждения и приёмки пусконаладки реализованного (<code>X5</code>).</li>
+  </ul>
+  <p>Операционный критерий «готово для бизнеса»: менеджер закрывает цикл заказ→АРМ→закуп→складские колонки→отгрузка/возврат на базе-копии УНФ без контура механика.</p>
+
+  <h2 id="br6">BR-6. Ограничения и риски</h2>
+  <ul class="tight">
+    <li><strong>Платформа:</strong> решение протокола — УНФ <strong>1.6</strong> (<code>S7</code>); комментарий о «свежей редакции» требует явного подтверждения владельцем до кодирования.</li>
+    <li><strong>Смета:</strong> договорная цифра — сумма пакетов на <a href="protocol-map.html">карте протокола</a>, не сырой total JSON 615–1043 ч.</li>
+    <li><strong>TBD:</strong> <code>S6</code> внутренние нужды — вне объёма до апрува.</li>
+    <li><strong>Later:</strong> механик (комментарий <code>S2</code> — нормочасы, ГРЗ, тип техники) хранится как backlog, не как scope v1.</li>
+  </ul>
+
+  <h2 id="br7">Приложение A. Блокеры (закрыты)</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Вопрос</th><th>Решение</th><th>Комментарий</th></tr></thead>
+    <tbody>
+      <tr class=""><td><code>B1</code></td><td>Как в v1 считаем цену продажи?</td><td>% наценки от себестоимости (Максим)</td><td>но  вслучае ррц не указанно то стоимость позиции   умножаем  коеффициент, если ррц указанно то ррц умножаем на коеффициент. коффциент вводит ручками (но пользователь может выставитьцену напрямую и тогда коффециент  автоматичестки бкдет рассчитан и проставлен относительно себестоимости)</td></tr>
+<tr class="alt"><td><code>B2</code></td><td>Где менеджер сопоставляет «номенклатура факт» → справочник?</td><td>Отдельная обработка сопоставления в интерфейсе (Максим)</td><td>меннеджер создает заказ клиента и не успевает обработать все  - и ищет в арме заказе  поетому всяработа происходит исключительно в арм-е   - если что-то не так  корректируем и возвращаем обратно</td></tr>
+<tr class=""><td><code>B3</code></td><td>Когда создаётся документ «Заказ поставщику»?</td><td>Только вручную/кнопкой из АРМ (комментарии Михаила)</td><td>берем заказ клиент  привязываемся к нашей номенклатуре если нет наскладе указываем кол-во которое хотим отгрузить ставив примерную цену (себестоимость) - выбираем поставщика  - активируем строку( одену или много)  и нажимает кнопку  сформировать  заказ поставщику  и  улетает на склад  - склад ждет поступления</td></tr>
+<tr class="alt"><td><code>B4</code></td><td>Какой набор статусов строки берём в v1?</td><td>Полный как матрица/process (оплата, приёмка, return…)</td><td>исправить  на столбцы (а не статусы)  потому что статусы это движение деталей, второй строка в 1 тз1с.xlsx jn 14/09/26  это порядок отображения с лева на право</td></tr>
+<tr class=""><td><code>B5</code></td><td>Роль склада: «Кладовщик» (ТЗ) и «Снабжение» (код) — это одно?</td><td>Иначе (комментарий)</td><td>Кладовщик  = грузчик  , Снабжение  это менеджер который ведет клиента  в будкщем будет добавлен началник склада  с материальной ответственностью</td></tr>
+    </tbody>
+  </table>
+</main>
+<footer class="app">
+  Источник решений: protocol-lock.json. Изменения — только через approve.html (C5).
+  Печать: кнопка «Печать / PDF» или Ctrl+P.
+</footer>
+</body>
+</html>

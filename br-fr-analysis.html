@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разбор источников БТ / ФТ — Витавто</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
+    --accent:#2563eb; --accent-dark:#1d4ed8;
+    --ok-bg:#d9f2df; --ok-bd:#8fd6a4;
+    --part-bg:#fdf3d0; --part-bd:#e6c766;
+    --no-bg:#fde8e6; --no-bd:#f0a8a0;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  header.app{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px;}
+  h1{font-size:16px;margin:0 0 2px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:8px;line-height:1.45;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .btn{display:inline-block;border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);}
+  .btn:hover{background:#eef1f5;text-decoration:none;}
+  .btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  main{padding:12px 16px 40px;max-width:1080px;}
+  .callout{
+    background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;
+    padding:10px 12px;margin-bottom:14px;line-height:1.5;font-size:12px;color:#9a3412;
+  }
+  .callout strong{color:#7c2d12;}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:110px;}
+  .stat b{display:block;font-size:16px;}
+  .stat span{color:var(--muted);font-size:10px;}
+  .stat.warn{border-color:var(--part-bd);background:linear-gradient(#fff,var(--part-bg));}
+  .stat.bad{border-color:var(--no-bd);background:linear-gradient(#fff,var(--no-bg));}
+  .stat.ok{border-color:var(--ok-bd);background:linear-gradient(#fff,var(--ok-bg));}
+  h2{font-size:14px;margin:22px 0 8px;}
+  h3{font-size:13px;margin:14px 0 6px;}
+  p.hint{color:var(--muted);font-size:11px;margin:0 0 10px;line-height:1.4;}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:12px;margin-bottom:10px;}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;line-height:1.45;}
+  th{background:#eef1f6;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;}
+  tr:last-child td{border-bottom:none;}
+  tr.alt td{background:#fafafa;}
+  tr.warn td{background:#fffbeb;}
+  tr.bad td{background:#fff5f5;}
+  ul{margin:0 0 10px;padding-left:18px;line-height:1.5;}
+  li{margin-bottom:5px;}
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;
+  }
+  .card h3{margin:0 0 6px;}
+  .tag{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+  .pill{display:inline-block;font-size:10px;border-radius:4px;padding:1px 6px;border:1px solid transparent;margin-right:4px;}
+  .pill.bad{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+  .pill.warn{background:var(--part-bg);border-color:var(--part-bd);color:#854d0e;}
+  .pill.ok{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .toc a{font-size:11px;padding:4px 8px;background:#eef1f6;border-radius:4px;color:#374151;}
+  footer.app{padding:8px 16px 24px;color:var(--muted);font-size:11px;max-width:1080px;}
+  code{font-size:11px;background:#eef1f6;padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <h1>Разбор источников для БТ и ФТ — Витавто</h1>
+  <div class="sub">
+    Анализ без внедрения документов. Входы: «БТ_ВИТ_Авто_20260121.docx», «перечень работ Максим.docx», «Оценка Михаил.xlsx»
+    + канон репо (ТЗ / <a href="process.html">process</a> / оценка часов).
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="process.html">← Процесс</a>
+    <a class="btn" href="bt.html" style="background:#2563eb;border-color:#1d4ed8;color:#fff;">БТ</a>
+    <a class="btn" href="ft.html" style="background:#2563eb;border-color:#1d4ed8;color:#fff;">ФТ</a>
+    <a class="btn" href="approve.html">Протокол апрувов</a>
+    <a class="btn" href="protocol-map.html">Карта протокола</a>
+    <a class="btn" href="process.html?view=estimate">Оценка ТЗ</a>
+    <a class="btn" href="index.html">Матрица прав</a>
+  </div>
+</header>
+
+<main>
+  <div class="callout">
+    <strong>Главный вывод.</strong>
+    Требуют написать <em>бизнес-требования (БТ)</em> и <em>функциональные требования (ФТ)</em>,
+    но среди трёх файлов <strong>настоящего БТ нет</strong>.
+    Файл с именем «БТ_…20260121» по содержанию — черновик ФТ (заказ покупателя + АРМ + сценарии).
+    Максим — перечень работ без часов/₽. Михаил — разбор с вопросами и нулевой оценкой.
+    Сшивать БТ+ФТ без решения конфликтов (цена, сопоставление, где создаётся заказ поставщику, границы v1) нельзя — получится второй хаотичный ТЗ.
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>3</b><span>входных файла</span></div>
+    <div class="stat warn"><b>≠ БТ</b><span>файл с именем «БТ»</span></div>
+    <div class="stat bad"><b>5</b><span>жёстких конфликтов</span></div>
+    <div class="stat warn"><b>узкий</b><span>скоуп vs полный канон</span></div>
+    <div class="stat ok"><b>2 дока</b><span>нужно написать: БТ + ФТ</span></div>
+  </div>
+
+  <nav class="toc">
+    <a href="#s1">1. Файлы</a>
+    <a href="#s2">2. Скоуп</a>
+    <a href="#s3">3. Конфликты</a>
+    <a href="#s4">4. Карта артефактов</a>
+    <a href="#s5">5. Состав БТ</a>
+    <a href="#s6">6. Состав ФТ</a>
+    <a href="#s7">7. Порядок работ</a>
+    <a href="#s8">8. Детали по файлам</a>
+  </nav>
+
+  <h2 id="s1">1. Что есть в каждом файле</h2>
+  <table>
+    <thead>
+      <tr><th>Файл</th><th>Заявленный жанр</th><th>Фактически</th><th>Содержание</th></tr>
+    </thead>
+    <tbody>
+      <tr class="warn">
+        <td><strong>БТ_ВИТ_Авто_20260121.docx</strong></td>
+        <td>Бизнес-требования</td>
+        <td><span class="pill warn">черновик ФТ</span></td>
+        <td>Заказ покупателя + сценарий использования + АРМ + «прочее» (поля номенклатуры для печати, документ внутренних затрат). 3 раздела H1, таблиц нет. Нет целей бизнеса, KPI, границ проекта, as-is/to-be.</td>
+      </tr>
+      <tr>
+        <td><strong>перечень работ Максим.docx</strong></td>
+        <td>Смета / перечень услуг</td>
+        <td><span class="pill warn">4 пакета, без цифр</span></td>
+        <td>Колонки «Часов / Стоимость / Срок» пустые. Пункты 3 и 4 почти дубли (Заказ v2). Смесь: резерв, приёмка↔заказ, АРМ менеджера, % наценки, партии FIFO, НДС, «Срочно», гос. номер.</td>
+      </tr>
+      <tr class="warn">
+        <td><strong>Оценка Михаил.xlsx</strong></td>
+        <td>Оценка трудозатрат</td>
+        <td><span class="pill bad">часы = 0</span></td>
+        <td>Два листа: ТЗ №1 (8 пунктов про поставщика/приёмку/УКД — много пометок «уйдёт в АРМ») и ТЗ №2 (21 пункт ядра АРМ+заказ). Колонка «Вопросы» важнее пустых часов.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="s2">2. Скоуп: что покрывают три файла</h2>
+  <p class="hint">Это не полный канон Витавто из репо (process / большое ТЗ / 430–620 ч комфорт на остаток).</p>
+  <table>
+    <thead>
+      <tr><th>Область</th><th>Суть</th><th>Где встречается</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Заказ покупателя</td><td>Загрузка файла, факт-колонки, партии, резерв, роли на проведении</td><td>БТ-файл, Максим, Михаил №2</td></tr>
+      <tr class="alt"><td>АРМ (продажи / склад)</td><td>Незакрытые позиции, дозаказ, статусы строк, фильтры, возврат/отмена</td><td>БТ-файл, Максим п.2, Михаил №2</td></tr>
+      <tr><td>Заказ поставщику / приёмка</td><td>Связка со строкой покупателя, резерв при приходе, метка «Срочно»</td><td>Максим п.1, Михаил №1</td></tr>
+      <tr class="alt"><td>Цена в заказе</td><td>% наценки от себестоимости (у Максима) — не РРЦ×1,5</td><td>Максим V2</td></tr>
+      <tr><td>Прочее из «БТ»</td><td>Бренд/страна/код поставщика, наименование для печати; внутр. затраты + регистр + отчёт</td><td>Только БТ-файл</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Вне этих файлов (есть в каноне репо)</h3>
+  <ul>
+    <li>Полный процесс B5: механик / заказ-наряд / нормо-часы</li>
+    <li>6 складских зон как на схеме</li>
+    <li>Печатные формы (ведомости, сборочный лист) из большого ТЗ</li>
+    <li>Интеграция Авто-аль / портал поставщика</li>
+    <li>Матрица прав «роль × статус × колонка» в 1С</li>
+    <li>Неопознанные + фото + кросс-коды как отдельный контур админа</li>
+  </ul>
+
+  <h2 id="s3">3. Конфликты — закрыть до текста БТ/ФТ</h2>
+  <table>
+    <thead>
+      <tr><th>Тема</th><th>Вариант A</th><th>Вариант B / канон</th><th>Что сделать</th></tr>
+    </thead>
+    <tbody>
+      <tr class="bad">
+        <td><strong>Ценообразование</strong></td>
+        <td>Максим: % наценки от себестоимости</td>
+        <td>ТЗ / process: РРЦ (рекомендованная розничная цена) × 1,5; в коде сейчас коэфф × себестоимость</td>
+        <td>Одна формула до написания БТ и ФТ</td>
+      </tr>
+      <tr class="bad">
+        <td><strong>Сопоставление номенклатуры</strong></td>
+        <td>БТ-файл: удалить обработку, сопоставлять в заказе</td>
+        <td>Максим: вывести обработку в интерфейс + заказчик</td>
+        <td>Выбрать один UX</td>
+      </tr>
+      <tr class="bad">
+        <td><strong>Где создаётся Заказ поставщику</strong></td>
+        <td>БТ-файл: при проведении Заказа покупателя</td>
+        <td>Михаил: «это будет из АРМ»; часть пунктов ТЗ №1 «неактуально»</td>
+        <td>Один триггер: проведение / кнопка АРМ / оба с правилами</td>
+      </tr>
+      <tr class="warn">
+        <td><strong>Статусы строк</strong></td>
+        <td>БТ/Михаил: Ожидание, В пути, Комплектация, Готово к отгрузке, Отгружено (+ Заказано)</td>
+        <td>process / матрица: шире (оплата, приёмка, return…)</td>
+        <td>Узкий enum для v1 или выравнивание с матрицей</td>
+      </tr>
+      <tr class="bad">
+        <td><strong>Скоуп «Витавто»</strong></td>
+        <td>Три файла ≈ узкий контур заказ+АРМ</td>
+        <td>Канон: 10 этапов ТЗ, 23 сценария, комфорт 430–620 ч на остаток</td>
+        <td>Иначе БТ/ФТ на 20% продукта под видом 100%</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="hint">РРЦ в каноне и на вкладке оценки = <strong>рекомендованная розничная цена</strong> (как в ТЗ).</p>
+
+  <h2 id="s4">4. Карта «что требуют» vs «что есть»</h2>
+  <table>
+    <thead>
+      <tr><th>Нужный артефакт</th><th>Должен содержать</th><th>Сейчас</th><th>Действие</th></tr>
+    </thead>
+    <tbody>
+      <tr class="bad">
+        <td>Документ <strong>БТ</strong></td>
+        <td>Цели, правила, границы, роли, критерии приёмки</td>
+        <td>Файл «БТ_…» почти не закрывает жанр</td>
+        <td>Писать БТ с нуля (не переименовывать старый файл)</td>
+      </tr>
+      <tr class="warn">
+        <td>Документ <strong>ФТ</strong></td>
+        <td>Поведение системы, use cases, проверяемые «система должна…»</td>
+        <td>БТ-файл + Михаил №2 + куски Максима</td>
+        <td>Собрать ФТ после закрытия конфликтов</td>
+      </tr>
+      <tr>
+        <td>Смета</td>
+        <td>Часы / ₽ / срок</td>
+        <td>Максим пусто; Михаил 0; в репо comfort на другой скоуп</td>
+        <td>После фиксации границ v1</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="s5">5. Минимальный состав документа БТ</h2>
+  <p class="hint">Бизнес-язык. Не список кнопок АРМ.</p>
+  <table>
+    <thead><tr><th>Блок</th><th>Содержание</th></tr></thead>
+    <tbody>
+      <tr><td>BR-1 Цели и границы</td><td>Зачем автоматизация; что входит в v1 и что later</td></tr>
+      <tr class="alt"><td>BR-2 Роли</td><td>Менеджер, снабжение/кладовщик, админ: кто проводит заказ, кто меняет статус</td></tr>
+      <tr><td>BR-3 Процессы as-is → to-be</td><td>Заявка → резерв/закуп → приёмка → комплектация → отгрузка → возврат (хотя бы happy path)</td></tr>
+      <tr class="alt"><td>BR-4 Бизнес-правила</td><td>Срочно, резерв, белые/серые, формула цены (РРЦ), партии FIFO</td></tr>
+      <tr><td>BR-5 Критерии успеха</td><td>Что заказчик принимает как «готово»</td></tr>
+      <tr class="alt"><td>BR-6 Ограничения</td><td>УНФ 1.6; что точно не делаем в v1</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s6">6. Минимальный состав документа ФТ</h2>
+  <p class="hint">База: сценарии из файла «БТ_…» + уточнения Михаила №2 + пакеты Максима после дедупа п.3/п.4.</p>
+  <table>
+    <thead><tr><th>Блок ФТ</th><th>Содержание</th></tr></thead>
+    <tbody>
+      <tr><td>FR-ЗП Заказ покупателя</td><td>Поля факт/учёт, загрузка файла, подбор в текущую строку, авто-строки дозаказа, проведение и запреты</td></tr>
+      <tr class="alt"><td>FR-АРМ</td><td>Колонки, фильтры, группировки, смена поставщика/цены, статусы, отмена/возврат, запрос удаления</td></tr>
+      <tr><td>FR-ЗС + приход</td><td>Связь со строкой покупателя, резерв при приёмке, срочность</td></tr>
+      <tr class="alt"><td>FR-НСИ / прочее</td><td>Только то, что утвердят в границах БТ (печать наименования / внутр. затраты — отдельным решением)</td></tr>
+      <tr><td>FR-NFR</td><td>Роли/RLS, блокировка строк при одновременной работе, производительность грида</td></tr>
+      <tr class="alt"><td>Трассировка</td><td>Каждый FR → пункт БТ → источник (Максим / Михаил / канон) → узел process при наличии</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s7">7. Рекомендуемый порядок работ</h2>
+  <ol>
+    <li><strong>Границы v1</strong> — только «заказ + АРМ + связка поставщик/приёмка» или полный канон process.</li>
+    <li><strong>Протокол решений</strong> по 5 конфликтам (особенно цена = РРЦ как в ТЗ).</li>
+    <li><strong>Документ БТ</strong> (бизнес-язык) → затем <strong>ФТ</strong> с трассировкой.</li>
+    <li><strong>Смета</strong> под утверждённый скоуп (не смешивать с комфорт 430–620 на весь остаток канона, если v1 уже).</li>
+    <li>Опционально: матрица покрытия FR ↔ узлы <code>process.html</code>.</li>
+  </ol>
+
+  <h2 id="s8">8. Детали по файлам</h2>
+
+  <div class="card">
+    <div class="tag">БТ_ВИТ_Авто_20260121.docx</div>
+    <h3>Структура</h3>
+    <ul>
+      <li>Доработки в документе «Заказ покупателя» (поля, подбор, авто-строки, создание заказа поставщику при проведении, роли).</li>
+      <li>Сценарий использования заказа (пошагово: файл → сопоставление → дозаказ → проведение → запрет отмены проведения для обычного пользователя).</li>
+      <li>Доработки обработки «АРМ» (колонки, статусы, фильтры, группировки, отмена/возврат, удаление по запросу) + сценарий АРМ.</li>
+      <li>Прочее: удаление обработки сопоставления; поля номенклатуры для печати; документ/регистр/отчёт «внутренние нужды».</li>
+    </ul>
+    <p class="hint" style="margin:0">Почему не БТ: нет «зачем бизнесу», нет границ, нет измеримых результатов — только «что доработать в 1С».</p>
+  </div>
+
+  <div class="card">
+    <div class="tag">перечень работ Максим.docx</div>
+    <h3>Пакеты (сжато)</h3>
+    <ul>
+      <li><strong>1.</strong> Заказ покупателя: авто-резерв, ввод на основании → заказы поставщикам, колонки гос. номер / срочно / база, снять с резерва; приёмка с привязкой к заказу покупателя; обработка непроведённых заказов для сопоставления.</li>
+      <li><strong>2.</strong> АРМ менеджера: всё незакрытое в одной таблице; остаток / в пути / дозаказ; блокировка строк; создание расходной.</li>
+      <li><strong>3–4.</strong> Заказ покупателя V2 (почти дубль): % наценки, FIFO/партии, артикул, НДС/ед. изм., группировка в заказе поставщику, комментарий для снабжения и др.</li>
+    </ul>
+    <p class="hint" style="margin:0">Часы и стоимость не заполнены — для коммерции пока непригоден.</p>
+  </div>
+
+  <div class="card">
+    <div class="tag">Оценка Михаил.xlsx</div>
+    <h3>Лист «ТЗ №1»</h3>
+    <ul>
+      <li>Приёмка ↔ заказ покупателя + срочно; форма «как УКД»; артикул; форма оплаты = НДС; группировка ЗП; НДС по типу поставщика.</li>
+      <li>Комментарии Михаила: часть пунктов «неактуально / будет из АРМ», вопросы по смыслу УКД и единицам измерения.</li>
+    </ul>
+    <h3>Лист «ТЗ №2»</h3>
+    <ul>
+      <li>Скрытие полей, «Можно отгрузить», роли на заказе, партии/себестоимость/НДС в АРМ, подбор в текущую строку, автосоздание ЗП, формула остатков, статусы, фильтры, отмена/возврат, роли склад vs продажи, запрос на удаление.</li>
+      <li>Итого часов в файле: <strong>0</strong> — оценка не завершена.</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <strong>Следующий шаг:</strong>
+    живой обход с заказчиком — <a href="approve.html"><strong>протокол апрувов</strong></a>;
+    карта и смета — <a href="protocol-map.html">protocol-map</a>;
+    проекты документов — <a href="bt.html"><strong>БТ</strong></a> / <a href="ft.html"><strong>ФТ</strong></a>.
+    (блокеры → границы → детали). Тексты БТ/ФТ — только после утверждённых пунктов.
+  </div>
+</main>
+
+<footer class="app">
+  Источники: Downloads (БТ_ВИТ_Авто_20260121, перечень Максим, Оценка Михаил) · канон Desktop/vitauto.
+  Не коммерческое КП · не замена документов БТ/ФТ.
+</footer>
+
+</body>
+</html>

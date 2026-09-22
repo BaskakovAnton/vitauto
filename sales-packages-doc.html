@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Витавто — состав работ и трудоёмкость, этап 1</title>
+<style>
+  :root{
+    --desk:#e9eaec; --paper:#ffffff; --ink:#1a1a1a; --muted:#5c6068; --rule:#1a1a1a; --hair:#c9ccd1;
+    --tint:#f4f5f7; --accent:#1f3a5f;
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--desk);}
+  body{margin:0;color:var(--ink);font-family:Cambria,Georgia,"Times New Roman",serif;font-size:14px;line-height:1.55;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  .bar{max-width:794px;margin:0 auto;padding:14px 16px 0;display:flex;flex-wrap:wrap;gap:6px;font-family:Segoe UI,Arial,sans-serif;}
+  .btn{display:inline-flex;border:1px solid var(--hair);background:#fff;border-radius:6px;padding:5px 10px;font-size:12px;color:var(--ink);cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--tint);text-decoration:none;}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .sheet{max-width:794px;margin:14px auto 40px;background:var(--paper);padding:56px 64px 48px;
+    box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.06);}
+
+  /* Титульный блок */
+  .doc-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;}
+  h1{font-size:26px;line-height:1.25;font-weight:700;margin:0 0 6px;}
+  .doc-sub{font-size:15px;color:var(--muted);margin:0 0 22px;}
+  .meta{width:100%;border-collapse:collapse;border-top:2px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 0 6px;}
+  .meta td{padding:6px 0;font-size:13px;border:none;vertical-align:top;}
+  .meta td:first-child{width:170px;color:var(--muted);}
+
+  /* Разделы */
+  h2{font-size:16px;font-weight:700;margin:34px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--rule);}
+  h2 .n{display:inline-block;min-width:26px;}
+  p{margin:0 0 8px;}
+  .note{color:var(--muted);font-size:12.5px;}
+
+  /* Таблицы */
+  table.tbl{width:100%;border-collapse:collapse;margin:10px 0 8px;font-size:13px;}
+  .tbl th{font-weight:700;font-size:12px;text-align:left;padding:7px 8px;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--tint);}
+  .tbl td{padding:7px 8px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  .tbl .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .tbl .idx{width:30px;color:var(--muted);}
+  .tbl .big{font-weight:700;color:var(--accent);}
+  .tbl tr.sum td{font-weight:700;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--hair);background:var(--tint);}
+  .tbl tr.sum.final td{border-bottom:1.5px solid var(--rule);}
+  .tbl td.what{color:var(--muted);}
+  .tag{display:inline-block;font-family:Segoe UI,Arial,sans-serif;font-size:10px;border:1px solid var(--hair);border-radius:3px;padding:0 5px;margin-left:6px;color:var(--muted);vertical-align:1px;}
+
+  /* Пакеты */
+  .pkg{margin:0 0 20px;padding-top:12px;border-top:1px solid var(--hair);break-inside:avoid;}
+  .pkg:first-of-type{border-top:none;padding-top:0;}
+  .pkg-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px;}
+  .pkg-head h3{font-size:14.5px;margin:0;font-weight:700;}
+  .pkg-hrs{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;}
+  .pkg-hrs b{font-size:15px;color:var(--accent);}
+  .pkg-hrs span{display:block;font-size:11px;color:var(--muted);line-height:1.2;}
+  .lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:8px 0 1px;font-family:Segoe UI,Arial,sans-serif;}
+  .refs{font-size:11px;color:var(--muted);margin-top:6px;font-family:Consolas,monospace;}
+
+  .foot{margin-top:34px;padding-top:10px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--muted);}
+
+  @media (max-width:640px){
+    .sheet{padding:28px 18px;margin:10px 0 24px;box-shadow:none;}
+    h1{font-size:22px;}
+    .meta td:first-child{width:120px;}
+    .tbl .what{display:none;}
+    .pkg-head{flex-direction:column;gap:2px;}
+    .pkg-hrs{text-align:left;}
+  }
+  @page{size:A4;margin:16mm 16mm 18mm;}
+  @media print{
+    html,body{background:#fff;}
+    .bar{display:none !important;}
+    .sheet{max-width:none;margin:0;padding:0;box-shadow:none;}
+    a{color:inherit;}
+    h2{break-after:avoid;}
+    .tbl tr{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="bar">
+  <a class="btn" href="bt-unf3.html">БТ — бизнес-версия</a>
+  <a class="btn" href="ft-unf3.html">ФТ — как в программе</a>
+  <a class="btn" href="sales-packages.html">Пакеты (диапазоны)</a>
+  <a class="btn primary" href="sales-packages-doc.html">Пакеты — документ</a>
+  <a class="btn" href="protocol-map.html">Карта протокола</a>
+  <button class="btn" onclick="window.print()">Печать / PDF</button>
+</nav>
+
+<article class="sheet">
+
+  <p class="doc-kicker">Приложение к коммерческому предложению</p>
+  <h1>Состав работ и трудоёмкость</h1>
+  <p class="doc-sub">Внедрение контура «перепродажа автозапчастей» на 1С:УНФ 3.0 · этап 1</p>
+
+  <table class="meta">
+    <tr><td>Заказчик</td><td>Витавто</td></tr>
+    <tr><td>Платформа</td><td>1С:УНФ 3.0 / платформа 8.5</td></tr>
+    <tr><td>Редакция</td><td>18.09.2026</td></tr>
+    <tr><td>Единица оценки</td><td>человеко-часы; стоимость определяется по ставке, согласованной в договоре</td></tr>
+  </table>
+
+  <h2><span class="n">1.</span>Общие положения</h2>
+  <p>Документ описывает 11 пакетов работ первого этапа и обучение пользователей отдельной строкой. Каждый
+  пакет самостоятелен: его можно обсуждать, принимать и оплачивать отдельно от остальных.</p>
+  <p>Трудоёмкость по каждому пакету приведена от верхней границы согласованной оценки
+  (<a href="protocol-map.html">карта протокола</a>) с допустимым отклонением вниз не более 10%. Базовая
+  оценка — верхнее число; нижнее показывает, на сколько итог может уменьшиться при благоприятном ходе работ.</p>
+
+  <h2><span class="n">2.</span>Сводная таблица</h2>
+  <table class="tbl">
+    <thead>
+      <tr><th class="idx">№</th><th>Пакет работ</th><th class="num">Оценка, ч</th><th class="num">Диапазон, ч</th><th class="what">Результат</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="idx">1</td><td>Цена: наценка + РРЦ-ветка</td><td class="num big">65</td><td class="num">59–65</td><td class="what">Автоматическая цена в заказе клиента с ручным коэффициентом наценки</td></tr>
+      <tr><td class="idx">2</td><td>Заказ покупателя (поля, файл, резерв)</td><td class="num big">80</td><td class="num">72–80</td><td class="what">Вставка заявки, срочность, гос. номер, резерв по кнопке, дозаказ</td></tr>
+      <tr><td class="idx">3</td><td>Сопоставление номенклатуры в АРМ</td><td class="num big">50</td><td class="num">45–50</td><td class="what">Разбор заявок клиента в отдельном рабочем месте снабжения</td></tr>
+      <tr><td class="idx">4</td><td>АРМ менеджер / снабжение</td><td class="num big">55</td><td class="num">50–55</td><td class="what">Единый список незакрытых заказов с фильтрами</td></tr>
+      <tr><td class="idx">5</td><td>Заказ поставщику / приёмка</td><td class="num big">60</td><td class="num">54–60</td><td class="what">Закупка вручную из АРМ, подсказки по ценам и аналогам</td></tr>
+      <tr><td class="idx">6</td><td>Складские статусы + кладовщик = грузчик</td><td class="num big">50</td><td class="num">45–50</td><td class="what">Комплектация и отгрузка по схеме, напоминания штатными средствами 1С</td></tr>
+      <tr><td class="idx">7</td><td>FSM / колонки статусов заказа</td><td class="num big">40</td><td class="num">36–40</td><td class="what">Движение каждой строки: резерв → оплата → приёмка → отгрузка → возврат</td></tr>
+      <tr><td class="idx">8</td><td>Возвраты (клиент / поставщик)</td><td class="num big">40</td><td class="num">36–40</td><td class="what">Возврат без бумаг, заявку создают менеджер и кладовщик</td></tr>
+      <tr><td class="idx">9</td><td>НСИ / зоны / поиск</td><td class="num big">40</td><td class="num">36–40</td><td class="what">6 зон склада, карточка номенклатуры, аналоги</td></tr>
+      <tr><td class="idx">10</td><td>Роли / права / колонки матрицы</td><td class="num big">55</td><td class="num">50–55</td><td class="what">Профили доступа, права на редактирование, матрица прав в 1С</td></tr>
+      <tr><td class="idx">11</td><td>Прогон сценариев / регрессия УНФ</td><td class="num big">42</td><td class="num">38–42</td><td class="what">Тестовый прогон на копии базы перед сдачей</td></tr>
+      <tr class="sum"><td></td><td>Итого, этап 1 (без обучения)</td><td class="num">577</td><td class="num">521–577</td><td></td></tr>
+      <tr><td class="idx">12</td><td>Обучение пользователей <span class="tag">опционально</span></td><td class="num big">40</td><td class="num">36–40</td><td class="what">Отдельная строка договора, можно вместе с этапом или отдельно</td></tr>
+      <tr class="sum final"><td></td><td>Итого с обучением</td><td class="num">617</td><td class="num">557–617</td><td></td></tr>
+    </tbody>
+  </table>
+  <p class="note">Оценка — верхняя граница согласованных часов. Диапазон — не более 10% вниз от оценки; итоги
+  по разделам получены суммированием.</p>
+
+  <h2><span class="n">3.</span>Описание пакетов</h2>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.1. Цена: наценка + РРЦ-ветка</h3><div class="pkg-hrs"><b>65 ч</b><span>59–65 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Прозрачная наценка при перепродаже: цена в заказе клиента считается сама — от розничной цены или от
+    себестоимости, с ручным коэффициентом, который контролирует менеджер. Никаких «на глаз» и потерянной
+    маржи на ошибках ввода.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Поле «Коэффициент» в строке документа «Заказ клиента»; автоподстановка цены по регистру «Цены
+    номенклатуры» или себестоимости; при ручном вводе цены коэффициент пересчитывается и фиксируется сам.</p>
+    <div class="refs">Пункты протокола: B1</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.2. Заказ покупателя (поля, файл, резерв)</h3><div class="pkg-hrs"><b>80 ч</b><span>72–80 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Заказ клиента превращается в рабочий инструмент продавца, а не просто бланк: заявка вставляется из
+    буфера без потерь, видно срочность и гос. номер, резерв ставится и снимается без риска «увести» товар у
+    коллеги, а недостающее само уходит в дозаказ.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Доп. реквизиты документа «Заказ клиента» (гос. номер, срочно, база); кнопки «В резерв», «Снять
+    резерв», «Резервировать доступное»; автосоздание строки дозаказа; поле выбора варианта поставки;
+    текстовый комментарий и доп. признак строки.</p>
+    <div class="refs">Пункты протокола: O1, O2, O3, O4, O5, O9, O10, O11, O12, O13</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.3. Сопоставление номенклатуры в АРМ</h3><div class="pkg-hrs"><b>50 ч</b><span>45–50 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Клиенты пишут заявки как удобно им, а не как в справочнике — отдельное рабочее место разбирает такие
+    заявки пакетно и не тормозит оформление остальных заказов.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Отдельная обработка (расширение) со списком всех несопоставленных строк по всем заказам сразу; подбор
+    из справочника «Номенклатура» с подсказкой похожих позиций; исправление ошибки на месте.</p>
+    <div class="refs">Пункты протокола: B2</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.4. АРМ менеджер / снабжение</h3><div class="pkg-hrs"><b>55 ч</b><span>50–55 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Менеджер видит все незакрытые заказы в одном месте вместо десятка разрозненных документов — меньше
+    потерянных заявок и меньше созвонов «а что там с этим клиентом».</p>
+    <div class="lbl">Что в программе</div>
+    <p>Единый список незакрытых позиций с колонками по согласованному реестру, фильтры по каждому полю,
+    право удаления только у администратора, отказ клиента — меткой «Отменён».</p>
+    <div class="refs">Пункты протокола: A1, A3, A5, A6, A7, A8, A9, A11, S1, B5</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.5. Заказ поставщику / приёмка</h3><div class="pkg-hrs"><b>60 ч</b><span>54–60 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Решение «когда и у кого закупать» остаётся за менеджером, а не автоматикой — критично при перепродаже,
+    где одну и ту же деталь можно закрыть у нескольких поставщиков по разным ценам.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Кнопка «Сформировать заказ поставщику» из рабочего места снабжения; список контрагентов-поставщиков по
+    алфавиту; подсказка, у кого и по какой цене уже покупали; блок аналогов при нехватке позиции.</p>
+    <div class="refs">Пункты протокола: B3, P4, P5, P6, P7, P8, P9</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.6. Складские статусы + кладовщик = грузчик</h3><div class="pkg-hrs"><b>50 ч</b><span>45–50 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Кладовщик работает по понятной схеме приёмка → комплектация → отгрузка, без лишней бюрократии и без
+    материальной ответственности склад-менеджера, которого пока нет в штате.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Складские операции по согласованной схеме; напоминания штатными средствами 1С (задачи); фиксация зоны
+    хранения не обязательна на каждом шаге, если статус и так виден по колонке.</p>
+    <div class="refs">Пункты протокола: W1–W5, W7–W9, B5</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.7. FSM / колонки статусов заказа</h3><div class="pkg-hrs"><b>40 ч</b><span>36–40 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Вместо одного статуса на весь заказ — картина по каждой строке отдельно: понятно, какая деталь уже
+    оплачена, какая в приёмке, какая отгружена, а какая в возврате, не открывая документ.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Колонки движения «Резерв / Оплата / Приёмка / Отгрузка / Возврат» в списке заказов, проставляются
+    автоматически при проведении связанных документов.</p>
+    <div class="refs">Пункты протокола: B4</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.8. Возвраты (клиент / поставщик)</h3><div class="pkg-hrs"><b>40 ч</b><span>36–40 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Возврат — обычная операция в торговле запчастями (не подошло, брак, пересорт), и она не должна
+    упираться в бумажную волокиту или в одного «незаменимого» сотрудника.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Документы «Возврат от клиента» и «Возврат поставщику» — доступны из формы заказа/АРМ и менеджеру, и
+    кладовщику; без сопроводительных документов кладовщик опознаёт деталь вручную.</p>
+    <div class="refs">Пункты протокола: R1, R2, R3, R4, A12</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.9. НСИ / зоны / поиск</h3><div class="pkg-hrs"><b>40 ч</b><span>36–40 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Карточка детали и структура склада приведены к тому, как компания реально работает: шесть зон
+    хранения по факту, поля для правильного названия и быстрого подбора аналогов.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Шесть предопределённых зон в справочнике «Склады»; доп. реквизиты справочника «Номенклатура» (бренд,
+    код поставщика, наименование для печати); связка аналогов/кросс-кодов.</p>
+    <div class="refs">Пункты протокола: S3, N3, N4, N6, N8, N9</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.10. Роли / права / колонки матрицы</h3><div class="pkg-hrs"><b>55 ч</b><span>50–55 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Каждый сотрудник видит и меняет ровно то, что ему положено: продавец не трогает складские документы
+    задним числом, кладовщик не видит закупочные цены, администратор контролирует всё.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Профили групп доступа «Менеджер по продажам» и «Кладовщик»; право «Изменение» — только у автора
+    документа; согласованная матрица «роль × статус × колонка» перенесена в 1С.</p>
+    <div class="refs">Пункты протокола: K1r–K5r, K7r, B5</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.11. Прогон сценариев / регрессия УНФ</h3><div class="pkg-hrs"><b>42 ч</b><span>38–42 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Перед сдачей — не «вроде работает на тестовых данных», а совместный прогон реального сценария на
+    копии рабочей базы, чтобы на приёмке не всплыли сюрпризы.</p>
+    <div class="lbl">Что в программе</div>
+    <p>Тестовый прогон цикла «заказ → АРМ → закупка → склад → отгрузка/возврат» на базе-копии; подтверждение
+    целевой платформы (УНФ 3.0 / 8.5) до старта кодирования.</p>
+    <div class="refs">Пункты протокола: S7, X5, C1, C2</div>
+  </section>
+
+  <section class="pkg">
+    <div class="pkg-head"><h3>3.12. Обучение пользователей <span class="tag">опционально</span></h3><div class="pkg-hrs"><b>40 ч</b><span>36–40 ч</span></div></div>
+    <div class="lbl">Зачем бизнесу</div>
+    <p>Система не поможет, если люди не умеют в ней работать — обучение менеджеров, кладовщика и
+    администратора снимает риск, что внедрение встанет на «а как тут заказ провести».</p>
+    <div class="lbl">Что в программе</div>
+    <p>Очное/удалённое обучение по ролям на рабочей базе-копии; можно продавать вместе с этапом или отдельной
+    строкой в договоре.</p>
+    <div class="refs">Пункты протокола: X7</div>
+  </section>
+
+  <h2><span class="n">4.</span>Вне текущей сметы</h2>
+  <p>Часы по этим позициям в смету не включены: это второй этап или вопросы, которые требуют отдельного решения.</p>
+  <table class="tbl">
+    <thead><tr><th>Что</th><th>Статус</th><th class="what">Комментарий</th></tr></thead>
+    <tbody>
+      <tr><td>Заказ-наряд / механик / нормочасы</td><td>Второй этап</td><td class="what">Оценивается отдельно перед стартом</td></tr>
+      <tr><td>Печатные формы (ведомости, сборочный, УПД)</td><td>Вне v1</td><td class="what">Не оценивалось</td></tr>
+      <tr><td>Интеграция с сайтом поставщика</td><td>Не требуется</td><td class="what">Не оценивалось</td></tr>
+      <tr><td>Внутренние нужды / теги контрагентов</td><td>Уточняется</td><td class="what">Не в объёме до отдельного согласования</td></tr>
+    </tbody>
+  </table>
+
+  <div class="foot">Источник часов: карта протокола (protocol-map.html). Содержание и функционал — БТ и ФТ
+  (bt-unf3.html, ft-unf3.html). Часы — оценка трудоёмкости, не окончательная стоимость.</div>
+
+</article>
+</body>
+</html>

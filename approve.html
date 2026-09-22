@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Протокол согласования БТ/ФТ — Витавто · v2</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
+    --accent:#2563eb; --accent-dark:#1d4ed8;
+    --ok-bg:#d9f2df; --ok-bd:#8fd6a4;
+    --part-bg:#fdf3d0; --part-bd:#e6c766;
+    --no-bg:#fde8e6; --no-bd:#f0a8a0;
+    --park-bg:#eef2ff; --park-bd:#a5b4fc;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  header.app{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px;}
+  h1{font-size:16px;margin:0 0 2px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:8px;line-height:1.45;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .toolbar .grow{flex:1 1 auto;}
+  button,.btn{cursor:pointer;border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);font-family:inherit;}
+  button:hover,.btn:hover{background:#eef1f5;text-decoration:none;}
+  button.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  button.primary:hover{background:var(--accent-dark);}
+  button.toggle.active{background:var(--accent);color:#fff;border-color:var(--accent-dark);}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  .seg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .seg button{border:none;border-radius:0;}
+  .seg button.active{background:var(--accent);color:#fff;}
+  select,textarea,input[type=text]{padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff;font-family:inherit;}
+  textarea{width:100%;min-height:56px;resize:vertical;}
+  .badge{display:inline-block;background:#eef1f6;border-radius:4px;padding:2px 6px;font-size:11px;color:var(--muted);}
+  .pill{display:inline-block;font-size:10px;border-radius:4px;padding:1px 6px;border:1px solid transparent;white-space:nowrap;}
+  .pill.pending{background:#eef1f6;border-color:var(--border);color:#4b5563;}
+  .pill.approved{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .pill.out{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+  .pill.parked{background:var(--park-bg);border-color:var(--park-bd);color:#3730a3;}
+  .pill.blocker{background:var(--warn-bg);border-color:var(--warn-bd);color:#9a3412;}
+  .pill.legacy{background:#f3e8ff;border-color:#d8b4fe;color:#6b21a8;}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:0;min-height:calc(100vh - 120px);}
+  @media (max-width:1100px){.layout{grid-template-columns:1fr;}}
+  .main{padding:12px 16px 40px;overflow:auto;}
+  .side{border-left:1px solid var(--border);background:var(--panel);padding:14px 16px 30px;position:sticky;top:110px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;}
+  @media (max-width:1100px){.side{position:static;max-height:none;border-left:none;border-top:1px solid var(--border);}}
+
+  .player{background:#f0f4fa;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+  .player-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;}
+  .step-title{font-weight:600;font-size:13px;}
+  .step-note{color:var(--muted);font-size:11px;margin-top:2px;line-height:1.4;}
+  .progress{height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:8px;}
+  .progress > i{display:block;height:100%;background:var(--accent);width:0%;transition:width .25s;}
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+  .filters button{font-size:11px;padding:5px 9px;}
+  .filters button.active{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:88px;}
+  .stat b{display:block;font-size:16px;}
+  .stat span{color:var(--muted);font-size:10px;}
+  .stat.ok{border-color:var(--ok-bd);background:linear-gradient(#fff,var(--ok-bg));}
+  .stat.warn{border-color:var(--part-bd);background:linear-gradient(#fff,var(--part-bg));}
+  .stat.bad{border-color:var(--no-bd);background:linear-gradient(#fff,var(--no-bg));}
+
+  .callout{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.45;font-size:12px;color:#9a3412;}
+  .callout.ok{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .callout.bad{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+
+  .group{margin-bottom:16px;}
+  .group h2{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+  .card{
+    border:1.5px solid var(--border);border-radius:10px;padding:10px;background:#fff;cursor:pointer;
+    text-align:left;display:flex;flex-direction:column;gap:6px;transition:outline .12s,box-shadow .12s;
+  }
+  .card:hover{box-shadow:0 4px 14px rgba(15,23,42,.08);}
+  .card.selected{outline:2px solid var(--accent);outline-offset:1px;}
+  .card.play-active{outline:2px solid #7c3aed;outline-offset:1px;}
+  .card .cid{font-family:Consolas,monospace;font-size:10px;color:var(--muted);}
+  .card .cq{font-size:12px;font-weight:600;line-height:1.35;flex:1;}
+  .card .meta{display:flex;flex-wrap:wrap;gap:4px;}
+  .card.st-approved{border-color:var(--ok-bd);background:linear-gradient(#fff,#f3fbf5);}
+  .card.st-out{border-color:var(--no-bd);background:linear-gradient(#fff,#fff5f5);}
+  .card.st-parked{border-color:var(--park-bd);background:linear-gradient(#fff,#eef2ff);}
+  .card.st-pending.blocker-card{border-color:var(--warn-bd);background:linear-gradient(#fff,#fff7ed);}
+
+  .side h2{margin:0 0 8px;font-size:14px;}
+  .side .empty{color:var(--muted);font-size:12px;line-height:1.45;}
+  .kv{display:grid;grid-template-columns:92px 1fr;gap:6px 8px;font-size:12px;margin:10px 0;}
+  .kv .k{color:var(--muted);}
+  .kv .v{line-height:1.4;}
+  .block{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
+  .block h3{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  .opts{display:flex;flex-direction:column;gap:6px;}
+  .opts label{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;line-height:1.4;}
+  .opts label:hover{background:#f8fafc;}
+  .opts label.on{border-color:var(--accent);background:#eff6ff;}
+  .opts input{margin-top:2px;}
+  .actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .actions button.ok{background:var(--ok-bg);border-color:var(--ok-bd);}
+  .actions button.out{background:var(--no-bg);border-color:var(--no-bd);}
+  .actions button.park{background:var(--park-bg);border-color:var(--park-bd);}
+  .src{font-size:11px;line-height:1.4;color:#374151;}
+  .risk{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:8px 10px;font-size:12px;color:#9a3412;line-height:1.4;}
+  .stat.accent{border-color:#93c5fd;background:linear-gradient(#fff,#eff6ff);}
+  .pill.hrs{background:#ecfeff;border-color:#a5f3fc;color:#0e7490;font-family:Consolas,monospace;}
+  .hrs-box{font-size:12px;line-height:1.45;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+  .hrs-box b{font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Протокол согласования БТ/ФТ — шаг за шагом с заказчиком</h1>
+  <div class="sub">
+    Сначала апрувы → потом тексты БТ/ФТ. Часы: <strong>аврал</strong> (чистый код) и <strong>комфорт ×1,4</strong> —
+    в смету v1 входят только пункты со статусом «утверждено». Legacy — гипотезы. РРЦ = рекомендованная розничная цена.
+  </div>
+  <div class="toolbar">
+    <button id="btnPrev" title="Предыдущий неразобранный">◀</button>
+    <button id="btnPlay" class="primary">▶ Плей блокеры</button>
+    <button id="btnNext" title="Следующий неразобранный">▶</button>
+    <button id="btnStop">Сброс плеера</button>
+    <div class="grow"></div>
+    <button id="btnOnlyOpen" class="toggle active">Только открытые</button>
+    <button id="btnOnlyBlock" class="toggle">Только блокеры</button>
+    <button id="btnExport">Экспорт JSON</button>
+    <button id="btnReset" title="Очистить все апрувы">Сброс апрувов</button>
+    <a class="btn" href="bt.html">БТ</a>
+    <a class="btn" href="ft.html">ФТ</a>
+    <a class="btn" href="br-fr-analysis.html">Разбор</a>
+    <a class="btn" href="protocol-map.html">Карта протокола</a>
+    <a class="btn" href="process.html">Процесс</a>
+    <a class="btn" href="index.html">Матрица</a>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="main">
+    <div id="blockerBanner" class="callout"></div>
+    <div class="player" id="playerBar">
+      <div class="step-title" id="playerTitle">Выберите пункт или нажмите «Плей блокеры»</div>
+      <div class="step-note" id="playerNote">Порядок: блокеры G1 → границы G0 → остальное. Без апрува блокеров ФТ писать нельзя.</div>
+      <div class="progress"><i id="playerProgress"></i></div>
+      <div class="filters" id="groupFilters"></div>
+    </div>
+    <div class="stats" id="statsRow"></div>
+    <div id="groupsRoot"></div>
+  </div>
+  <aside class="side" id="sidePanel">
+    <div class="empty" id="sideEmpty">Кликните карточку или запустите плеер — здесь вопрос, варианты и источники для апрува с заказчиком.</div>
+    <div id="sideContent" hidden></div>
+  </aside>
+</div>
+
+<footer class="app">
+  Решения и смета по утверждённым хранятся в localStorage (vitauto-approve-v1).
+  Экспорт JSON включает часы аврал/комфорт. Комфорт = аврал ×1,4. Не путать с полным каноном 430–620 — здесь сумма только по апрувам v1.
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  var STORAGE = 'vitauto-approve-v1';
+
+  var GROUPS = [
+    {id:'G1', title:'Блокеры (сначала)', order:1},
+    {id:'G0', title:'Границы v1', order:2},
+    {id:'G2', title:'Заявка / Заказ покупателя', order:3},
+    {id:'G3', title:'АРМ', order:4},
+    {id:'G4', title:'Закуп / поставщик / приёмка', order:5},
+    {id:'G5', title:'Склад / комплектация / отгрузка', order:6},
+    {id:'G6', title:'Возвраты / отмены', order:7},
+    {id:'G7', title:'НСИ и цена', order:8},
+    {id:'G8', title:'Права и роли', order:9},
+    {id:'G9', title:'Вне скоупа / legacy', order:10},
+    {id:'G10', title:'Приёмка БТ/ФТ', order:11}
+  ];
+
+  function o(){ return Array.prototype.slice.call(arguments).map(function(t,i){
+    return {id:String.fromCharCode(65+i), label:t};
+  }); }
+
+  var ITEMS = [
+    /* ===== G1 BLOCKERS ===== */
+    {id:'B1', group:'G1', blocker:true, legacy:false, process:'A0',
+      q:'Как в v1 считаем цену продажи?',
+      opts:o('РРЦ × 1,5 (как в ТЗ; РРЦ = рекомендованная розничная цена)','% наценки от себестоимости (Максим)','Как сейчас в коде: коэффициент × себестоимость','Иная формула (указать в комментарии)'),
+      src:['ТЗ §3.3','Максим V2','код АРМ','process A0'],
+      risk:'Переделка ценообразования и срыв сметы.'},
+    {id:'B2', group:'G1', blocker:true, legacy:true, process:'M2',
+      q:'Где менеджер сопоставляет «номенклатура факт» → справочник?',
+      opts:o('Только в Заказе покупателя (файл «БТ»: обработку удалить)','Отдельная обработка сопоставления в интерфейсе (Максим)','И в заказе, и обработка','Позже / не в v1'),
+      src:['БТ_ВИТ 20260121','Максим п.3','Михаил ТЗ№1','process M1/M2'],
+      risk:'Два UX в ФТ = двойная разработка.'},
+    {id:'B3', group:'G1', blocker:true, legacy:true, process:'M4',
+      q:'Когда создаётся документ «Заказ поставщику»?',
+      opts:o('Автоматом при проведении Заказа покупателя (файл «БТ»)','Только вручную/кнопкой из АРМ (комментарии Михаила)','Оба способа с чёткими правилами','Позже уточним — парковка'),
+      src:['БТ сценарий заказа','Михаил ТЗ№1/№2','process M4'],
+      risk:'Разный момент резерва и статусов.'},
+    {id:'B4', group:'G1', blocker:true, legacy:true, process:null,
+      q:'Какой набор статусов строки берём в v1?',
+      opts:o('Короткий: Ожидание / В пути / Комплектация / Готово к отгрузке / Отгружено (+ Заказано)','Полный как матрица/process (оплата, приёмка, return…)','Короткий в v1, полный later','Свой список (комментарий)'),
+      src:['БТ АРМ п.статусы','Михаил №2 п.14','матрица index.html','process статусы'],
+      risk:'Переделка АРМ и прав по колонкам.'},
+    {id:'B5', group:'G1', blocker:true, legacy:false, process:'K1',
+      q:'Роль склада: «Кладовщик» (ТЗ) и «Снабжение» (код) — это одно?',
+      opts:o('Одна роль в v1 (как сейчас в коде)','Две разные роли сразу','Временно одна, развести later','Иначе (комментарий)'),
+      src:['ТЗ роли','код АС_АРМ2','process conflict K1'],
+      risk:'Неверные права на приёмку/цены.'},
+
+    /* ===== G0 SCOPE ===== */
+    {id:'S1', group:'G0', blocker:false, legacy:false, process:null,
+      q:'Границы v1: что считаем «первым релизом»?',
+      opts:o('Только заказ покупателя + АРМ + связка поставщик/приёмка','Весь канон process (включая механика, зоны, печать)','Заказ+АРМ+складские статусы без механика','Иное'),
+      src:['канон process','оценка hours','три добавочных файла'],
+      risk:'Смета и ФТ на разный объём.'},
+    {id:'S2', group:'G0', blocker:false, legacy:false, process:'G1',
+      q:'Заказ-наряд / главный механик в v1?',
+      opts:o('Да, полный контур','Нет, later','Только списание в ремонтную зону без ЗН','Не нужно никогда'),
+      src:['ТЗ §4.3','process G1–G5','оценка часов'],
+      risk:'+40–56 ч и отдельный АРМ.'},
+    {id:'S3', group:'G0', blocker:false, legacy:false, process:'K2',
+      q:'Шесть складских зон как на схеме — в v1?',
+      opts:o('Да, все 6','Только малый/большой + приёмка','Не делаем зоны в v1','Иное'),
+      src:['ТЗ §2.4','process зоны'],
+      risk:'НСИ + логика размещения.'},
+    {id:'S4', group:'G0', blocker:false, legacy:false, process:'M11',
+      q:'Печатные формы (ведомость, сборочный лист, УПД) в v1?',
+      opts:o('Все из ТЗ','Только сборочный лист','Не в v1','Иное'),
+      src:['ТЗ этап 5','process M11/K3'],
+      risk:'40–56 ч комфорт.'},
+    {id:'S5', group:'G0', blocker:false, legacy:false, process:'P1',
+      q:'Интеграция с сайтом поставщика (Авто-аль) в v1?',
+      opts:o('Кнопка-переход + ручной ввод','Парсинг','Не в v1','Не нужно'),
+      src:['ТЗ этап 6','process P1'],
+      risk:'24–40 ч+.'},
+    {id:'S6', group:'G0', blocker:false, legacy:true, process:null,
+      q:'Документ «Учёт товаров для внутренних нужд» (из файла «БТ») — в v1?',
+      opts:o('Да','Нет, later','Не нужно','Уточнить у заказчика'),
+      src:['БТ_ВИТ прочее'],
+      risk:'Отдельная подсистема вне process.'},
+    {id:'S7', group:'G0', blocker:false, legacy:false, process:null,
+      q:'Платформа: фиксируем УНФ 1.6 как базу v1?',
+      opts:o('Да, только 1.6','Планируем переход на другую редакцию','Не знаем — парковка'),
+      src:['ТЗ введение','оценка (риск 1.6 vs 3.0)'],
+      risk:'Оценки прав/документов.'},
+    {id:'S8', group:'G0', blocker:false, legacy:false, process:null,
+      q:'Белые/серые контрагенты и обмен с внешней бухгалтерией в v1?',
+      opts:o('Только метка белый/серый в этой базе','Белые с обменом платежами с бухгалтерией','Не в v1','Иное'),
+      src:['ТЗ §2.3'],
+      risk:'Граница продукта vs бухгалтерия.'},
+
+    /* ===== G2 ORDER ===== */
+    {id:'O1', group:'G2', blocker:false, legacy:true, process:'M1',
+      q:'Загрузка заявки: Excel-парсер обязателен в v1?',
+      opts:o('Да, по шаблону','Только ручной/табличный ввод как сейчас','Файл как в «форме УКД» (Максим/Михаил)','Иное'),
+      src:['ТЗ §3.1','Максим','Михаил №1 п.3','код ФормаЗагрузки'],
+      risk:'Крупный кусок этапа «документы».'},
+    {id:'O2', group:'G2', blocker:false, legacy:true, process:'N1',
+      q:'Колонки «Номенклатура/Артикул/Количество факт» — обязательны?',
+      opts:o('Да, как в сценарии «БТ»','Да + гос. номер / срочно / база (Максим)','Урезанный набор','Иное'),
+      src:['БТ сценарий','Максим п.1','process N1'],
+      risk:'Схема ТЧ и АРМ.'},
+    {id:'O3', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Колонка «Срочно» — как влияет на процесс?',
+      opts:o('Приоритет резерва и приёмки','Только визуальная метка','Не нужна','Иное'),
+      src:['Максим п.1','Михаил №1 п.1'],
+      risk:'Логика приёмки/резерва.'},
+    {id:'O4', group:'G2', blocker:false, legacy:true, process:'M3',
+      q:'Авто-резерв свободного остатка при работе с заказом?',
+      opts:o('Да, весь свободный остаток в «В резерв» (Максим)','Резерв только по кнопке','Как решит B3/проведение','Не резервируем в v1'),
+      src:['Максим п.1','ТЗ резерв','process M3'],
+      risk:'Конфликт партий и отгрузки.'},
+    {id:'O5', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Команда «Снять с резерва» с запоминанием (не резервировать снова)?',
+      opts:o('Да','Нет','Later'),
+      src:['Максим п.1'],
+      risk:'Исключения на складе.'},
+    {id:'O6', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Скрыть на форме заказа: «Свободно для резерва», «В резерве», «Скидка»?',
+      opts:o('Да (Михаил/БТ)','Оставить видимыми','Скрыть только для роли менеджера'),
+      src:['Михаил №2 п.2','БТ'],
+      risk:'UX заказа.'},
+    {id:'O7', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Колонку «Остаток» заменить смыслом «Можно отгрузить», подпись оставить «Остаток»?',
+      opts:o('Да','Оставить типовой остаток','Показать обе цифры'),
+      src:['Михаил №2 п.3','БТ'],
+      risk:'Путаница менеджеров.'},
+    {id:'O8', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Подбор номенклатуры пишет в текущую строку, а не добавляет новую?',
+      opts:o('Да, в заказе и в АРМ','Только в АРМ','Только в заказе','Нет, оставить стандарт'),
+      src:['БТ','Михаил №2 п.7'],
+      risk:'Поведение типовой кнопки Подбор.'},
+    {id:'O9', group:'G2', blocker:false, legacy:true, process:'M4',
+      q:'Авто-добавление строки дозаказа при нехватке остатка — обязательно?',
+      opts:o('Да, как сценарий «БТ»','Только кнопка «Добавить строку заказа»','Не нужно'),
+      src:['БТ сценарий п.4–6','Михаил №2 п.9–10'],
+      risk:'Сложная логика ТЧ.'},
+    {id:'O10', group:'G2', blocker:false, legacy:true, process:null,
+      q:'После проведения обычный пользователь не может отменить проведение / пометить удаление?',
+      opts:o('Да, только через АРМ / полные права (БТ)','Оставить типовое поведение','Иное'),
+      src:['БТ сценарий п.9–10','Михаил №2 п.1,4'],
+      risk:'Жёсткий процесс vs гибкость.'},
+    {id:'O11', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Партии FIFO в заказе покупателя: деление строк + себестоимость партии?',
+      opts:o('Да (Максим/Михаил/БТ)','Только себестоимость без деления','Later','Не нужно'),
+      src:['Максим V2','Михаил №2 п.5–6','БТ'],
+      risk:'Тяжёлый кусок УНФ.'},
+    {id:'O12', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Поля «% НДС» и «единица измерения поставки» в заказе?',
+      opts:o('Да','Только % НДС','Later','Не нужно'),
+      src:['Михаил №1 п.5','Максим'],
+      risk:'Реквизиты ТЧ.'},
+    {id:'O13', group:'G2', blocker:false, legacy:true, process:null,
+      q:'Комментарий в заказе, видимый снабжению в АРМ?',
+      opts:o('Да','Нет','Later'),
+      src:['Максим V2'],
+      risk:'Мелочь, но нужна в ТЧ/АРМ.'},
+    {id:'O14', group:'G2', blocker:false, legacy:false, process:'D1',
+      q:'Автоконтроль «верно ли сопоставили номенклатуру» — нужен?',
+      opts:o('Нет (как в «БТ»: не предусматривается)','Да, хотя бы предупреждение','Да, жёсткий запрет проведения'),
+      src:['БТ сценарий','process D1'],
+      risk:'Качество данных vs скорость.'},
+
+    /* ===== G3 ARM ===== */
+    {id:'A1', group:'G3', blocker:false, legacy:true, process:null,
+      q:'АРМ = одна таблица всего заказанного и не отгруженного по клиентам?',
+      opts:o('Да (Максим п.2)','Отдельные экраны по ролям без единого списка','Иное'),
+      src:['Максим п.2','БТ АРМ','код АРМ'],
+      risk:'Основа интерфейса.'},
+    {id:'A2', group:'G3', blocker:false, legacy:true, process:null,
+      q:'В АРМ показывать: сколько дозаказать / на остатке / в пути?',
+      opts:o('Да','Только остаток','Later'),
+      src:['Максим п.2','Михаил №2 п.9'],
+      risk:'Формула остатков.'},
+    {id:'A3', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Блокировка строк от одновременного заказа двумя пользователями?',
+      opts:o('Да','Нет в v1','Предупреждение без жёсткой блокировки'),
+      src:['Максим п.2','ТЗ блокировки'],
+      risk:'Гонки снабжения.'},
+    {id:'A4', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Создание расходной накладной набором позиций из АРМ?',
+      opts:o('Да','Нет, только типовой документ','Later'),
+      src:['Максим п.2'],
+      risk:'Отгрузка из АРМ.'},
+    {id:'A5', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Набор колонок АРМ как в «БТ» (факт, контрагент, поставщик, партия, статус…)?',
+      opts:o('Да, полный список','Базовый набор сейчас + нарастить later','Свой список'),
+      src:['БТ АРМ','Михаил №2 п.12','код'],
+      risk:'Объём UI.'},
+    {id:'A6', group:'G3', blocker:false, legacy:true, process:null,
+      q:'В АРМ можно менять Поставщик / Номенклатура / Цена с записью в Заказ покупателя?',
+      opts:o('Да','Только поставщик и цена','Только просмотр'),
+      src:['БТ','Михаил №2 п.13'],
+      risk:'Права и аудит изменений.'},
+    {id:'A7', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Кнопки смены статуса строки в АРМ — кто нажимает?',
+      opts:o('Менеджер и склад по разным статусам','Только склад','Только менеджер','По матрице прав'),
+      src:['БТ','Михаил №2 п.14','матрица'],
+      risk:'Расхождение с матрицей.'},
+    {id:'A8', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Фильтры АРМ: контрагент, договор, номенклатура, поставщик, статус, дата, заказ?',
+      opts:o('Да, все','Минимум: контрагент + статус','Иное'),
+      src:['БТ','Михаил №2 п.15'],
+      risk:'UX.'},
+    {id:'A9', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Группировки АРМ: контрагент / договор / дата заказа?',
+      opts:o('Да','Нет в v1','Только контрагент'),
+      src:['БТ (важно: на макете не было)'],
+      risk:'Сложность грида.'},
+    {id:'A10', group:'G3', blocker:false, legacy:true, process:null,
+      q:'ПКМ: массовая установка «Заказано (статус)» на выделенные строки?',
+      opts:o('Да','Нет','Later'),
+      src:['БТ','Михаил №2 п.11'],
+      risk:'Мелочь UX.'},
+    {id:'A11', group:'G3', blocker:false, legacy:true, process:'M12',
+      q:'Операция «Вернуть» в АРМ (возврат от заказчика)?',
+      opts:o('Да в v1','Later','Через отдельные документы 1С без АРМ'),
+      src:['БТ','Михаил №2 п.17','process возвраты'],
+      risk:'Контур возвратов.'},
+    {id:'A12', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Планируемая дата возврата — колонка обязательна?',
+      opts:o('Да','Нет','Later'),
+      src:['Михаил №2 п.18','БТ'],
+      risk:'Реквизит.'},
+    {id:'A13', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Вычёркивание ненужных позиций в АРМ?',
+      opts:o('Да','Достаточно «Отменен»','Later'),
+      src:['БТ'],
+      risk:'Ещё один статус/признак.'},
+    {id:'A14', group:'G3', blocker:false, legacy:true, process:null,
+      q:'Запрос на удаление заказа у пользователя с полными правами?',
+      opts:o('Да','Достаточно запрета удаления','Иное'),
+      src:['БТ','Михаил №2 п.21'],
+      risk:'Workflow согласования.'},
+
+    /* ===== G4 PURCHASE ===== */
+    {id:'P1', group:'G4', blocker:false, legacy:true, process:'K1',
+      q:'При приёмке (приходная) резервировать под строку заказа покупателя с учётом «Срочно»?',
+      opts:o('Да','Без учёта срочности','Не резервировать на приёмке','Later'),
+      src:['Максим п.1','Михаил №1 п.1'],
+      risk:'Складская логика.'},
+    {id:'P2', group:'G4', blocker:false, legacy:true, process:'M4',
+      q:'При вводе ЗП на основании заказа — учитывать поставщика в строках и дробить заказы?',
+      opts:o('Да (Максим)','Один ЗП без дроби','Создание только из АРМ (см. B3)'),
+      src:['Максим п.1'],
+      risk:'Связано с B3.'},
+    {id:'P3', group:'G4', blocker:false, legacy:true, process:null,
+      q:'Убрать предложение заполнения ЗП «по основанию»?',
+      opts:o('Да, неактуально при работе из АРМ','Оставить типовое','Иное'),
+      src:['Михаил №1 п.2','Максим'],
+      risk:'UX документа.'},
+    {id:'P4', group:'G4', blocker:false, legacy:true, process:null,
+      q:'Группировать строки одной номенклатуры при создании ЗП?',
+      opts:o('Да','Нет','Только из АРМ'),
+      src:['Михаил №1 п.6','Максим'],
+      risk:'Михаил сомневался — нужно решение.'},
+    {id:'P5', group:'G4', blocker:false, legacy:true, process:null,
+      q:'НДС по поставщику: не ИП → 20%, ИП → вручную?',
+      opts:o('Да','Всегда вручную','Из карточки договора/поставщика иначе','Later'),
+      src:['Михаил №1 п.7','Максим'],
+      risk:'Налоговая логика.'},
+    {id:'P6', group:'G4', blocker:false, legacy:true, process:null,
+      q:'Обработка непроведённых заказов для сопоставления, сортировка по срочности?',
+      opts:o('Да (Максим)','Не нужна при сопоставлении в заказе (см. B2)','Later'),
+      src:['Максим п.1','Михаил №1 п.8'],
+      risk:'Связано с B2.'},
+    {id:'P7', group:'G4', blocker:false, legacy:true, process:'P2',
+      q:'Статус «В пути» / «Ожидаем поступление» (своя машина) — оба в v1?',
+      opts:o('Оба','Только «В пути»','Как в текущем коде','Later'),
+      src:['ТЗ статусы','process P2','код'],
+      risk:'Enum статусов (B4).'},
+    {id:'P8', group:'G4', blocker:false, legacy:false, process:'M6',
+      q:'Подбор аналога по кросс-коду при нехватке у поставщика — в v1?',
+      opts:o('Да','Подсказки без справочника','Later'),
+      src:['ТЗ','process M6','оценка'],
+      risk:'Этап кроссов.'},
+    {id:'P9', group:'G4', blocker:false, legacy:true, process:null,
+      q:'Если по партиям один поставщик — подставлять его в заказ покупателя?',
+      opts:o('Да','Нет','Later'),
+      src:['Максим V2'],
+      risk:'Автозаполнение.'},
+    {id:'P10', group:'G4', blocker:false, legacy:false, process:null,
+      q:'Виртуальный закуп (компенсация по чеку / третий поставщик) — в v1?',
+      opts:o('Да','Later','Не нужно'),
+      src:['ТЗ заметка','process сценарий virtual_buy'],
+      risk:'Особый контур документов.'},
+
+    /* ===== G5 WAREHOUSE ===== */
+    {id:'W1', group:'G5', blocker:false, legacy:false, process:'K1',
+      q:'АРМ кладовщика: 4 вкладки Приход / Комплектация / Отгрузка / Возвраты в v1?',
+      opts:o('Да как в ТЗ','Частично через текущее «Снабжение»','Later'),
+      src:['ТЗ АРМ кладовщика','код Снабжение'],
+      risk:'Большой UI.'},
+    {id:'W2', group:'G5', blocker:false, legacy:false, process:'K1',
+      q:'Чек-боксы факта приёмки по УПД (кол-во/цена) в v1?',
+      opts:o('Да','Только статусы без чек-боксов','Later'),
+      src:['ТЗ','process K1'],
+      risk:'Детализация приёмки.'},
+    {id:'W3', group:'G5', blocker:false, legacy:false, process:'K3',
+      q:'Печать сборочного листа при комплектации?',
+      opts:o('Да в v1','Later','Не нужно'),
+      src:['ТЗ','process K3'],
+      risk:'Печатная форма.'},
+    {id:'W4', group:'G5', blocker:false, legacy:false, process:'M13',
+      q:'Уведомление менеджера «готово к отгрузке» — обязательно?',
+      opts:o('Да (отдельный notify)','Достаточно видимости статуса','Later'),
+      src:['process M13'],
+      risk:'Инфра уведомлений.'},
+    {id:'W5', group:'G5', blocker:false, legacy:false, process:'M11',
+      q:'Отгрузочная ведомость перед отгрузкой?',
+      opts:o('Да','Later','Не нужно'),
+      src:['ТЗ','process M11'],
+      risk:'ПФ.'},
+    {id:'W6', group:'G5', blocker:false, legacy:false, process:'K5',
+      q:'Отгрузка: формирование РН из АРМ / заказа — подтверждаем сценарий?',
+      opts:o('Да из АРМ (см. A4)','Только типовые документы','Иное'),
+      src:['Максим','process K5'],
+      risk:'Связь с A4.'},
+    {id:'W7', group:'G5', blocker:false, legacy:false, process:'K4',
+      q:'Зона укомплектованных / статус «Готово к отгрузке» — обязательны в v1?',
+      opts:o('Да','Достаточно статуса без зоны','Later'),
+      src:['ТЗ','process K4'],
+      risk:'Зоны (S3).'},
+    {id:'W8', group:'G5', blocker:false, legacy:false, process:null,
+      q:'Частичная поставка / частичная комплектация — поддерживаем в v1?',
+      opts:o('Да','Позже','Нет'),
+      src:['process сценарий partial','ТЗ'],
+      risk:'Статусы строк.'},
+    {id:'W9', group:'G5', blocker:false, legacy:false, process:null,
+      q:'Дефект на комплектации: красная подсветка / отдельный отказ — в v1?',
+      opts:o('Да как в ТЗ','Только комментарий/статус','Later'),
+      src:['ТЗ','process M10'],
+      risk:'UX контроля.'},
+
+    /* ===== G6 RETURNS ===== */
+    {id:'R1', group:'G6', blocker:false, legacy:false, process:'N3',
+      q:'Возврат от клиента через кладовщика (K6) — в v1?',
+      opts:o('Да','Later','Не нужно'),
+      src:['process N3/K6','сценарии return'],
+      risk:'Отдельный контур.'},
+    {id:'R2', group:'G6', blocker:false, legacy:false, process:'M12',
+      q:'Возврат поставщику (менеджер → кладовщик → поставщик) — в v1?',
+      opts:o('Да','Later','Не нужно'),
+      src:['process M12/K6/P3'],
+      risk:'Связь с A11.'},
+    {id:'R3', group:'G6', blocker:false, legacy:true, process:null,
+      q:'Отмена отдельных позиций заказа — подтверждаем?',
+      opts:o('Да','Только отмена всего заказа','Later'),
+      src:['Михаил №2 п.16','БТ'],
+      risk:'Статусы.'},
+    {id:'R4', group:'G6', blocker:false, legacy:true, process:null,
+      q:'Отмена всего заказа покупателя — кто и как?',
+      opts:o('Из АРМ по роли','Только полные права','Later'),
+      src:['Михаил №2 п.19','БТ'],
+      risk:'Права.'},
+    {id:'R5', group:'G6', blocker:false, legacy:false, process:null,
+      q:'Возврат на склад без возврата поставщику — отдельный сценарий v1?',
+      opts:o('Да','Покрывается отменой','Later'),
+      src:['process return_internal'],
+      risk:'Ещё ветка.'},
+    {id:'R6', group:'G6', blocker:false, legacy:false, process:null,
+      q:'Нужны ли акты/ПФ на возвраты в v1?',
+      opts:o('Да','Позже','Нет'),
+      src:['ТЗ печать'],
+      risk:'ПФ.'},
+
+    /* ===== G7 NSI ===== */
+    {id:'N1', group:'G7', blocker:false, legacy:false, process:'A0',
+      q:'РРЦ храним в карточке номенклатуры?',
+      opts:o('Нет, как ТЗ «НЕ ДЕЛАЕМ» — расчёт/ввод иначе','Да, храним','Решим после B1'),
+      src:['ТЗ §3.3','process A0'],
+      risk:'Связано с B1.'},
+    {id:'N2', group:'G7', blocker:false, legacy:false, process:'A1',
+      q:'Папка «Не опознанные» + фотофиксация в v1?',
+      opts:o('Да','Без фото','Later'),
+      src:['ТЗ','process A1'],
+      risk:'НСИ.'},
+    {id:'N3', group:'G7', blocker:false, legacy:false, process:'A2',
+      q:'Кросс-коды / аналоги как справочная связь в v1?',
+      opts:o('Да','Только ручной комментарий','Later'),
+      src:['ТЗ','process A2/M6'],
+      risk:'Этап 9.'},
+    {id:'N4', group:'G7', blocker:false, legacy:true, process:null,
+      q:'Поля номенклатуры Бренд / Страна / Код поставщика + «наименование для печати» из аналогов?',
+      opts:o('Да (файл «БТ»)','Только бренд','Later','Не нужно'),
+      src:['БТ прочее'],
+      risk:'НСИ + печать.'},
+    {id:'N5', group:'G7', blocker:false, legacy:false, process:null,
+      q:'Справочник брендов с аналогами и запрет бренда для КАМАЗ в заявке?',
+      opts:o('Да','Позже','Не нужно'),
+      src:['ТЗ §2.2'],
+      risk:'Бизнес-правило.'},
+    {id:'N6', group:'G7', blocker:false, legacy:false, process:null,
+      q:'Принадлежность номенклатуры: заказная / закупочная / тендерная — в v1?',
+      opts:o('Да','Есть поле — донастроить правила','Later'),
+      src:['ТЗ','код АС_Принадлежность'],
+      risk:'Правила заявки.'},
+    {id:'N7', group:'G7', blocker:false, legacy:false, process:null,
+      q:'ГБЦ как отдельная группа с подгруппами по брендам?',
+      opts:o('Да','Нет (ТЗ: группы НЕ ДЕЛАЕМ — уточнить)','Later'),
+      src:['ТЗ §2.1 конфликт заметок'],
+      risk:'Противоречие в ТЗ — нужен апрув.'},
+    {id:'N8', group:'G7', blocker:false, legacy:false, process:null,
+      q:'Код Альянса у контрагента — обязателен в v1?',
+      opts:o('Да','Поле есть, интеграция later','Не нужно'),
+      src:['ТЗ §2.3'],
+      risk:'Интеграции.'},
+    {id:'N9', group:'G7', blocker:false, legacy:false, process:null,
+      q:'Жидкости строго в литрах — жёсткое правило?',
+      opts:o('Да','Рекомендация без запрета','Иное'),
+      src:['ТЗ','process liquids'],
+      risk:'Ед. изм.'},
+
+    /* ===== G8 RIGHTS ===== */
+    {id:'K1r', group:'G8', blocker:false, legacy:true, process:null,
+      q:'На заказе покупателя: 2 роли (полные права vs создание без отмены проведения/удаления)?',
+      opts:o('Да (Михаил/БТ)','Больше ролей сразу','Как типовые профили УНФ'),
+      src:['Михаил №2 п.4','БТ'],
+      risk:'RLS.'},
+    {id:'K2r', group:'G8', blocker:false, legacy:true, process:null,
+      q:'АРМ: разное отображение для склада и продаж?',
+      opts:o('Да','Один вид для всех','По матрице колонок'),
+      src:['Михаил №2 п.20','БТ','матрица'],
+      risk:'Связь с матрицей.'},
+    {id:'K3r', group:'G8', blocker:false, legacy:false, process:null,
+      q:'Переносим HTML-матрицу «роль × статус × колонка» в 1С в v1?',
+      opts:o('Да','Частично ключевые колонки','Later'),
+      src:['index.html','оценка прав'],
+      risk:'40–56 ч.'},
+    {id:'K4r', group:'G8', blocker:false, legacy:false, process:null,
+      q:'Кладовщик не видит незаказанные позиции — правило v1?',
+      opts:o('Да как ТЗ','Нет','Later'),
+      src:['ТЗ роли'],
+      risk:'Фильтры АРМ.'},
+    {id:'K5r', group:'G8', blocker:false, legacy:false, process:null,
+      q:'Редактировать документ может только создатель и его роль?',
+      opts:o('Да','Шире (смена ответственного)','Как решит K1r'),
+      src:['ТЗ'],
+      risk:'Блокировки.'},
+    {id:'K6r', group:'G8', blocker:false, legacy:false, process:null,
+      q:'Роль «Поставщик» (внешний портал) — в v1?',
+      opts:o('Нет','Да','Later'),
+      src:['ТЗ','process supplier'],
+      risk:'Внешний доступ.'},
+    {id:'K7r', group:'G8', blocker:false, legacy:false, process:null,
+      q:'Администратор = полный доступ + НСИ вне заявки — подтверждаем?',
+      opts:o('Да','Разделить админ ИТ и админ НСИ','Иное'),
+      src:['ТЗ','process A0'],
+      risk:'Права.'},
+
+    /* ===== G9 LEGACY / OUT ===== */
+    {id:'X1', group:'G9', blocker:false, legacy:true, process:null,
+      q:'Пункты Максим 3 и 4 (V2 дубли) — схлопываем в один набор требований?',
+      opts:o('Да, один список','Нет, считать разными этапами','Нужен разбор с Максимом'),
+      src:['Максим.docx'],
+      risk:'Двойной счёт в смете.'},
+    {id:'X2', group:'G9', blocker:false, legacy:true, process:null,
+      q:'«Форма как в УКД» у Михаила/Максима — что именно апрувим?',
+      opts:o('Загрузка файла с заголовками полей в заказ','Имелась в виду корректировка поступления','Не делаем / неясно — парковка'),
+      src:['Михаил №1 п.3','Максим'],
+      risk:'Неясный legacy.'},
+    {id:'X3', group:'G9', blocker:false, legacy:true, process:null,
+      q:'Оценка Михаил (часы=0) — использовать только как список вопросов, не как смету?',
+      opts:o('Да','Нет, ждём его цифры','Иное'),
+      src:['Оценка Михаил.xlsx'],
+      risk:'Пустая смета.'},
+    {id:'X4', group:'G9', blocker:false, legacy:false, process:null,
+      q:'Файл с именем «БТ_…» официально считаем черновиком ФТ, не бизнес-требованиями?',
+      opts:o('Да','Нет, это и есть БТ','Частично'),
+      src:['разбор br-fr-analysis'],
+      risk:'Жанр документов.'},
+    {id:'X5', group:'G9', blocker:false, legacy:false, process:null,
+      q:'Комфортная оценка 430–620 ч относится ко всему канону; для v1 нужна отдельная смета после апрувов?',
+      opts:o('Да, пересчитать после G0/G1','Нет, берём 430–620 как v1','Иное'),
+      src:['process оценка ТЗ'],
+      risk:'Ожидания по срокам.'},
+    {id:'X6', group:'G9', blocker:false, legacy:false, process:null,
+      q:'ЭДО / акт сверки с внешней бухгалтерией — вне v1?',
+      opts:o('Вне v1','В v1','Парковка'),
+      src:['ТЗ заметки'],
+      risk:'Граница.'},
+    {id:'X7', group:'G9', blocker:false, legacy:false, process:null,
+      q:'Обучение пользователей входит в поставку v1 или отдельно?',
+      opts:o('В пакете (24–40 ч комфорт)','Отдельно','Не требуется'),
+      src:['оценка ТЗ этап 10'],
+      risk:'Бюджет.'},
+
+    /* ===== G10 ACCEPTANCE ===== */
+    {id:'C1', group:'G10', blocker:false, legacy:false, process:null,
+      q:'БТ считаем готовым, когда закрыты все блокеры G1 и границы G0?',
+      opts:o('Да','Нужны ещё группы G2–G4','Иные критерии'),
+      src:['концепт согласования'],
+      risk:'Старт написания БТ.'},
+    {id:'C2', group:'G10', blocker:false, legacy:false, process:null,
+      q:'ФТ пишем только по пунктам со статусом «утверждено»?',
+      opts:o('Да','Можно включать «парковку» как TBD','Иное'),
+      src:['концепт'],
+      risk:'Расползание скоупа.'},
+    {id:'C3', group:'G10', blocker:false, legacy:false, process:null,
+      q:'Кто подписывает протокол апрувов со стороны заказчика?',
+      opts:o('Один владелец продукта','Несколько ролей (продажи/склад/фин)','Уточнить'),
+      src:['орг. вопрос'],
+      risk:'Спор «кто сказал».'},
+    {id:'C4', group:'G10', blocker:false, legacy:false, process:null,
+      q:'Формат финальных БТ/ФТ после апрувов?',
+      opts:o('HTML в репо + выгрузка Word/PDF','Только Word','Только Google Doc'),
+      src:['рабочий процесс'],
+      risk:'Доставка артефакта.'},
+    {id:'C5', group:'G10', blocker:false, legacy:false, process:null,
+      q:'Изменение утверждённого пункта после старта разработки — через новый апрув в этом протоколе?',
+      opts:o('Да, обязательно','Устно достаточно','Иное'),
+      src:['защита от расползания'],
+      risk:'Scope creep.'}
+  ];
+
+  /** Аврал [lo,hi] ч. Комфорт = ×1,4. 0 = решение без разработки / орг.вопрос.
+   *  В смету идут только status=approved. Если «нет/later» — жмите «Не в v1». */
+  var HOURS = {
+    B1:[0,0], B2:[0,0], B3:[0,0], B4:[0,0], B5:[0,0],
+    S1:[0,0], S2:[40,56], S3:[12,20], S4:[40,56], S5:[24,40], S6:[16,24], S7:[0,0], S8:[8,16],
+    O1:[16,28], O2:[6,10], O3:[4,8], O4:[10,16], O5:[4,6], O6:[2,4], O7:[3,5], O8:[4,6],
+    O9:[12,20], O10:[6,10], O11:[16,28], O12:[4,8], O13:[2,4], O14:[4,8],
+    A1:[10,16], A2:[8,14], A3:[8,12], A4:[10,16], A5:[12,20], A6:[8,12], A7:[6,10], A8:[4,8],
+    A9:[6,10], A10:[3,5], A11:[10,16], A12:[2,4], A13:[3,5], A14:[4,8],
+    P1:[10,16], P2:[8,14], P3:[2,4], P4:[4,8], P5:[4,8], P6:[8,12], P7:[6,10], P8:[16,28],
+    P9:[2,4], P10:[8,14],
+    W1:[20,32], W2:[10,16], W3:[8,12], W4:[6,10], W5:[10,16], W6:[6,10], W7:[6,10], W8:[10,16], W9:[6,10],
+    R1:[12,18], R2:[12,18], R3:[4,8], R4:[4,8], R5:[6,10], R6:[6,10],
+    N1:[0,0], N2:[10,16], N3:[16,28], N4:[8,12], N5:[6,10], N6:[4,8], N7:[4,8], N8:[2,4], N9:[2,4],
+    K1r:[8,14], K2r:[6,10], K3r:[24,40], K4r:[4,8], K5r:[4,8], K6r:[8,16], K7r:[2,4],
+    X1:[0,0], X2:[6,12], X3:[0,0], X4:[0,0], X5:[0,0], X6:[0,0], X7:[16,32],
+    C1:[0,0], C2:[0,0], C3:[0,0], C4:[0,0], C5:[0,0]
+  };
+  var COMFORT_K = 1.4;
+
+  function baseHours(id){
+    var h = HOURS[id] || [0,0];
+    return {lo:h[0]|0, hi:h[1]|0};
+  }
+  function comfortOf(lo, hi){
+    return {lo:Math.round(lo*COMFORT_K), hi:Math.round(hi*COMFORT_K)};
+  }
+  /** Часы пункта с учётом выбора (урезание скоупа внутри «утверждено»). */
+  function hoursFor(it, dec){
+    var b = baseHours(it.id);
+    var lo=b.lo, hi=b.hi;
+    var ch = dec && dec.choice ? dec.choice : '';
+    if (it.id==='S2' && ch && ch!=='A'){ lo=0; hi=0; }
+    if (it.id==='S2' && ch==='C'){ lo=12; hi=20; }
+    if (it.id==='S3' && ch==='B'){ lo=6; hi=10; }
+    if (it.id==='S3' && (ch==='C'||ch==='D')){ lo=0; hi=0; }
+    if (it.id==='S4' && ch==='B'){ lo=8; hi=12; }
+    if (it.id==='S4' && (ch==='C'||ch==='D')){ lo=0; hi=0; }
+    if (it.id==='S5' && ch==='A'){ lo=8; hi=14; }
+    if (it.id==='S5' && (ch==='C'||ch==='D')){ lo=0; hi=0; }
+    if (it.id==='S6' && (ch==='B'||ch==='C'||ch==='D')){ lo=0; hi=0; }
+    if (it.id==='B4' && ch==='B'){ lo=12; hi=20; }
+    if (it.id==='B4' && ch==='A'){ lo=6; hi=12; }
+    if (it.id==='B5' && ch==='B'){ lo=10; hi=16; }
+    if (it.id==='N1' && ch==='B'){ lo=8; hi=14; }
+    var c = comfortOf(lo, hi);
+    return {crunchLo:lo, crunchHi:hi, comfortLo:c.lo, comfortHi:c.hi};
+  }
+  function fmtRange(lo, hi){
+    if (!lo && !hi) return '0';
+    if (lo===hi) return String(lo);
+    return lo+'\u2013'+hi;
+  }
+  function hoursLabel(it, dec){
+    var h = hoursFor(it, dec||getDec(it.id));
+    if (!h.crunchLo && !h.crunchHi) return '0 ч';
+    return fmtRange(h.crunchLo,h.crunchHi)+' / '+fmtRange(h.comfortLo,h.comfortHi)+' ч';
+  }
+
+  var state = {
+    selected:null,
+    groupFilter:'',
+    onlyOpen:true,
+    onlyBlock:false,
+    playQueue:[],
+    playIdx:-1,
+    playing:false,
+    decisions: loadDecisions()
+  };
+
+  function loadDecisions(){
+    try{
+      var raw = localStorage.getItem(STORAGE);
+      if (!raw) return {};
+      var j = JSON.parse(raw);
+      return j.decisions || {};
+    }catch(e){ return {}; }
+  }
+  function saveDecisions(){
+    localStorage.setItem(STORAGE, JSON.stringify({
+      version:1, savedAt:new Date().toISOString(), decisions: state.decisions
+    }));
+  }
+
+  function byId(id){ for (var i=0;i<ITEMS.length;i++) if (ITEMS[i].id===id) return ITEMS[i]; return null; }
+  function getDec(id){ return state.decisions[id] || null; }
+  function statusOf(id){ var d=getDec(id); return d && d.status ? d.status : 'pending'; }
+
+  function blockersOpen(){
+    return ITEMS.filter(function(it){ return it.blocker && statusOf(it.id)==='pending'; }).length;
+  }
+  function countStats(){
+    var t={pending:0,approved:0,out:0,parked:0,blockers:0,blockersOpen:0,
+      crunchLo:0, crunchHi:0, comfortLo:0, comfortHi:0};
+    ITEMS.forEach(function(it){
+      var s=statusOf(it.id); t[s]=(t[s]||0)+1;
+      if (it.blocker){ t.blockers++; if (s==='pending') t.blockersOpen++; }
+      if (s==='approved'){
+        var h = hoursFor(it, getDec(it.id));
+        t.crunchLo += h.crunchLo; t.crunchHi += h.crunchHi;
+        t.comfortLo += h.comfortLo; t.comfortHi += h.comfortHi;
+      }
+    });
+    t.total = ITEMS.length;
+    return t;
+  }
+
+  function filteredItems(){
+    return ITEMS.filter(function(it){
+      if (state.groupFilter && it.group !== state.groupFilter) return false;
+      if (state.onlyBlock && !it.blocker) return false;
+      if (state.onlyOpen && statusOf(it.id)!=='pending') return false;
+      return true;
+    });
+  }
+
+  function playQueueBuild(){
+    // blockers pending first, then G0 pending, then rest by GROUPS order
+    var order = {};
+    GROUPS.forEach(function(g,i){ order[g.id]=i; });
+    var list = ITEMS.slice().filter(function(it){ return statusOf(it.id)==='pending'; });
+    list.sort(function(a,b){
+      if (a.blocker !== b.blocker) return a.blocker ? -1 : 1;
+      var ga=order[a.group]||99, gb=order[b.group]||99;
+      if (ga!==gb) return ga-gb;
+      return 0;
+    });
+    if (state.onlyBlock) list = list.filter(function(it){ return it.blocker; });
+    return list;
+  }
+
+  var elGroups = document.getElementById('groupsRoot');
+  var elStats = document.getElementById('statsRow');
+  var elFilters = document.getElementById('groupFilters');
+  var elBanner = document.getElementById('blockerBanner');
+  var elSideEmpty = document.getElementById('sideEmpty');
+  var elSideContent = document.getElementById('sideContent');
+  var elPlayerTitle = document.getElementById('playerTitle');
+  var elPlayerNote = document.getElementById('playerNote');
+  var elPlayerProgress = document.getElementById('playerProgress');
+
+  function stLabel(s){
+    return ({pending:'не разобрано', approved:'утверждено', out:'не в v1', parked:'парковка'})[s]||s;
+  }
+
+  function renderBanner(){
+    var n = blockersOpen();
+    if (n>0){
+      elBanner.className = 'callout bad';
+      elBanner.innerHTML = '<strong>Открыто блокеров: '+n+'.</strong> Пока они не утверждены — не пишем ФТ и не фиксируем смету v1. Нажмите «Плей блокеры».';
+    } else {
+      elBanner.className = 'callout ok';
+      elBanner.innerHTML = '<strong>Блокеры закрыты.</strong> Можно идти по G0 и деталям. Смета v1 в шапке — только по «утверждено» (комфорт ч).';
+    }
+  }
+
+  function renderStats(){
+    var t = countStats();
+    elStats.innerHTML =
+      '<div class="stat"><b>'+t.total+'</b><span>пунктов</span></div>'+
+      '<div class="stat warn"><b>'+t.pending+'</b><span>открыто</span></div>'+
+      '<div class="stat ok"><b>'+t.approved+'</b><span>утверждено</span></div>'+
+      '<div class="stat bad"><b>'+t.out+'</b><span>не в v1</span></div>'+
+      '<div class="stat"><b>'+t.parked+'</b><span>парковка</span></div>'+
+      '<div class="stat bad"><b>'+t.blockersOpen+'/'+t.blockers+'</b><span>блокеры открыты</span></div>'+
+      '<div class="stat"><b>'+fmtRange(t.crunchLo,t.crunchHi)+'</b><span>аврал ч (утвержд.)</span></div>'+
+      '<div class="stat accent"><b>'+fmtRange(t.comfortLo,t.comfortHi)+'</b><span>комфорт ч (в план v1)</span></div>';
+  }
+
+  function renderFilters(){
+    elFilters.innerHTML = '';
+    var all = document.createElement('button');
+    all.type='button'; all.textContent='Все группы';
+    all.className = state.groupFilter?'':'active';
+    all.onclick=function(){ state.groupFilter=''; renderAll(); };
+    elFilters.appendChild(all);
+    GROUPS.forEach(function(g){
+      var n = ITEMS.filter(function(it){ return it.group===g.id; }).length;
+      var open = ITEMS.filter(function(it){ return it.group===g.id && statusOf(it.id)==='pending'; }).length;
+      var b=document.createElement('button');
+      b.type='button';
+      b.textContent = g.id+' · '+g.title+' ('+open+'/'+n+')';
+      if (state.groupFilter===g.id) b.className='active';
+      b.onclick=function(){ state.groupFilter=g.id; renderAll(); };
+      elFilters.appendChild(b);
+    });
+  }
+
+  function renderGroups(){
+    var show = filteredItems();
+    var byG = {};
+    GROUPS.forEach(function(g){ byG[g.id]=[]; });
+    show.forEach(function(it){ if (byG[it.group]) byG[it.group].push(it); });
+    elGroups.innerHTML = '';
+    GROUPS.forEach(function(g){
+      var list = byG[g.id]||[];
+      if (!list.length) return;
+      var wrap=document.createElement('div');
+      wrap.className='group';
+      wrap.innerHTML = '<h2>'+g.id+' — '+g.title+' · '+list.length+'</h2>';
+      var cards=document.createElement('div');
+      cards.className='cards';
+      list.forEach(function(it){
+        var st = statusOf(it.id);
+        var dec = getDec(it.id);
+        var hrs = hoursLabel(it, dec);
+        var btn=document.createElement('button');
+        btn.type='button';
+        btn.className='card st-'+st+(it.blocker?' blocker-card':'')+(state.selected===it.id?' selected':'')+(state.playIdx>=0 && state.playQueue[state.playIdx] && state.playQueue[state.playIdx].id===it.id?' play-active':'');
+        btn.innerHTML =
+          '<div class="cid">'+it.id+(it.process?' · process '+it.process:'')+'</div>'+
+          '<div class="cq">'+esc(it.q)+'</div>'+
+          '<div class="meta">'+
+            '<span class="pill '+st+'">'+stLabel(st)+'</span>'+
+            '<span class="pill hrs" title="аврал / комфорт">'+hrs+'</span>'+
+            (it.blocker?'<span class="pill blocker">блокер</span>':'')+
+            (it.legacy?'<span class="pill legacy">legacy</span>':'')+
+          '</div>';
+        btn.onclick=function(){ selectItem(it.id,false); };
+        cards.appendChild(btn);
+      });
+      wrap.appendChild(cards);
+      elGroups.appendChild(wrap);
+    });
+    if (!elGroups.children.length){
+      elGroups.innerHTML = '<div class="callout ok">По текущему фильтру пунктов нет. Снимите «Только открытые» или выберите другую группу.</div>';
+    }
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g,function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; });
+  }
+
+  function selectItem(id, fromPlay){
+    state.selected = id;
+    if (!fromPlay){ state.playing=false; state.playIdx=-1; document.getElementById('btnPlay').textContent='▶ Плей блокеры'; }
+    renderSide();
+    renderGroups();
+    updatePlayerChrome();
+    try{
+      var q = new URLSearchParams(location.search);
+      q.set('item', id);
+      history.replaceState(null,'','?'+q.toString());
+    }catch(e){}
+  }
+
+  function renderSide(){
+    var it = byId(state.selected);
+    if (!it){
+      elSideEmpty.hidden=false; elSideContent.hidden=true; return;
+    }
+    elSideEmpty.hidden=true; elSideContent.hidden=false;
+    var dec = getDec(it.id);
+    var st = statusOf(it.id);
+    var choice = dec && dec.choice ? dec.choice : '';
+    var comment = dec && dec.comment ? dec.comment : '';
+
+    var optsHtml = it.opts.map(function(op){
+      var on = choice===op.id ? ' on' : '';
+      return '<label class="'+on+'"><input type="radio" name="opt" value="'+op.id+'"'+(choice===op.id?' checked':'')+'> <span><b>'+op.id+'.</b> '+esc(op.label)+'</span></label>';
+    }).join('');
+
+    var hBase = hoursFor(it, dec);
+    var hPreview = hoursFor(it, {status:'approved', choice: choice || (it.opts[0]&&it.opts[0].id)});
+    var hoursHint = (!hBase.crunchLo && !hBase.crunchHi && !baseHours(it.id).lo)
+      ? 'Решение без часов разработки (или часы появятся после выбора варианта).'
+      : 'Если вариант «нет / later» — жмите «Не в v1», иначе часы попадут в смету при «Утвердить».';
+
+    elSideContent.innerHTML =
+      '<h2>'+it.id+' · согласование</h2>'+
+      '<div class="meta" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<span class="pill '+st+'">'+stLabel(st)+'</span>'+
+        (it.blocker?'<span class="pill blocker">блокер</span>':'')+
+        (it.legacy?'<span class="pill legacy">legacy</span>':'')+
+        '<span class="badge">'+it.group+'</span>'+
+        '<span class="pill hrs">'+hoursLabel(it, dec)+'</span>'+
+      '</div>'+
+      '<div class="hrs-box"><b>Оценка разработки:</b> аврал '+fmtRange(hPreview.crunchLo,hPreview.crunchHi)+
+        ' ч · комфорт '+fmtRange(hPreview.comfortLo,hPreview.comfortHi)+' ч (×1,4). '+
+        '<span style="color:var(--muted)">'+hoursHint+'</span></div>'+
+      '<div class="kv"><div class="k">Вопрос</div><div class="v"><strong>'+esc(it.q)+'</strong></div></div>'+
+      '<div class="block"><h3>Варианты</h3><div class="opts" id="optsBox">'+optsHtml+'</div></div>'+
+      '<div class="block"><h3>Комментарий / уточнение</h3><textarea id="decComment" placeholder="ФИО, дата встречи, особые условия…">'+esc(comment)+'</textarea></div>'+
+      '<div class="actions">'+
+        '<button type="button" class="ok" id="btnApprove">Утвердить выбранное</button>'+
+        '<button type="button" class="out" id="btnOut">Не в v1</button>'+
+        '<button type="button" class="park" id="btnPark">Парковка</button>'+
+        '<button type="button" id="btnClear">Сбросить пункт</button>'+
+      '</div>'+
+      '<div class="block"><h3>Источники</h3><div class="src">'+it.src.map(esc).join(' · ')+'</div></div>'+
+      (it.process?'<div class="block"><h3>Узел process</h3><div class="src"><a href="process.html?node='+encodeURIComponent(it.process)+'" target="_blank">'+it.process+'</a></div></div>':'')+
+      '<div class="block"><h3>Риск без апрува</h3><div class="risk">'+esc(it.risk)+'</div></div>';
+
+    function refreshHoursPreview(){
+      var sel = elSideContent.querySelector('input[name=opt]:checked');
+      var ch = sel ? sel.value : '';
+      var hp = hoursFor(it, {status:'approved', choice:ch});
+      var box = elSideContent.querySelector('.hrs-box');
+      if (box){
+        box.innerHTML = '<b>Оценка разработки:</b> аврал '+fmtRange(hp.crunchLo,hp.crunchHi)+
+          ' ч · комфорт '+fmtRange(hp.comfortLo,hp.comfortHi)+' ч (×1,4). '+
+          '<span style="color:#6b7280">'+hoursHint+'</span>';
+      }
+    }
+
+    elSideContent.querySelectorAll('input[name=opt]').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        elSideContent.querySelectorAll('#optsBox label').forEach(function(lb){ lb.classList.remove('on'); });
+        inp.closest('label').classList.add('on');
+        refreshHoursPreview();
+      });
+    });
+    document.getElementById('btnApprove').onclick=function(){
+      var sel = elSideContent.querySelector('input[name=opt]:checked');
+      if (!sel){ alert('Выберите вариант A/B/C…'); return; }
+      setDecision(it.id, 'approved', sel.value, document.getElementById('decComment').value);
+    };
+    document.getElementById('btnOut').onclick=function(){
+      var sel = elSideContent.querySelector('input[name=opt]:checked');
+      setDecision(it.id, 'out', sel?sel.value:'', document.getElementById('decComment').value);
+    };
+    document.getElementById('btnPark').onclick=function(){
+      var sel = elSideContent.querySelector('input[name=opt]:checked');
+      setDecision(it.id, 'parked', sel?sel.value:'', document.getElementById('decComment').value);
+    };
+    document.getElementById('btnClear').onclick=function(){
+      delete state.decisions[it.id]; saveDecisions(); renderAll(); selectItem(it.id,true);
+    };
+  }
+
+  function setDecision(id, status, choice, comment){
+    state.decisions[id] = {
+      status:status, choice:choice||'', comment:comment||'', at:new Date().toISOString()
+    };
+    saveDecisions();
+    renderAll();
+    if (state.playing) goPlay(1);
+    else selectItem(id,true);
+  }
+
+  function updatePlayerChrome(){
+    var t = countStats();
+    var done = t.approved + t.out + t.parked;
+    elPlayerProgress.style.width = Math.round((done/t.total)*100)+'%';
+    if (state.playIdx>=0 && state.playQueue[state.playIdx]){
+      var it = state.playQueue[state.playIdx];
+      elPlayerTitle.textContent = (state.playIdx+1)+'/'+state.playQueue.length+' · '+it.id+' · '+it.q;
+      elPlayerNote.textContent = (it.blocker ? 'Блокер — закройте до деталей. ' : ('Группа '+it.group+'. '))+
+        'Часы пункта: '+hoursLabel(it)+'. Смета v1 (комфорт): '+fmtRange(t.comfortLo,t.comfortHi)+' ч.';
+    } else {
+      elPlayerTitle.textContent = 'Утверждено/закрыто: '+done+' / '+t.total+' · блокеры открыты: '+t.blockersOpen+
+        ' · смета v1: '+fmtRange(t.comfortLo,t.comfortHi)+' ч комфорт';
+      elPlayerNote.textContent = 'Плеер: блокеры → G0 → остальное. В смету входят только утверждённые пункты.';
+    }
+  }
+
+  function exportJson(){
+    var t = countStats();
+    var rows = ITEMS.map(function(it){
+      var d = getDec(it.id) || {};
+      var opt = it.opts.filter(function(o){ return o.id===d.choice; })[0];
+      var h = hoursFor(it, d.status?d:null);
+      var counted = d.status==='approved';
+      return {
+        id:it.id, group:it.group, blocker:!!it.blocker, legacy:!!it.legacy,
+        question:it.q, status:statusOf(it.id), choice:d.choice||'',
+        choiceLabel: opt?opt.label:'', comment:d.comment||'', at:d.at||'',
+        hoursCrunch: counted ? [h.crunchLo,h.crunchHi] : [0,0],
+        hoursComfort: counted ? [h.comfortLo,h.comfortHi] : [0,0],
+        hoursCatalog: baseHours(it.id),
+        sources:it.src, risk:it.risk, process:it.process||''
+      };
+    });
+    var blob = new Blob([JSON.stringify({
+      exportedAt:new Date().toISOString(),
+      comfortFactor: COMFORT_K,
+      totalsApproved:{
+        crunch:[t.crunchLo,t.crunchHi],
+        comfort:[t.comfortLo,t.comfortHi],
+        approvedCount:t.approved
+      },
+      note:'Суммы только по status=approved. Комфорт = аврал × '+COMFORT_K+'.',
+      items:rows
+    }, null, 2)], {type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='vitauto-approve-'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+  }
+
+  function renderAll(){
+    renderBanner();
+    renderStats();
+    renderFilters();
+    renderGroups();
+    updatePlayerChrome();
+    if (state.selected) renderSide();
+  }
+
+  function goPlay(delta){
+    if (!state.playQueue.length){
+      state.playQueue = playQueueBuild();
+      state.playIdx = -1;
+    }
+    var next = state.playIdx + delta;
+    if (next < 0){ stopPlay(); return; }
+    // refresh queue statuses
+    state.playQueue = playQueueBuild();
+    if (!state.playQueue.length){
+      stopPlay();
+      elPlayerTitle.textContent = 'Открытых пунктов нет';
+      return;
+    }
+    if (next >= state.playQueue.length) next = state.playQueue.length-1;
+    state.playIdx = Math.min(next, state.playQueue.length-1);
+    state.playing = true;
+    document.getElementById('btnPlay').textContent = '❚❚ Пауза';
+    selectItem(state.playQueue[state.playIdx].id, true);
+  }
+
+  function stopPlay(){
+    state.playing=false; state.playIdx=-1; state.playQueue=[];
+    document.getElementById('btnPlay').textContent='▶ Плей блокеры';
+    updatePlayerChrome();
+    renderGroups();
+  }
+
+  document.getElementById('btnOnlyOpen').onclick=function(){
+    state.onlyOpen=!state.onlyOpen; this.classList.toggle('active', state.onlyOpen); renderAll();
+  };
+  document.getElementById('btnOnlyBlock').onclick=function(){
+    state.onlyBlock=!state.onlyBlock; this.classList.toggle('active', state.onlyBlock); renderAll();
+  };
+  document.getElementById('btnExport').onclick=exportJson;
+  document.getElementById('btnReset').onclick=function(){
+    if (!confirm('Сбросить все апрувы в этом браузере?')) return;
+    state.decisions={}; saveDecisions(); stopPlay(); renderAll();
+  };
+  document.getElementById('btnPlay').onclick=function(){
+    if (state.playing){ stopPlay(); return; }
+    state.onlyOpen=true; document.getElementById('btnOnlyOpen').classList.add('active');
+    state.playQueue = playQueueBuild();
+    state.playIdx = -1;
+    goPlay(1);
+  };
+  document.getElementById('btnNext').onclick=function(){ goPlay(1); };
+  document.getElementById('btnPrev').onclick=function(){
+    if (state.playIdx<0){ state.playQueue=playQueueBuild(); state.playIdx=0; }
+    goPlay(-1);
+  };
+  document.getElementById('btnStop').onclick=stopPlay;
+
+  // boot
+  renderAll();
+  try{
+    var q=new URLSearchParams(location.search);
+    var item=q.get('item');
+    if (item && byId(item)) selectItem(item,false);
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

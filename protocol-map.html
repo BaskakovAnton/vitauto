@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта протокола v1 — Витавто · E</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --border:#dbe0e6; --text:#1f2937; --muted:#6b7280;
+    --accent:#2563eb; --accent-dark:#1d4ed8;
+    --ok-bg:#d9f2df; --ok-bd:#8fd6a4;
+    --part-bg:#fdf3d0; --part-bd:#e6c766;
+    --no-bg:#fde8e6; --no-bd:#f0a8a0;
+    --park-bg:#eef2ff; --park-bd:#a5b4fc;
+    --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+    --later-bg:#f3f4f6; --later-bd:#d1d5db;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:13px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  header.app{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px;}
+  h1{font-size:16px;margin:0 0 2px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:8px;line-height:1.45;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .toolbar .grow{flex:1 1 auto;}
+  button,.btn{cursor:pointer;border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;}
+  button:hover,.btn:hover{background:#eef1f5;text-decoration:none;}
+  button.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  button.primary:hover{background:var(--accent-dark);}
+  .seg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .seg button{border:none;border-radius:0;background:var(--panel);}
+  .seg button.active{background:var(--accent);color:#fff;}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 16px 0;}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:96px;}
+  .stat b{display:block;font-size:16px;font-variant-numeric:tabular-nums;}
+  .stat span{color:var(--muted);font-size:10px;}
+  .stat.ok{border-color:var(--ok-bd);background:linear-gradient(#fff,var(--ok-bg));}
+  .stat.warn{border-color:var(--part-bd);background:linear-gradient(#fff,var(--part-bg));}
+  .stat.bad{border-color:var(--no-bd);background:linear-gradient(#fff,var(--no-bg));}
+  .stat.accent{border-color:#93c5fd;background:linear-gradient(#fff,#eff6ff);}
+  .callout{margin:12px 16px 0;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:8px;padding:10px 12px;line-height:1.45;font-size:12px;color:#9a3412;}
+  .callout.ok{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .callout.info{background:#eff6ff;border-color:#93c5fd;color:#1e40af;}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:0;min-height:calc(100vh - 160px);}
+  @media (max-width:1100px){.layout{grid-template-columns:1fr;}}
+  .main{padding:12px 16px 40px;overflow:auto;}
+  .side{border-left:1px solid var(--border);background:var(--panel);padding:14px 16px 30px;position:sticky;top:120px;align-self:start;max-height:calc(100vh - 120px);overflow:auto;}
+  @media (max-width:1100px){.side{position:static;max-height:none;border-left:none;border-top:1px solid var(--border);}}
+  .side h2{margin:0 0 8px;font-size:14px;}
+  .side .empty{color:var(--muted);font-size:12px;line-height:1.45;}
+  .kv{display:grid;grid-template-columns:88px 1fr;gap:6px 8px;font-size:12px;margin:10px 0;}
+  .kv .k{color:var(--muted);}
+  .kv .v{line-height:1.4;white-space:pre-wrap;}
+  .pill{display:inline-block;font-size:10px;border-radius:4px;padding:1px 6px;border:1px solid transparent;white-space:nowrap;}
+  .pill.approved{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .pill.out{background:var(--no-bg);border-color:var(--no-bd);color:#991b1b;}
+  .pill.parked{background:var(--park-bg);border-color:var(--park-bd);color:#3730a3;}
+  .pill.in{background:var(--ok-bg);border-color:var(--ok-bd);color:#166534;}
+  .pill.opt{background:var(--part-bg);border-color:var(--part-bd);color:#92400e;}
+  .pill.later,.pill.tbd{background:var(--later-bg);border-color:var(--later-bd);color:#4b5563;}
+  .pill.blocker{background:var(--warn-bg);border-color:var(--warn-bd);color:#9a3412;}
+  .lane{margin-bottom:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel);}
+  .lane-h{padding:8px 12px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .lane-b{padding:8px;display:flex;flex-wrap:wrap;gap:6px;min-height:44px;}
+  .chip{
+    border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:#fff;cursor:pointer;
+    font-size:11px;max-width:220px;text-align:left;line-height:1.35;
+  }
+  .chip:hover{outline:2px solid var(--accent);outline-offset:0;}
+  .chip.selected{outline:2px solid var(--accent);}
+  .chip .cid{font-family:Consolas,monospace;color:var(--muted);font-size:10px;}
+  .chip.st-approved{border-color:var(--ok-bd);background:linear-gradient(#fff,#f3fbf5);}
+  .chip.st-out{border-color:var(--no-bd);background:linear-gradient(#fff,#fff5f5);opacity:.85;}
+  .chip.st-parked{border-color:var(--park-bd);background:linear-gradient(#fff,#eef2ff);}
+  table.grid{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);}
+  table.grid th,table.grid td{border:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top;}
+  table.grid th{background:#f8fafc;font-size:11px;color:var(--muted);font-weight:600;}
+  table.grid tr.sel{background:#eff6ff;}
+  table.grid tr{cursor:pointer;}
+  table.grid .num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  table.grid tr.tot td{font-weight:600;background:#f8fafc;}
+  .toggle-row{display:flex;gap:4px;flex-wrap:wrap;}
+  .toggle-row button{padding:3px 8px;font-size:11px;}
+  .toggle-row button.on-in{background:var(--ok-bg);border-color:var(--ok-bd);}
+  .toggle-row button.on-opt{background:var(--part-bg);border-color:var(--part-bd);}
+  .toggle-row button.on-out,.toggle-row button.on-later,.toggle-row button.on-tbd{background:var(--later-bg);}
+  .hint{color:var(--muted);font-size:11px;line-height:1.4;margin:0 0 10px;}
+  .nuance{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;margin-bottom:8px;cursor:pointer;}
+  .nuance:hover,.nuance.selected{outline:2px solid var(--accent);}
+  .nuance h3{margin:0 0 4px;font-size:13px;}
+  .nuance p{margin:0;font-size:12px;line-height:1.45;white-space:pre-wrap;}
+  .graph{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 16px;}
+  .graph .node{border:1px solid var(--warn-bd);background:var(--warn-bg);border-radius:8px;padding:6px 10px;font-size:11px;font-family:Consolas,monospace;}
+  .graph .edge{color:var(--muted);font-size:11px;}
+  .graph .pkg{border:1px solid var(--ok-bd);background:var(--ok-bg);border-radius:8px;padding:6px 10px;font-size:11px;}
+  footer.app{border-top:1px solid var(--border);padding:10px 16px;color:var(--muted);font-size:11px;line-height:1.45;}
+  h2.sec{font-size:14px;margin:0 0 8px;}
+  .raw-note{font-size:11px;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Карта зафиксированного протокола v1 — вариант E</h1>
+  <div class="sub">
+    Архитектура + смета <strong>только пакетами</strong> + нюансы. Источник: <code>protocol-lock.json</code>
+    (снимок 2026-09-17 (45)). Сырой total JSON <strong>не</strong> договорная цифра.
+  </div>
+  <div class="toolbar">
+    <div class="seg" id="tabs">
+      <button data-view="map" class="active">Карта v1</button>
+      <button data-view="est">Смета пакетов</button>
+      <button data-view="nu">Нюансы</button>
+      <button data-view="trace">Трассировка</button>
+    </div>
+    <div class="grow"></div>
+    <a class="btn" href="bt.html">БТ</a>
+    <a class="btn" href="ft.html">ФТ</a>
+    <a class="btn" href="approve.html">Протокол апрувов</a>
+    <a class="btn" href="process.html">Процесс</a>
+    <a class="btn" href="process.html?view=estimate">Оценка ТЗ</a>
+    <a class="btn" href="index.html">Матрица</a>
+  </div>
+</header>
+
+<div class="stats" id="statsRow"></div>
+<div class="callout info" id="topNote"></div>
+
+<div class="layout">
+  <div class="main" id="main"></div>
+  <aside class="side" id="side">
+    <div class="empty" id="sideEmpty">Кликните пункт, пакет или нюанс — детали справа.</div>
+    <div id="sideContent" hidden></div>
+  </aside>
+</div>
+
+<footer class="app">
+  Смета договора = сумма пакетов со статусом <strong>in</strong> (+ <strong>opt</strong>, если включено обучение).
+  Пункты протокола не суммируются. Тумблеры пакетов хранятся в localStorage <code>vitauto-protocol-map-v1</code>.
+</footer>
+
+<script>
+window.__PROTO_MAP__ = {"lockNote":"Approve/vitauto-approve-2026-09-17 (45).json → protocol-lock.json","exportedAt":"2026-09-17T14:14:14.295Z","rawComfort":[615,1043],"rawCrunch":[439,747],"approvedCount":72,"outCount":21,"parkedCount":1,"items":[{"id":"B1","g":"G1","b":true,"q":"Как в v1 считаем цену продажи?","s":"approved","c":"B","cl":"% наценки от себестоимости (Максим)","cm":"но  вслучае ррц не указанно то стоимость позиции   умножаем  коеффициент, если ррц указанно то ррц умножаем на коеффициент. коффциент вводит ручками (но пользователь может выставитьцену напрямую и тогда коффециент  автоматичестки бкдет рассчитан и проставлен относительно себестоимости)","p":"A0","r":"Переделка ценообразования и срыв сметы."},{"id":"B2","g":"G1","b":true,"q":"Где менеджер сопоставляет «номенклатура факт» → справочник?","s":"approved","c":"B","cl":"Отдельная обработка сопоставления в интерфейсе (Максим)","cm":"меннеджер создает заказ клиента и не успевает обработать все  - и ищет в арме заказе  поетому всяработа происходит исключительно в арм-е   - если что-то не так  корректируем и возвращаем обратно ","p":"M2","r":"Два UX в ФТ = двойная разработка."},{"id":"B3","g":"G1","b":true,"q":"Когда создаётся документ «Заказ поставщику»?","s":"approved","c":"B","cl":"Только вручную/кнопкой из АРМ (комментарии Михаила)","cm":"берем заказ клиент  привязываемся к нашей номенклатуре если нет наскладе указываем кол-во которое хотим отгрузить ставив примерную цену (себестоимость) - выбираем поставщика  - активируем строку( одену или много)  и нажимает кнопку  сформировать  заказ поставщику  и  улетает на склад  - склад ждет поступления","p":"M4","r":"Разный момент резерва и статусов."},{"id":"B4","g":"G1","b":true,"q":"Какой набор статусов строки берём в v1?","s":"approved","c":"B","cl":"Полный как матрица/process (оплата, приёмка, return…)","cm":"исправить  на столбцы (а не статусы)  потому что статусы это движение деталей, второй строка в 1 тз1с.xlsx jn 14/09/26  это порядок отображения с лева на право ","p":"","r":"Переделка АРМ и прав по колонкам."},{"id":"B5","g":"G1","b":true,"q":"Роль склада: «Кладовщик» (ТЗ) и «Снабжение» (код) — это одно?","s":"approved","c":"D","cl":"Иначе (комментарий)","cm":"Кладовщик  = грузчик  , Снабжение  это менеджер который ведет клиента  в будкщем будет добавлен началник склада  с материальной ответственностью","p":"K1","r":"Неверные права на приёмку/цены."},{"id":"S1","g":"G0","b":false,"q":"Границы v1: что считаем «первым релизом»?","s":"approved","c":"C","cl":"Заказ+АРМ+складские статусы без механика","cm":"скаченая база копия ( если какой-то  функционал не работает  то должна быть сделана) ","p":"","r":"Смета и ФТ на разный объём."},{"id":"S2","g":"G0","b":false,"q":"Заказ-наряд / главный механик в v1?","s":"approved","c":"B","cl":"Нет, later","cm":"У механика будет все тоже  самое  но унего добавятся не шт а норма часы  - количество 1 себестоимость это цена которую механик получает  наруки  - потомо добавляется  коеффциент для выставления счета клиенту  (есть поле грз) новый столбец  тип техники, у менеджера есть поставщик  этот столбец отключается  если единицы измерения норма/час - то в столбце Поставщик появляется  сотрудник-механик    (у каждого механика своя  стоимость норма часа ) и к нему будет привязан коффециент для  выставления счета заказчику работ, еще  добавится один столбец  с после Фактическое которое мы хоти отгрузить\n2,00\nКол-во \nеще  одно количество нормно часов для заказчика  отдельно от внутрених фактических нормочасов ","p":"G1","r":"+40–56 ч и отдельный АРМ."},{"id":"S3","g":"G0","b":false,"q":"Шесть складских зон как на схеме — в v1?","s":"approved","c":"A","cl":"Да, все 6","cm":"","p":"K2","r":"НСИ + логика размещения."},{"id":"S4","g":"G0","b":false,"q":"Печатные формы (ведомость, сборочный лист, УПД) в v1?","s":"approved","c":"C","cl":"Не в v1","cm":"","p":"M11","r":"40–56 ч комфорт."},{"id":"S5","g":"G0","b":false,"q":"Интеграция с сайтом поставщика (Авто-аль) в v1?","s":"approved","c":"D","cl":"Не нужно","cm":"","p":"P1","r":"24–40 ч+."},{"id":"S6","g":"G0","b":false,"q":"Документ «Учёт товаров для внутренних нужд» (из файла «БТ») — в v1?","s":"approved","c":"D","cl":"Уточнить у заказчика","cm":"пример из менеджерской части (с исключением персон  некоторых видов конт агентов которые не видны будут в арме  либо видны определеным пользователям)  заказчик кухня  товар кофе  поставщик святой источник  , заказчик  :  ремзона внутреняя  - товар инструмент - поставщик Мастак (когда появляется заказчик то идет на списанку на конкретных  пользоветеле-сотркдников) если сотрудник  купит  деталь   компании то это спишется и из зарплатты   основывается на  заказчике (живой, внутренний, серый, белый - теги может быть несколько этих значений одновременно)","p":"","r":"Отдельная подсистема вне process."},{"id":"S7","g":"G0","b":false,"q":"Платформа: фиксируем УНФ 1.6 как базу v1?","s":"approved","c":"A","cl":"Да, только 1.6","cm":"сразу делаем на самой свежей редакции ","p":"","r":"Оценки прав/документов."},{"id":"S8","g":"G0","b":false,"q":"Белые/серые контрагенты и обмен с внешней бухгалтерией в v1?","s":"approved","c":"C","cl":"Не в v1","cm":"","p":"","r":"Граница продукта vs бухгалтерия."},{"id":"O1","g":"G2","b":false,"q":"Загрузка заявки: Excel-парсер обязателен в v1?","s":"approved","c":"C","cl":"Файл как в «форме УКД» (Максим/Михаил)","cm":"Загрузка заявки с помощью  ctrl+c ctrl+v ,  добавить проверку на тип данных ,  чтоб подхватывались  в текстовом  с ставляем в соответствующестолбцы  в случае ошибки  оставляем пустым  а случае не заполнености  заплняем уже в 1с","p":"M1","r":"Крупный кусок этапа «документы»."},{"id":"O2","g":"G2","b":false,"q":"Колонки «Номенклатура/Артикул/Количество факт» — обязательны?","s":"approved","c":"B","cl":"Да + гос. номер / срочно / база (Максим)","cm":"как  в  1 1с.xlsx","p":"N1","r":"Схема ТЧ и АРМ."},{"id":"O3","g":"G2","b":false,"q":"Колонка «Срочно» — как влияет на процесс?","s":"approved","c":"B","cl":"Только визуальная метка","cm":"","p":"","r":"Логика приёмки/резерва."},{"id":"O4","g":"G2","b":false,"q":"Авто-резерв свободного остатка при работе с заказом?","s":"approved","c":"B","cl":"Резерв только по кнопке","cm":"если менеджер  указал что он хочет продать  и если они есть на складе то они ставятся в резерв , если  закупка с последующей поставкой определнгого клоичества - можно заказать не под поставку для кого  (просто пополнение  слкадских остатков ) это  допустимо","p":"M3","r":"Конфликт партий и отгрузки."},{"id":"O5","g":"G2","b":false,"q":"Команда «Снять с резерва» с запоминанием (не резервировать снова)?","s":"approved","c":"A","cl":"Да","cm":"снимает только тот кто создал  по кнопке ","p":"","r":"Исключения на складе."},{"id":"O6","g":"G2","b":false,"q":"Скрыть на форме заказа: «Свободно для резерва», «В резерве», «Скидка»?","s":"out","c":"","cl":"","cm":"НЕ делаем","p":"","r":"UX заказа."},{"id":"O7","g":"G2","b":false,"q":"Колонку «Остаток» заменить смыслом «Можно отгрузить», подпись оставить «Остаток»?","s":"out","c":"","cl":"","cm":"","p":"","r":"Путаница менеджеров."},{"id":"O8","g":"G2","b":false,"q":"Подбор номенклатуры пишет в текущую строку, а не добавляет новую?","s":"parked","c":"D","cl":"Нет, оставить стандарт","cm":"Должно работать проверить","p":"","r":"Поведение типовой кнопки Подбор."},{"id":"O9","g":"G2","b":false,"q":"Авто-добавление строки дозаказа при нехватке остатка — обязательно?","s":"approved","c":"B","cl":"Только кнопка «Добавить строку заказа»","cm":"если  менеджер  выбрал 3   больта один из которых есть на складе  то  1 встает в резерв и добавляется строка   купи еще два   (проверить реализацию)","p":"M4","r":"Сложная логика ТЧ."},{"id":"O10","g":"G2","b":false,"q":"После проведения обычный пользователь не может отменить проведение / пометить удаление?","s":"approved","c":"B","cl":"Оставить типовое поведение","cm":"","p":"","r":"Жёсткий процесс vs гибкость."},{"id":"O11","g":"G2","b":false,"q":"Партии FIFO в заказе покупателя: деление строк + себестоимость партии?","s":"approved","c":"A","cl":"Да (Максим/Михаил/БТ)","cm":"если одна и таже деталь вылетает с разными вариантами  постовщиков или сразными ценами  то можем  выбрать любой  из вариантов -  если   видираем   позицию которой не хватает для выполнения заказа то   то добираем из  соседней  z- стобик","p":"","r":"Тяжёлый кусок УНФ."},{"id":"O12","g":"G2","b":false,"q":"Поля «% НДС» и «единица измерения поставки» в заказе?","s":"approved","c":"A","cl":"Да","cm":"столбик ad ","p":"","r":"Реквизиты ТЧ."},{"id":"O13","g":"G2","b":false,"q":"Комментарий в заказе, видимый снабжению в АРМ?","s":"approved","c":"A","cl":"Да","cm":"последний универсальный текстовый столбез для  комментариев","p":"","r":"Мелочь, но нужна в ТЧ/АРМ."},{"id":"O14","g":"G2","b":false,"q":"Автоконтроль «верно ли сопоставили номенклатуру» — нужен?","s":"out","c":"A","cl":"Нет (как в «БТ»: не предусматривается)","cm":"","p":"D1","r":"Качество данных vs скорость."},{"id":"A1","g":"G3","b":false,"q":"АРМ = одна таблица всего заказанного и не отгруженного по клиентам?","s":"approved","c":"A","cl":"Да (Максим п.2)","cm":"включая заказ наряды","p":"","r":"Основа интерфейса."},{"id":"A2","g":"G3","b":false,"q":"В АРМ показывать: сколько дозаказать / на остатке / в пути?","s":"out","c":"","cl":"","cm":"","p":"","r":"Формула остатков."},{"id":"A3","g":"G3","b":false,"q":"Блокировка строк от одновременного заказа двумя пользователями?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Гонки снабжения."},{"id":"A4","g":"G3","b":false,"q":"Создание расходной накладной набором позиций из АРМ?","s":"out","c":"B","cl":"Нет, только типовой документ","cm":"","p":"","r":"Отгрузка из АРМ."},{"id":"A5","g":"G3","b":false,"q":"Набор колонок АРМ как в «БТ» (факт, контрагент, поставщик, партия, статус…)?","s":"approved","c":"C","cl":"Свой список","cm":"смотеть 1c.xls","p":"","r":"Объём UI."},{"id":"A6","g":"G3","b":false,"q":"В АРМ можно менять Поставщик / Номенклатура / Цена с записью в Заказ покупателя?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Права и аудит изменений."},{"id":"A7","g":"G3","b":false,"q":"Кнопки смены статуса строки в АРМ — кто нажимает?","s":"approved","c":"D","cl":"По матрице прав","cm":"","p":"","r":"Расхождение с матрицей."},{"id":"A8","g":"G3","b":false,"q":"Фильтры АРМ: контрагент, договор, номенклатура, поставщик, статус, дата, заказ?","s":"approved","c":"A","cl":"Да, все","cm":"фильтра на все поля","p":"","r":"UX."},{"id":"A9","g":"G3","b":false,"q":"Группировки АРМ: контрагент / договор / дата заказа?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Сложность грида."},{"id":"A10","g":"G3","b":false,"q":"ПКМ: массовая установка «Заказано (статус)» на выделенные строки?","s":"out","c":"B","cl":"Нет","cm":"","p":"","r":"Мелочь UX."},{"id":"A11","g":"G3","b":false,"q":"Операция «Вернуть» в АРМ (возврат от заказчика)?","s":"approved","c":"A","cl":"Да в v1","cm":"В  предварительном  сборе тредований на листиках","p":"M12","r":"Контур возвратов."},{"id":"A12","g":"G3","b":false,"q":"Планируемая дата возврата — колонка обязательна?","s":"approved","c":"B","cl":"Нет","cm":"возвраты в арм по принципу заказа от клиента  - нажимаем  возврат заполняем 5-6 полей выбираю позицию  - нажимаю возврат отклмента и вижу только  та номенклатура  кторая была отгружена конкретно тому клиенту  - откат в  рамках этого предмета","p":"","r":"Реквизит."},{"id":"A13","g":"G3","b":false,"q":"Вычёркивание ненужных позиций в АРМ?","s":"approved","c":"B","cl":"Достаточно «Отменен»","cm":" этот  сложный алгоритм легче  ставить метку заказчик отказался  или   просто отмена (проверить)","p":"","r":"Ещё один статус/признак."},{"id":"A14","g":"G3","b":false,"q":"Запрос на удаление заказа у пользователя с полными правами?","s":"approved","c":"B","cl":"Достаточно запрета удаления","cm":"удалить ничего нельзя","p":"","r":"Workflow согласования."},{"id":"P1","g":"G4","b":false,"q":"При приёмке (приходная) резервировать под строку заказа покупателя с учётом «Срочно»?","s":"approved","c":"B","cl":"Без учёта срочности","cm":"","p":"K1","r":"Складская логика."},{"id":"P2","g":"G4","b":false,"q":"При вводе ЗП на основании заказа — учитывать поставщика в строках и дробить заказы?","s":"out","c":"A","cl":"Да (Максим)","cm":"проверить ","p":"M4","r":"Связано с B3."},{"id":"P3","g":"G4","b":false,"q":"Убрать предложение заполнения ЗП «по основанию»?","s":"out","c":"","cl":"","cm":"","p":"","r":"UX документа."},{"id":"P4","g":"G4","b":false,"q":"Группировать строки одной номенклатуры при создании ЗП?","s":"approved","c":"C","cl":"Только из АРМ","cm":"","p":"","r":"Михаил сомневался — нужно решение."},{"id":"P5","g":"G4","b":false,"q":"НДС по поставщику: не ИП → 20%, ИП → вручную?","s":"approved","c":"B","cl":"Всегда вручную","cm":"проверить что работает  столбик ad (форма  выбора значений) - 1с умеет считает сама","p":"","r":"Налоговая логика."},{"id":"P6","g":"G4","b":false,"q":"Обработка непроведённых заказов для сопоставления, сортировка по срочности?","s":"approved","c":"A","cl":"Да (Максим)","cm":"По алфавиту ","p":"","r":"Связано с B2."},{"id":"P7","g":"G4","b":false,"q":"Статус «В пути» / «Ожидаем поступление» (своя машина) — оба в v1?","s":"approved","c":"C","cl":"Как в текущем коде","cm":"","p":"P2","r":"Enum статусов (B4)."},{"id":"P8","g":"G4","b":false,"q":"Подбор аналога по кросс-коду при нехватке у поставщика — в v1?","s":"approved","c":"B","cl":"Подсказки без справочника","cm":"система подсказывает аналоги  со связю  чтоб можно было выбрать другую позицию котора будет актуально  ( это когда менеджер сопоставляет  то что ему заказаи с тем что он хочет отгрузить ) ","p":"M6","r":"Этап кроссов."},{"id":"P9","g":"G4","b":false,"q":"Если по партиям один поставщик — подставлять его в заказ покупателя?","s":"approved","c":"A","cl":"Да","cm":"проверить реализацию ( если есть  позиция  то  указвает у кого и засколько если что-то отличается то это разные строки) ","p":"","r":"Автозаполнение."},{"id":"P10","g":"G4","b":false,"q":"Виртуальный закуп (компенсация по чеку / третий поставщик) — в v1?","s":"out","c":"C","cl":"Не нужно","cm":"","p":"","r":"Особый контур документов."},{"id":"W1","g":"G5","b":false,"q":"АРМ кладовщика: 4 вкладки Приход / Комплектация / Отгрузка / Возвраты в v1?","s":"approved","c":"A","cl":"Да как в ТЗ","cm":"","p":"K1","r":"Большой UI."},{"id":"W2","g":"G5","b":false,"q":"Чек-боксы факта приёмки по УПД (кол-во/цена) в v1?","s":"approved","c":"A","cl":"Да","cm":"","p":"K1","r":"Детализация приёмки."},{"id":"W3","g":"G5","b":false,"q":"Печать сборочного листа при комплектации?","s":"approved","c":"A","cl":"Да в v1","cm":"","p":"K3","r":"Печатная форма."},{"id":"W4","g":"G5","b":false,"q":"Уведомление менеджера «готово к отгрузке» — обязательно?","s":"approved","c":"A","cl":"Да (отдельный notify)","cm":"реализовать напоминалк внутренеми средствами 1с ","p":"M13","r":"Инфра уведомлений."},{"id":"W5","g":"G5","b":false,"q":"Отгрузочная ведомость перед отгрузкой?","s":"approved","c":"A","cl":"Да","cm":"","p":"M11","r":"ПФ."},{"id":"W6","g":"G5","b":false,"q":"Отгрузка: формирование РН из АРМ / заказа — подтверждаем сценарий?","s":"out","c":"","cl":"","cm":"","p":"K5","r":"Связь с A4."},{"id":"W7","g":"G5","b":false,"q":"Зона укомплектованных / статус «Готово к отгрузке» — обязательны в v1?","s":"approved","c":"B","cl":"Достаточно статуса без зоны","cm":"","p":"K4","r":"Зоны (S3)."},{"id":"W8","g":"G5","b":false,"q":"Частичная поставка / частичная комплектация — поддерживаем в v1?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Статусы строк."},{"id":"W9","g":"G5","b":false,"q":"Дефект на комплектации: красная подсветка / отдельный отказ — в v1?","s":"approved","c":"A","cl":"Да как в ТЗ","cm":"","p":"","r":"UX контроля."},{"id":"R1","g":"G6","b":false,"q":"Возврат от клиента через кладовщика (K6) — в v1?","s":"approved","c":"A","cl":"Да","cm":"если нет  документов на возврат кладовщик должен идентифицировать ","p":"N3","r":"Отдельный контур."},{"id":"R2","g":"G6","b":false,"q":"Возврат поставщику (менеджер → кладовщик → поставщик) — в v1?","s":"approved","c":"A","cl":"Да","cm":" но  заявку на возврат поставщику  может и менеджер и кладовщик ","p":"M12","r":"Связь с A11."},{"id":"R3","g":"G6","b":false,"q":"Отмена отдельных позиций заказа — подтверждаем?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Статусы."},{"id":"R4","g":"G6","b":false,"q":"Отмена всего заказа покупателя — кто и как?","s":"approved","c":"A","cl":"Из АРМ по роли","cm":"","p":"","r":"Права."},{"id":"R5","g":"G6","b":false,"q":"Возврат на склад без возврата поставщику — отдельный сценарий v1?","s":"out","c":"","cl":"","cm":"","p":"","r":"Ещё ветка."},{"id":"R6","g":"G6","b":false,"q":"Нужны ли акты/ПФ на возвраты в v1?","s":"out","c":"C","cl":"Нет","cm":"","p":"","r":"ПФ."},{"id":"N1","g":"G7","b":false,"q":"РРЦ храним в карточке номенклатуры?","s":"out","c":"A","cl":"Нет, как ТЗ «НЕ ДЕЛАЕМ» — расчёт/ввод иначе","cm":"","p":"A0","r":"Связано с B1."},{"id":"N2","g":"G7","b":false,"q":"Папка «Не опознанные» + фотофиксация в v1?","s":"out","c":"B","cl":"Без фото","cm":"","p":"A1","r":"НСИ."},{"id":"N3","g":"G7","b":false,"q":"Кросс-коды / аналоги как справочная связь в v1?","s":"approved","c":"A","cl":"Да","cm":"проверить реализацию ( доработьа с новыми полями)","p":"A2","r":"Этап 9."},{"id":"N4","g":"G7","b":false,"q":"Поля номенклатуры Бренд / Страна / Код поставщика + «наименование для печати» из аналогов?","s":"approved","c":"A","cl":"Да (файл «БТ»)","cm":"проверить  работоспособность ","p":"","r":"НСИ + печать."},{"id":"N5","g":"G7","b":false,"q":"Справочник брендов с аналогами и запрет бренда для КАМАЗ в заявке?","s":"out","c":"","cl":"","cm":"","p":"","r":"Бизнес-правило."},{"id":"N6","g":"G7","b":false,"q":"Принадлежность номенклатуры: заказная / закупочная / тендерная — в v1?","s":"approved","c":"B","cl":"Есть поле — донастроить правила","cm":"","p":"","r":"Правила заявки."},{"id":"N7","g":"G7","b":false,"q":"ГБЦ как отдельная группа с подгруппами по брендам?","s":"out","c":"B","cl":"Нет (ТЗ: группы НЕ ДЕЛАЕМ — уточнить)","cm":"","p":"","r":"Противоречие в ТЗ — нужен апрув."},{"id":"N8","g":"G7","b":false,"q":"Код Альянса у контрагента — обязателен в v1?","s":"approved","c":"B","cl":"Поле есть, интеграция later","cm":"проверить на уровне наменклатуры","p":"","r":"Интеграции."},{"id":"N9","g":"G7","b":false,"q":"Жидкости строго в литрах — жёсткое правило?","s":"approved","c":"B","cl":"Рекомендация без запрета","cm":"только  на складе может быть в шт","p":"","r":"Ед. изм."},{"id":"K1r","g":"G8","b":false,"q":"На заказе покупателя: 2 роли (полные права vs создание без отмены проведения/удаления)?","s":"approved","c":"C","cl":"Как типовые профили УНФ","cm":"кто создал тот редактирует   - читать  могут все ","p":"","r":"RLS."},{"id":"K2r","g":"G8","b":false,"q":"АРМ: разное отображение для склада и продаж?","s":"approved","c":"C","cl":"По матрице колонок","cm":"","p":"","r":"Связь с матрицей."},{"id":"K3r","g":"G8","b":false,"q":"Переносим HTML-матрицу «роль × статус × колонка» в 1С в v1?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"40–56 ч."},{"id":"K4r","g":"G8","b":false,"q":"Кладовщик не видит незаказанные позиции — правило v1?","s":"approved","c":"A","cl":"Да как ТЗ","cm":"","p":"","r":"Фильтры АРМ."},{"id":"K5r","g":"G8","b":false,"q":"Редактировать документ может только создатель и его роль?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Блокировки."},{"id":"K6r","g":"G8","b":false,"q":"Роль «Поставщик» (внешний портал) — в v1?","s":"out","c":"A","cl":"Нет","cm":"","p":"","r":"Внешний доступ."},{"id":"K7r","g":"G8","b":false,"q":"Администратор = полный доступ + НСИ вне заявки — подтверждаем?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Права."},{"id":"X1","g":"G9","b":false,"q":"Пункты Максим 3 и 4 (V2 дубли) — схлопываем в один набор требований?","s":"out","c":"","cl":"","cm":"","p":"","r":"Двойной счёт в смете."},{"id":"X2","g":"G9","b":false,"q":"«Форма как в УКД» у Михаила/Максима — что именно апрувим?","s":"out","c":"","cl":"","cm":"","p":"","r":"Неясный legacy."},{"id":"X3","g":"G9","b":false,"q":"Оценка Михаил (часы=0) — использовать только как список вопросов, не как смету?","s":"out","c":"C","cl":"Иное","cm":"","p":"","r":"Пустая смета."},{"id":"X4","g":"G9","b":false,"q":"Файл с именем «БТ_…» официально считаем черновиком ФТ, не бизнес-требованиями?","s":"approved","c":"A","cl":"Да","cm":"","p":"","r":"Жанр документов."},{"id":"X5","g":"G9","b":false,"q":"Комфортная оценка 430–620 ч относится ко всему канону; для v1 нужна отдельная смета после апрувов?","s":"approved","c":"C","cl":"Иное","cm":"пресчитать  послк утверждения и  опкаки пуско наладки реализованого","p":"","r":"Ожидания по срокам."},{"id":"X6","g":"G9","b":false,"q":"ЭДО / акт сверки с внешней бухгалтерией — вне v1?","s":"out","c":"","cl":"","cm":"","p":"","r":"Граница."},{"id":"X7","g":"G9","b":false,"q":"Обучение пользователей входит в поставку v1 или отдельно?","s":"approved","c":"A","cl":"В пакете (24–40 ч комфорт)","cm":"","p":"","r":"Бюджет."},{"id":"C1","g":"G10","b":false,"q":"БТ считаем готовым, когда закрыты все блокеры G1 и границы G0?","s":"approved","c":"C","cl":"Иные критерии","cm":"Отработать  вопросы Александра  после  приемки  совместной рабочей верисии  ","p":"","r":"Старт написания БТ."},{"id":"C2","g":"G10","b":false,"q":"ФТ пишем только по пунктам со статусом «утверждено»?","s":"approved","c":"A","cl":"Да","cm":"после реализации  пусконаладки и проверки  функционала","p":"","r":"Расползание скоупа."},{"id":"C3","g":"G10","b":false,"q":"Кто подписывает протокол апрувов со стороны заказчика?","s":"approved","c":"A","cl":"Один владелец продукта","cm":"","p":"","r":"Спор «кто сказал»."},{"id":"C4","g":"G10","b":false,"q":"Формат финальных БТ/ФТ после апрувов?","s":"approved","c":"A","cl":"HTML в репо + выгрузка Word/PDF","cm":"","p":"","r":"Доставка артефакта."},{"id":"C5","g":"G10","b":false,"q":"Изменение утверждённого пункта после старта разработки — через новый апрув в этом протоколе?","s":"approved","c":"A","cl":"Да, обязательно","cm":"","p":"","r":"Scope creep."}],"packages":[{"id":"PKG-NSI","name":"НСИ / зоны / поиск","status":"in","lo":28,"hi":40,"items":["S3","N1","N2","N3","N4","N5","N6","N7","N8","N9"],"tz":"1","contour":"nsi","note":"Зоны обязательны; фото/группы — по out-пунктам"},{"id":"PKG-PRICE","name":"Цена: наценка + РРЦ-ветка","status":"in","lo":45,"hi":65,"items":["B1"],"tz":"2","contour":"order","note":"Формула B1: РРЦ или себест. × коэфф.; ручная цена пересчитывает коэфф."},{"id":"PKG-ORDER","name":"Заказ покупателя (поля, файл, резерв)","status":"in","lo":55,"hi":80,"items":["O1","O2","O3","O4","O5","O9","O10","O11","O12","O13","O14"],"tz":"3","contour":"order","note":"Импорт как УКД / ctrl+v, срочность, резерв по кнопке"},{"id":"PKG-MATCH","name":"Сопоставление номенклатуры в АРМ","status":"in","lo":35,"hi":50,"items":["B2"],"tz":"3","contour":"match","note":"Отдельная обработка, не в форме заказа"},{"id":"PKG-ARM-MGR","name":"АРМ менеджер / снабжение","status":"in","lo":40,"hi":55,"items":["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","S1","B5"],"tz":"8","contour":"arm","note":"Без механика (S2 later); снабжение = менеджер клиента"},{"id":"PKG-WH","name":"Складские статусы + кладовщик=грузчик","status":"in","lo":35,"hi":50,"items":["W1","W2","W3","W4","W5","W6","W7","W8","W9","B5"],"tz":"7","contour":"wh","note":"Статусы + приёмка по ролям; не полный АРМ кладовщика ТЗ"},{"id":"PKG-BUY","name":"Заказ поставщику / приёмка","status":"in","lo":40,"hi":60,"items":["B3","P1","P2","P3","P4","P5","P6","P7","P8","P9","P10"],"tz":"3","contour":"buy","note":"ЗП только вручную/кнопкой из АРМ"},{"id":"PKG-RETURN","name":"Возвраты (клиент / поставщик)","status":"in","lo":25,"hi":40,"items":["R1","R2","R3","R4","R5","R6","A12"],"tz":"3","contour":"ret","note":"Входит: B4 полный как матрица"},{"id":"PKG-ROLES","name":"Роли / права / колонки матрицы","status":"in","lo":40,"hi":55,"items":["K1r","K2r","K3r","K4r","K5r","K6r","K7r","B5"],"tz":"4","contour":"roles","note":"Имена ролей по B5; портал поставщика out"},{"id":"PKG-STATUS","name":"FSM / колонки статусов заказа","status":"in","lo":25,"hi":40,"items":["B4"],"tz":"7","contour":"order","note":"B4: столбцы движения, не только статусы"},{"id":"PKG-QA","name":"Прогон сценариев / регрессия УНФ","status":"in","lo":30,"hi":42,"items":["S7","X5","C1","C2"],"tz":"10","contour":"qa","note":"S7: choice 1.6 vs комментарий «свежая» — см. нюансы"},{"id":"PKG-TRAIN","name":"Обучение пользователей","status":"opt","lo":24,"hi":40,"items":["X7"],"tz":"10b","contour":"out","note":"Отдельная строка договора"},{"id":"PKG-MECH","name":"Заказ-наряд / механик / нормочасы","status":"later","lo":0,"hi":0,"items":["S2"],"tz":"8","contour":"out","note":"Later; комментарий S2 сохранить"},{"id":"PKG-PRINT","name":"Печатные формы","status":"out","lo":0,"hi":0,"items":["S4"],"tz":"5","contour":"out","note":"Не в v1"},{"id":"PKG-SITE","name":"Интеграция сайт поставщика","status":"out","lo":0,"hi":0,"items":["S5"],"tz":"6","contour":"out","note":"Не нужно"},{"id":"PKG-INTNEED","name":"Внутренние нужды / теги контрагентов","status":"tbd","lo":0,"hi":0,"items":["S6","S8"],"tz":"—","contour":"out","note":"S6 уточнить; S8 бухгалтерия не в v1"}],"contours":[{"id":"order","title":"Заказ покупателя","color":"#ffe6cc"},{"id":"match","title":"Сопоставление","color":"#e1d5e7"},{"id":"arm","title":"АРМ менеджер","color":"#dae8fc"},{"id":"buy","title":"Закуп / приёмка","color":"#d5e8d4"},{"id":"wh","title":"Склад / зоны","color":"#fff2cc"},{"id":"ret","title":"Возвраты","color":"#f8cecc"},{"id":"nsi","title":"НСИ / цена","color":"#f5f5f5"},{"id":"roles","title":"Права / роли","color":"#ecfeff"},{"id":"qa","title":"QA / приёмка","color":"#f0fdf4"},{"id":"out","title":"Вне v1 / later / tbd","color":"#f3f4f6"}],"nuances":[{"id":"N-B1","src":"B1","pkg":"PKG-PRICE","title":"Формула цены","text":"Если РРЦ нет → себестоимость × коэффициент; если РРЦ есть → РРЦ × коэффициент; ручная цена пересчитывает коэффициент."},{"id":"N-B4","src":"B4","pkg":"PKG-STATUS","title":"Статусы = столбцы","text":"Исправить на столбцы (не статусы): статусы — движение деталей; в матрице — колонки."},{"id":"N-B5","src":"B5","pkg":"PKG-ROLES","title":"Роли","text":"Кладовщик = грузчик; Снабжение = менеджер клиента; начальник склада — later."},{"id":"N-S2","src":"S2","pkg":"PKG-MECH","title":"Механик later","text":"Нормочасы / ГРЗ / тип техники / механик как «поставщик» — зафиксировано в комментарии, не в часах v1."},{"id":"N-S6","src":"S6","pkg":"PKG-INTNEED","title":"Внутренние нужды TBD","text":"Теги контрагентов (живой/внутренний/серый/белый), списание на сотрудников — ждёт уточнения."},{"id":"N-S7","src":"S7","pkg":"PKG-QA","title":"Платформа: противоречие","text":"Choice: «только 1.6». Комментарий: «сразу на самой свежей редакции». Нужно явное решение до старта."},{"id":"N-S1","src":"S1","pkg":"PKG-ARM-MGR","title":"База-копия","text":"Скачанная база-копия: если функционал не работает — должен быть сделан."},{"id":"N-O8","src":"O8","pkg":"—","title":"Parked O8","text":"Оставить стандарт; «Должно работать — проверить»."}],"blockerEdges":[{"from":"B1","to":"PKG-PRICE","label":"задаёт формулу"},{"from":"B2","to":"PKG-MATCH","label":"отдельный UX"},{"from":"B3","to":"PKG-BUY","label":"ЗП только из АРМ"},{"from":"B4","to":"PKG-STATUS","label":"полный FSM/колонки"},{"from":"B5","to":"PKG-ROLES","label":"имена ролей"},{"from":"B5","to":"PKG-WH","label":"кладовщик=грузчик"},{"from":"S1","to":"PKG-ARM-MGR","label":"скоуп без механика"},{"from":"S2","to":"PKG-MECH","label":"later"}]};
+(function(){
+  'use strict';
+  var D = window.__PROTO_MAP__;
+  var STORAGE = 'vitauto-protocol-map-v1';
+  var state = {
+    view: (location.search.match(/[?&]view=(\w+)/)||[])[1] || 'map',
+    selected: null,
+    selKind: null,
+    pkgStatus: {},
+    trainOn: true
+  };
+  if (['map','est','nu','trace'].indexOf(state.view)<0) state.view = 'map';
+
+  function loadPkg(){
+    try{
+      var raw = localStorage.getItem(STORAGE);
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      if (o && o.pkgStatus) state.pkgStatus = o.pkgStatus;
+      if (typeof o.trainOn === 'boolean') state.trainOn = o.trainOn;
+    }catch(e){}
+  }
+  function savePkg(){
+    try{
+      localStorage.setItem(STORAGE, JSON.stringify({pkgStatus:state.pkgStatus, trainOn:state.trainOn}));
+    }catch(e){}
+  }
+  loadPkg();
+
+  function itemById(id){
+    for (var i=0;i<D.items.length;i++) if (D.items[i].id===id) return D.items[i];
+    return null;
+  }
+  function pkgById(id){
+    for (var i=0;i<D.packages.length;i++) if (D.packages[i].id===id) return D.packages[i];
+    return null;
+  }
+  function pkgStatusOf(p){
+    if (state.pkgStatus[p.id]) return state.pkgStatus[p.id];
+    return p.status;
+  }
+  function setPkgStatus(id, st){
+    state.pkgStatus[id] = st;
+    if (id==='PKG-TRAIN') state.trainOn = (st==='in' || st==='opt');
+    savePkg();
+    render();
+  }
+  function packagesForItem(id){
+    return D.packages.filter(function(p){ return p.items.indexOf(id)>=0; });
+  }
+  function contourOfItem(it){
+    var pkgs = packagesForItem(it.id);
+    if (pkgs.length) return pkgs[0].contour;
+    if (it.s==='out' || it.s==='parked') return 'out';
+    var gmap = {G2:'order',G3:'arm',G4:'buy',G5:'wh',G6:'ret',G7:'nsi',G8:'roles',G9:'out',G10:'qa',G0:'out',G1:'order'};
+    return gmap[it.g] || 'out';
+  }
+  function fmtRange(lo,hi){
+    if (!lo && !hi) return '0';
+    if (lo===hi) return String(lo);
+    return lo+'\u2013'+hi;
+  }
+  function packageTotals(){
+    var lo=0, hi=0, rows=[];
+    D.packages.forEach(function(p){
+      var st = pkgStatusOf(p);
+      var count = false;
+      if (st==='in') count = true;
+      if (st==='opt' && state.trainOn) count = true;
+      var plo = count ? p.lo : 0;
+      var phi = count ? p.hi : 0;
+      lo += plo; hi += phi;
+      rows.push({p:p, st:st, lo:plo, hi:phi, counted:count});
+    });
+    return {lo:lo, hi:hi, rows:rows};
+  }
+
+  function esc(s){
+    return String(s==null?'':s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderStats(){
+    var t = packageTotals();
+    var el = document.getElementById('statsRow');
+    el.innerHTML =
+      '<div class="stat ok"><b>'+fmtRange(t.lo,t.hi)+'</b><span>смета пакетов, комфорт ч</span></div>'+
+      '<div class="stat accent"><b>'+D.approvedCount+'</b><span>approved в lock</span></div>'+
+      '<div class="stat bad"><b>'+D.outCount+'</b><span>out</span></div>'+
+      '<div class="stat warn"><b>'+D.parkedCount+'</b><span>parked</span></div>'+
+      '<div class="stat"><b>'+fmtRange(D.rawComfort[0],D.rawComfort[1])+'</b><span>сырой JSON (не брать)</span></div>';
+    document.getElementById('topNote').innerHTML =
+      '<strong>В план / договор:</strong> '+fmtRange(t.lo,t.hi)+' ч комфорт по пакетам. '+
+      'Сырой total '+fmtRange(D.rawComfort[0],D.rawComfort[1])+' — сумма пунктов с двойным счётом. '+
+      'Коридор канона process: 430–620 ч кода (+ обучение отдельно).';
+  }
+
+  function selectItem(id){
+    state.selected = id; state.selKind = 'item';
+    renderSide();
+    document.querySelectorAll('.chip,.nuance,table.grid tr').forEach(function(n){
+      n.classList.toggle('selected', n.getAttribute('data-id')===id);
+      n.classList.toggle('sel', n.getAttribute('data-id')===id);
+    });
+  }
+  function selectPkg(id){
+    state.selected = id; state.selKind = 'pkg';
+    renderSide();
+    document.querySelectorAll('.chip,.nuance,table.grid tr').forEach(function(n){
+      n.classList.toggle('selected', n.getAttribute('data-id')===id);
+      n.classList.toggle('sel', n.getAttribute('data-id')===id);
+    });
+  }
+  function selectNu(id){
+    state.selected = id; state.selKind = 'nu';
+    renderSide();
+    document.querySelectorAll('.nuance').forEach(function(n){
+      n.classList.toggle('selected', n.getAttribute('data-id')===id);
+    });
+  }
+
+  function renderSide(){
+    var empty = document.getElementById('sideEmpty');
+    var box = document.getElementById('sideContent');
+    if (!state.selected){
+      empty.hidden = false; box.hidden = true; return;
+    }
+    empty.hidden = true; box.hidden = false;
+    if (state.selKind==='item'){
+      var it = itemById(state.selected);
+      if (!it){ box.innerHTML=''; return; }
+      var pkgs = packagesForItem(it.id);
+      box.innerHTML =
+        '<h2>'+esc(it.id)+'</h2>'+
+        '<div><span class="pill '+esc(it.s)+'">'+esc(it.s)+'</span> '+
+        (it.b?'<span class="pill blocker">blocker</span> ':'')+
+        '<span class="pill">'+esc(it.g)+'</span></div>'+
+        '<div class="kv">'+
+          '<div class="k">Вопрос</div><div class="v">'+esc(it.q)+'</div>'+
+          '<div class="k">Выбор</div><div class="v">'+esc(it.cl||'—')+'</div>'+
+          '<div class="k">Process</div><div class="v">'+(it.p?'<a href="process.html?node='+encodeURIComponent(it.p)+'">'+esc(it.p)+'</a>':'—')+'</div>'+
+          '<div class="k">Пакеты</div><div class="v">'+(pkgs.map(function(p){return '<a href="#" data-pkg="'+p.id+'">'+p.id+'</a>';}).join(', ')||'—')+'</div>'+
+          '<div class="k">Риск</div><div class="v">'+esc(it.r||'—')+'</div>'+
+          '<div class="k">Коммент</div><div class="v">'+esc(it.cm||'—')+'</div>'+
+        '</div>';
+      box.querySelectorAll('[data-pkg]').forEach(function(a){
+        a.addEventListener('click', function(e){ e.preventDefault(); selectPkg(a.getAttribute('data-pkg')); state.view='est'; syncTabs(); renderMain(); });
+      });
+    } else if (state.selKind==='pkg'){
+      var p = pkgById(state.selected);
+      if (!p){ box.innerHTML=''; return; }
+      var st = pkgStatusOf(p);
+      box.innerHTML =
+        '<h2>'+esc(p.id)+'</h2>'+
+        '<div><span class="pill '+esc(st)+'">'+esc(st)+'</span> <span class="pill">этап ТЗ '+esc(p.tz)+'</span></div>'+
+        '<div class="kv">'+
+          '<div class="k">Имя</div><div class="v">'+esc(p.name)+'</div>'+
+          '<div class="k">Часы</div><div class="v"><b>'+fmtRange(p.lo,p.hi)+'</b> комфорт (в сумму при in'+(p.status==='opt'?'/opt':'')+')</div>'+
+          '<div class="k">Нюанс</div><div class="v">'+esc(p.note)+'</div>'+
+          '<div class="k">Пункты</div><div class="v">'+p.items.map(function(id){
+            var it=itemById(id); return '<div><a href="#" data-item="'+id+'">'+id+'</a> — '+esc(it?it.cl||it.s:'')+'</div>';
+          }).join('')+'</div>'+
+        '</div>';
+      box.querySelectorAll('[data-item]').forEach(function(a){
+        a.addEventListener('click', function(e){ e.preventDefault(); selectItem(a.getAttribute('data-item')); });
+      });
+    } else if (state.selKind==='nu'){
+      var n = null;
+      for (var i=0;i<D.nuances.length;i++) if (D.nuances[i].id===state.selected) n=D.nuances[i];
+      if (!n){ box.innerHTML=''; return; }
+      box.innerHTML =
+        '<h2>'+esc(n.title)+'</h2>'+
+        '<div class="kv">'+
+          '<div class="k">Пункт</div><div class="v"><a href="#" data-item="'+esc(n.src)+'">'+esc(n.src)+'</a></div>'+
+          '<div class="k">Пакет</div><div class="v">'+(n.pkg!=='—'?'<a href="#" data-pkg="'+esc(n.pkg)+'">'+esc(n.pkg)+'</a>': '—')+'</div>'+
+          '<div class="k">Текст</div><div class="v">'+esc(n.text)+'</div>'+
+        '</div>';
+      box.querySelectorAll('[data-item]').forEach(function(a){
+        a.addEventListener('click', function(e){ e.preventDefault(); selectItem(a.getAttribute('data-item')); });
+      });
+      box.querySelectorAll('[data-pkg]').forEach(function(a){
+        a.addEventListener('click', function(e){ e.preventDefault(); selectPkg(a.getAttribute('data-pkg')); state.view='est'; syncTabs(); renderMain(); });
+      });
+    }
+  }
+
+  function renderMap(){
+    var byC = {};
+    D.contours.forEach(function(c){ byC[c.id]=[]; });
+    D.items.forEach(function(it){
+      var c = contourOfItem(it);
+      if (!byC[c]) byC[c]=[];
+      byC[c].push(it);
+    });
+    var html = '<h2 class="sec">Контуры v1</h2><p class="hint">Карточки = решения lock. Клик — детали. Серый контур — out / later / tbd.</p>';
+    html += '<h2 class="sec">Блокеры → пакеты</h2><div class="graph">';
+    D.blockerEdges.forEach(function(e){
+      html += '<span class="node">'+esc(e.from)+'</span><span class="edge">→ '+esc(e.label)+' →</span><span class="pkg">'+esc(e.to)+'</span>';
+    });
+    html += '</div>';
+    D.contours.forEach(function(c){
+      var list = byC[c.id]||[];
+      if (!list.length) return;
+      html += '<div class="lane"><div class="lane-h" style="background:'+c.color+'"><span>'+esc(c.title)+'</span><span class="pill">'+list.length+'</span></div><div class="lane-b">';
+      list.forEach(function(it){
+        html += '<button type="button" class="chip st-'+esc(it.s)+(state.selected===it.id?' selected':'')+'" data-id="'+esc(it.id)+'">'+
+          '<div class="cid">'+esc(it.id)+(it.b?' · B':'')+'</div>'+
+          '<div>'+esc((it.cl||it.q).slice(0,72))+( (it.cl||it.q).length>72?'…':'')+'</div>'+
+          '</button>';
+      });
+      html += '</div></div>';
+    });
+    return html;
+  }
+
+  function renderEst(){
+    var t = packageTotals();
+    var html = '<h2 class="sec">Смета пакетов</h2>'+
+      '<p class="hint">Тумблер меняет статус пакета. В сумму входят <strong>in</strong> и включённый <strong>opt</strong> (обучение). '+
+      'Итого сейчас: <strong>'+fmtRange(t.lo,t.hi)+'</strong> ч комфорт.</p>'+
+      '<table class="grid"><thead><tr><th>Пакет</th><th>Статус</th><th>Комфорт</th><th>В сумме</th><th>Пункты</th><th>Нюанс</th></tr></thead><tbody>';
+    t.rows.forEach(function(row){
+      var p = row.p;
+      var st = row.st;
+      html += '<tr data-id="'+esc(p.id)+'" class="'+(state.selected===p.id?'sel':'')+'">'+
+        '<td><b>'+esc(p.id)+'</b><br>'+esc(p.name)+'</td>'+
+        '<td><div class="toggle-row" data-stop="1">'+
+          ['in','opt','later','out','tbd'].map(function(s){
+            return '<button type="button" class="'+(st===s?'on-'+s:'')+'" data-set="'+p.id+'" data-st="'+s+'">'+s+'</button>';
+          }).join('')+
+        '</div></td>'+
+        '<td class="num">'+fmtRange(p.lo,p.hi)+'</td>'+
+        '<td class="num">'+(row.counted?fmtRange(row.lo,row.hi):'—')+'</td>'+
+        '<td>'+esc(p.items.join(', '))+'</td>'+
+        '<td>'+esc(p.note)+'</td></tr>';
+    });
+    html += '<tr class="tot"><td colspan="3">Итого в договор</td><td class="num">'+fmtRange(t.lo,t.hi)+'</td><td colspan="2">только пакеты</td></tr>';
+    html += '</tbody></table>';
+    html += '<p class="raw-note">Справочно сырой JSON: аврал '+fmtRange(D.rawCrunch[0],D.rawCrunch[1])+
+      ' · комфорт '+fmtRange(D.rawComfort[0],D.rawComfort[1])+' — не использовать как цену.</p>';
+    return html;
+  }
+
+  function renderNu(){
+    var html = '<h2 class="sec">Нюансы и противоречия</h2><p class="hint">Из комментариев lock и конфликтов choice vs comment.</p>';
+    D.nuances.forEach(function(n){
+      html += '<div class="nuance'+(state.selected===n.id?' selected':'')+'" data-id="'+esc(n.id)+'">'+
+        '<h3>'+esc(n.title)+' <span class="pill">'+esc(n.src)+'</span> <span class="pill in">'+esc(n.pkg)+'</span></h3>'+
+        '<p>'+esc(n.text)+'</p></div>';
+    });
+    var withCm = D.items.filter(function(i){ return i.cm && i.cm.trim(); });
+    html += '<h2 class="sec" style="margin-top:18px">Все комментарии lock ('+withCm.length+')</h2>';
+    withCm.forEach(function(it){
+      html += '<div class="nuance" data-item-id="'+esc(it.id)+'">'+
+        '<h3>'+esc(it.id)+' <span class="pill '+esc(it.s)+'">'+esc(it.s)+'</span></h3>'+
+        '<p>'+esc(it.cm)+'</p></div>';
+    });
+    return html;
+  }
+
+  function renderTrace(){
+    var html = '<h2 class="sec">Трассировка</h2><p class="hint">Пункт → process → пакет → этап ТЗ.</p>'+
+      '<table class="grid"><thead><tr><th>ID</th><th>Статус</th><th>Выбор</th><th>Process</th><th>Пакеты</th><th>Этап ТЗ</th></tr></thead><tbody>';
+    D.items.forEach(function(it){
+      var pkgs = packagesForItem(it.id);
+      html += '<tr data-id="'+esc(it.id)+'">'+
+        '<td>'+esc(it.id)+(it.b?' *':'')+'</td>'+
+        '<td><span class="pill '+esc(it.s)+'">'+esc(it.s)+'</span></td>'+
+        '<td>'+esc(it.cl||'—')+'</td>'+
+        '<td>'+(it.p?esc(it.p):'—')+'</td>'+
+        '<td>'+(pkgs.map(function(p){return p.id;}).join(', ')||'—')+'</td>'+
+        '<td>'+(pkgs.map(function(p){return p.tz;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ')||'—')+'</td>'+
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function renderMain(){
+    var main = document.getElementById('main');
+    if (state.view==='map') main.innerHTML = renderMap();
+    else if (state.view==='est') main.innerHTML = renderEst();
+    else if (state.view==='nu') main.innerHTML = renderNu();
+    else main.innerHTML = renderTrace();
+
+    main.querySelectorAll('.chip[data-id]').forEach(function(el){
+      el.addEventListener('click', function(){ selectItem(el.getAttribute('data-id')); });
+    });
+    main.querySelectorAll('.nuance[data-id]').forEach(function(el){
+      el.addEventListener('click', function(){ selectNu(el.getAttribute('data-id')); });
+    });
+    main.querySelectorAll('.nuance[data-item-id]').forEach(function(el){
+      el.addEventListener('click', function(){ selectItem(el.getAttribute('data-item-id')); });
+    });
+    main.querySelectorAll('table.grid tr[data-id]').forEach(function(el){
+      el.addEventListener('click', function(e){
+        if (e.target.closest && e.target.closest('[data-stop]')) return;
+        var id = el.getAttribute('data-id');
+        if (id.indexOf('PKG-')===0) selectPkg(id); else selectItem(id);
+      });
+    });
+    main.querySelectorAll('[data-set]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        setPkgStatus(btn.getAttribute('data-set'), btn.getAttribute('data-st'));
+      });
+    });
+    renderSide();
+  }
+
+  function syncTabs(){
+    document.querySelectorAll('#tabs button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view')===state.view);
+    });
+    var u = new URL(location.href);
+    u.searchParams.set('view', state.view);
+    history.replaceState(null,'',u);
+  }
+
+  function render(){
+    renderStats();
+    syncTabs();
+    renderMain();
+  }
+
+  document.getElementById('tabs').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-view]');
+    if (!b) return;
+    state.view = b.getAttribute('data-view');
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
