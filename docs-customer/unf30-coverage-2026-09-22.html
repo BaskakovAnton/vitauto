@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>УНФ 3.0 и покрытие сценария «закупка → отгрузка» — Витавто</title>
+<style>
+  :root{ --text:#111827; --muted:#4b5563; --line:#d1d5db; --bg:#fff;
+    --ok:#166534; --ok-bg:#dcfce7; --part:#92400e; --part-bg:#fef3c7; --no:#991b1b; --no-bg:#fee2e2;
+    --out:#374151; --out-bg:#e5e7eb; --warn:#9a3412; --warn-bg:#ffedd5; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#e5e7eb;color:var(--text);font-family:"Times New Roman",Times,serif;font-size:12pt;line-height:1.35;}
+  .page{max-width:210mm;margin:16px auto;background:var(--bg);padding:16mm 16mm 18mm;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  h1{font-size:16pt;margin:0 0 6px;font-weight:700;text-align:center;}
+  h2{font-size:12.5pt;margin:16px 0 8px;border-bottom:1px solid var(--line);padding-bottom:3px;}
+  h3{font-size:11.5pt;margin:12px 0 6px;}
+  p,li{margin:0 0 7px;}
+  .sub{text-align:center;color:var(--muted);font-size:10.5pt;margin-bottom:14px;}
+  .meta{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:10.5pt;}
+  .meta td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;}
+  .meta td.k{width:30%;color:var(--muted);background:#f9fafb;}
+  table.grid{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:9pt;}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:4px 5px;text-align:left;vertical-align:top;}
+  table.grid th{background:#f3f4f6;font-weight:600;}
+  table.grid td.n{white-space:nowrap;width:2.2em;color:var(--muted);}
+  table.grid td.c{white-space:nowrap;text-align:center;}
+  ul,ol{margin:0 0 10px;padding-left:1.2em;}
+  .badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:8.5pt;font-weight:600;font-family:Segoe UI,Arial,sans-serif;}
+  .badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .badge.part{background:var(--part-bg);color:var(--part);}
+  .badge.no{background:var(--no-bg);color:var(--no);}
+  .badge.out{background:var(--out-bg);color:var(--out);}
+  .badge.warn{background:var(--warn-bg);color:var(--warn);}
+  .badge.same{background:#e0e7ff;color:#3730a3;}
+  .summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0 12px;}
+  .summary .card{border:1px solid var(--line);padding:8px 10px;text-align:center;}
+  .summary .card .num{font-size:18pt;font-weight:700;line-height:1.1;font-family:Segoe UI,Arial,sans-serif;}
+  .summary .card .lbl{font-size:9pt;color:var(--muted);margin-top:2px;}
+  .verdict{border:1px solid var(--line);background:#f9fafb;padding:9px 11px;margin:8px 0 12px;}
+  .warnbox{border:1px solid #fdba74;background:var(--warn-bg);padding:9px 11px;margin:8px 0 12px;}
+  .note{font-size:9.5pt;color:var(--muted);margin-top:12px;}
+  .sign{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:10.5pt;}
+  .sign .box{border-top:1px solid var(--line);padding-top:8px;min-height:64px;}
+  a{color:#1d4ed8;}
+  .cmp{width:100%;border-collapse:collapse;margin:8px 0 10px;font-size:10pt;}
+  .cmp th,.cmp td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;text-align:left;}
+  .cmp th{background:#f3f4f6;}
+  .toolbar{max-width:210mm;margin:12px auto 0;font-family:Segoe UI,Arial,sans-serif;font-size:12px;}
+  .toolbar button,.toolbar a{margin-right:8px;padding:6px 10px;border:1px solid #9ca3af;background:#fff;border-radius:4px;cursor:pointer;text-decoration:none;color:#111;display:inline-block;}
+  @media print{
+    body{background:#fff;}
+    .page{margin:0;box-shadow:none;max-width:none;padding:10mm;}
+    .toolbar{display:none !important;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" onclick="window.print()">Печать / PDF</button>
+  <a href="arm-unf-coverage-2026-09-22.html">Отчёт АРМ + УНФ 1.6</a>
+  <a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy" target="_blank" rel="noopener">Сценарий на схеме</a>
+</div>
+<article class="page">
+  <h1>Если платформа — УНФ 3.0</h1>
+  <div class="sub">
+    Влияние смены редакции на покрытие сценария «Основной: закупка → отгрузка»<br>
+    Сравнение с текущей оценкой «типовая УНФ 1.6 + расширение АРМ» · без внедрения
+  </div>
+
+  <table class="meta">
+    <tr><td class="k">Документ</td><td>Аналитический отчёт: типовая УНФ 3.0 vs связка УНФ 1.6 + АРМ</td></tr>
+    <tr><td class="k">Дата</td><td>22.09.2026</td></tr>
+    <tr><td class="k">Заказчик</td><td>Витавто</td></tr>
+    <tr><td class="k">Эталон сценария</td><td><a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy">process.html?scenario=happy</a></td></tr>
+    <tr><td class="k">Базовый отчёт</td><td><a href="arm-unf-coverage-2026-09-22.html">Покрытие АРМ + УНФ 1.6</a> (4 покрыто · 7 частично · 4 дописать · 3 вне 1С)</td></tr>
+    <tr><td class="k">Назначение</td><td>Ответить: закрывает ли переход на УНФ 3.0 дыры happy path без доработок АРМ</td></tr>
+  </table>
+
+  <h2>1. Вердикт</h2>
+  <div class="verdict">
+    <p><strong>Типовая УНФ 3.0 сама по себе сценарий happy path почти не закрывает.</strong> Счётчики покрытия по смыслу остаются теми же, что у связки «УНФ 1.6 + АРМ»: документный каркас есть, процесс Витавто (подбор, зоны, комплектация как процесс, готовность, ведомость, контроль документов) — нет.</p>
+    <p style="margin-bottom:0">3.0 даёт чуть лучший задел по складу (ячейки) и документу «Комплектация». Это не замена зон Витавто и не замена АРМ-статусов. Текущее расширение АРМ под 1.6 на 3.0 «как есть» не переносится — нужен отдельный порт и регресс.</p>
+  </div>
+
+  <div class="warnbox">
+    <p style="margin-bottom:0"><strong>Риск для текущего АРМ.</strong> Файл <code>АРМЗакупокИПродаж__release.cfe</code> рассчитан на УНФ 1.6. Переход только на типовую 3.0 без порта расширения ухудшает картину относительно отчёта «1.6 + АРМ»: останутся типовые документы без статусной ленты менеджер/снабжение.</p>
+  </div>
+
+  <div class="summary">
+    <div class="card"><div class="num" style="color:#3730a3">≈ те же</div><div class="lbl">покрытие happy<br>vs отчёт 1.6+АРМ</div></div>
+    <div class="card"><div class="num" style="color:#92400e">K2 / K3</div><div class="lbl">чуть лучший задел<br>в типовой 3.0</div></div>
+    <div class="card"><div class="num" style="color:#9a3412">порт АРМ</div><div class="lbl">обязателен,<br>если нужен текущий АРМ</div></div>
+  </div>
+
+  <h2>2. Что меняется при УНФ 3.0 (типовая, без АРМ)</h2>
+  <table class="cmp">
+    <thead>
+      <tr>
+        <th>Область</th>
+        <th>УНФ 1.6 (типовая)</th>
+        <th>УНФ 3.0 (типовая)</th>
+        <th>Влияние на happy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Заказ покупателя / поставщику, приход, расход, оплаты</td>
+        <td>Есть</td>
+        <td>Есть (тот же каркас)</td>
+        <td><span class="badge same">без прироста</span> шаги M4, M7*, K1, K5 уже «покрыто»</td>
+      </tr>
+      <tr>
+        <td>Склад / размещение (K2)</td>
+        <td>Склады; зоны Витавто нет</td>
+        <td>Ячейки / адресное хранение сильнее; склад в ТЧ комплектации</td>
+        <td><span class="badge part">чуть ближе</span> к размещению, но не зоны «приёмка / неопознанные / малый–большой»</td>
+      </tr>
+      <tr>
+        <td>Комплектация (K3)</td>
+        <td>Ограниченнее</td>
+        <td>Документ «Комплектация» гибче (склады по строкам)</td>
+        <td><span class="badge part">чуть ближе</span>; нет задания, сборочного листа, ok/отклонения схемы</td>
+      </tr>
+      <tr>
+        <td>Подбор номенклатуры (M2)</td>
+        <td>Справочник + ручной поиск</td>
+        <td>То же по смыслу для B2B-заявки</td>
+        <td><span class="badge no">не закрывает</span> кроссы, матчинг факта, ветку резерв/закуп</td>
+      </tr>
+      <tr>
+        <td>Статусы заявки АРМ</td>
+        <td>Только с расширением АРМ</td>
+        <td>В типовой — нет ленты Витавто</td>
+        <td><span class="badge no">не закрывает</span> без порта АРМ или новой разработки</td>
+      </tr>
+      <tr>
+        <td>Права / роли</td>
+        <td>Профили УНФ</td>
+        <td>Больше ролей (порядок сотен); настройка профилей</td>
+        <td><span class="badge same">админ. работа</span>, не закрытие шагов схемы</td>
+      </tr>
+      <tr>
+        <td>РМК / розница</td>
+        <td>—</td>
+        <td>Усилен блок кассира, единая линейка с Розницей</td>
+        <td><span class="badge out">не про happy</span> перепродажи запчастей B2B</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">*Учёт оплаты в типовой УНФ есть и в 1.6, и в 3.0; статус «Оплачено» как в АРМ — только в расширении.</p>
+
+  <h2>3. Шаги happy: 1.6+АРМ → типовая 3.0 → 3.0+порт АРМ</h2>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>№</th>
+        <th>Шаг</th>
+        <th>Итог<br>1.6+АРМ</th>
+        <th>Только<br>УНФ 3.0</th>
+        <th>УНФ 3.0<br>+ порт АРМ</th>
+        <th>Комментарий</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="n">1</td><td>N1 заявка клиента</td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>Редакция не меняет канал клиента.</td>
+      </tr>
+      <tr>
+        <td class="n">2</td><td>M1 загрузка заявки</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td>Excel-парсер по шаблону всё равно дописывать.</td>
+      </tr>
+      <tr>
+        <td class="n">3</td><td>M2 подбор номенклатуры</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td><strong>P0 остаётся.</strong> 3.0 не даёт кроссы/ветвление схемы.</td>
+      </tr>
+      <tr>
+        <td class="n">4</td><td>M4 заказ поставщику</td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Типовой документ.</td>
+      </tr>
+      <tr>
+        <td class="n">5</td><td>P1 поставщик</td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>Портал — отдельный объём.</td>
+      </tr>
+      <tr>
+        <td class="n">6</td><td>M7 оплата</td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge part">част.*</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>*Без АРМ — оплаты УНФ есть, статусной кнопки АРМ нет.</td>
+      </tr>
+      <tr>
+        <td class="n">7</td><td>P2 «в пути»</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td>Статус АРМ; в типовой 3.0 ленты нет.</td>
+      </tr>
+      <tr>
+        <td class="n">8</td><td>K1 приёмка</td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Приходная накладная.</td>
+      </tr>
+      <tr>
+        <td class="n">9</td><td>K2 размещение / зоны</td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge part">част.↑</span></td>
+        <td class="c"><span class="badge part">част.↑</span></td>
+        <td>Ячейки 3.0 — задел; зоны Витавто всё равно дописывать.</td>
+      </tr>
+      <tr>
+        <td class="n">10</td><td>M8 уведомление о приходе</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td>Без АРМ — только смотреть документы.</td>
+      </tr>
+      <tr>
+        <td class="n">11</td><td>M9 задание на комплектацию</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td>Документ комплектации ≠ задание схемы.</td>
+      </tr>
+      <tr>
+        <td class="n">12</td><td>K3 сборка + лист</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.↑</span></td>
+        <td class="c"><span class="badge part">част.↑</span></td>
+        <td>↑ гибче типовая комплектация; ПФ/дефекты — нет.</td>
+      </tr>
+      <tr>
+        <td class="n">13</td><td>M10 контроль комплектации</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td>ok/отклонение — доработка.</td>
+      </tr>
+      <tr>
+        <td class="n">14</td><td>M11 готовность</td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>3.0 не добавляет.</td>
+      </tr>
+      <tr>
+        <td class="n">15</td><td>M12 отгрузочная ведомость</td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>Своя ПФ; типовая расходная — не то.</td>
+      </tr>
+      <tr>
+        <td class="n">16</td><td>K5 отгрузка</td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Расходная накладная.</td>
+      </tr>
+      <tr>
+        <td class="n">17</td><td>N2a товар у клиента</td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="n">18</td><td>M15 ∥ K7 контроль документов</td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>3.0 не добавляет галку оригинала/подписи.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note"><span class="badge part">част.↑</span> — чуть лучше задел в типовой 3.0, без смены категории «дописать / частично» для зон и процесса Витавто.</p>
+
+  <h2>4. Остаток работ: что не снимает 3.0</h2>
+  <ol>
+    <li><strong>P0 — M2</strong> подбор номенклатуры и ветвление резерв/закуп (как в отчёте 1.6+АРМ).</li>
+    <li><strong>P1 — K2</strong> зоны Витавто поверх ячеек; <strong>M9–M10 / K3</strong> как процесс (задание, контроль, при необходимости ПФ).</li>
+    <li><strong>P2 — M11, M12, M15/K7</strong> готовность, ведомость, контроль документов.</li>
+    <li><strong>Отдельно при выборе 3.0:</strong> порт текущего АРМ (или отказ от него и потеря статусной ленты) + пересчёт оценки и приёмки на копии 3.0.</li>
+    <li><strong>Вне 1С:</strong> N1, P1, N2a — редакция не влияет.</li>
+  </ol>
+
+  <h2>5. Три сценария для решения заказчика</h2>
+  <table class="cmp">
+    <thead>
+      <tr>
+        <th>Вариант</th>
+        <th>Что получаем на happy</th>
+        <th>Цена решения</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A. Остаёмся на 1.6 + текущий АРМ</strong></td>
+        <td>Как в отчёте от 22.09: 4 покрыто / 7 частично / 4 дописать / 3 вне 1С.</td>
+        <td>Дописываем остаток P0–P2 на согласованной платформе.</td>
+      </tr>
+      <tr>
+        <td><strong>B. Только УНФ 3.0 (без порта АРМ)</strong></td>
+        <td>Документы M4/K1/K5; чуть лучше склад/комплектация; <strong>нет</strong> статусов АРМ → по процессу хуже варианта A.</td>
+        <td>Миграция базы/обучение; дыры happy не закрыты.</td>
+      </tr>
+      <tr>
+        <td><strong>C. УНФ 3.0 + порт АРМ + доработки</strong></td>
+        <td>Покрытие ≈ варианта A, плюс чуть лучший задел K2/K3 в типовой части.</td>
+        <td>Миграция + порт расширения + тот же бэклог P0–P2; оценка выше, чем только доработки на 1.6.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6. Формулировка одной фразой</h2>
+  <div class="verdict">
+    <p style="margin-bottom:0"><strong>УНФ 3.0 — это смена платформы и чуть более удобный склад, а не закрытие happy path.</strong> Дыры M2, зоны Витавто, комплектация-как-процесс, готовность, ведомость и контроль документов остаются. Без порта АРМ переход на 3.0 отнимает уже сделанную статусную ленту.</p>
+  </div>
+
+  <h2>7. Ограничения отчёта</h2>
+  <ul>
+    <li>Оценка типовой УНФ 3.0 — по публичному описанию редакции и типовому каркасу документов, без пилота на базе заказчика.</li>
+    <li>Не проверялась совместимость конкретного CFE с конкретной сборкой 3.0.x — зафиксирован принцип: нужен порт.</li>
+    <li>Документ информационный; смена редакции в договоре — только отдельным согласованием и пересчётом объёма (как в БТ по платформе).</li>
+  </ul>
+
+  <p class="note">
+    Связанные файлы:<br>
+    docs-customer/arm-unf-coverage-2026-09-22.html — АРМ + УНФ 1.6<br>
+    docs-customer/happy-coverage-2026-09-22.html — только АРМ<br>
+    Эталон: https://baskakovanton.github.io/vitauto/process.html?scenario=happy
+  </p>
+
+  <div class="sign">
+    <div class="box">Подготовил:<br><br>________________ / ________________</div>
+    <div class="box">Ознакомлен (заказчик):<br><br>________________ / ________________</div>
+  </div>
+</article>
+</body>
+</html>

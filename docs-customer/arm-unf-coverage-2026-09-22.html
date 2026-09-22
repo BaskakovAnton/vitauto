@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Покрытие АРМ + УНФ, сценарий «закупка → отгрузка» — Витавто</title>
+<style>
+  :root{ --text:#111827; --muted:#4b5563; --line:#d1d5db; --bg:#fff;
+    --ok:#166534; --ok-bg:#dcfce7; --part:#92400e; --part-bg:#fef3c7; --no:#991b1b; --no-bg:#fee2e2;
+    --out:#374151; --out-bg:#e5e7eb; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#e5e7eb;color:var(--text);font-family:"Times New Roman",Times,serif;font-size:12pt;line-height:1.35;}
+  .page{max-width:210mm;margin:16px auto;background:var(--bg);padding:16mm 16mm 18mm;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  h1{font-size:16pt;margin:0 0 6px;font-weight:700;text-align:center;}
+  h2{font-size:12.5pt;margin:16px 0 8px;border-bottom:1px solid var(--line);padding-bottom:3px;}
+  h3{font-size:11.5pt;margin:12px 0 6px;}
+  p,li{margin:0 0 7px;}
+  .sub{text-align:center;color:var(--muted);font-size:10.5pt;margin-bottom:14px;}
+  .meta{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:10.5pt;}
+  .meta td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;}
+  .meta td.k{width:30%;color:var(--muted);background:#f9fafb;}
+  table.grid{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:9pt;}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:4px 5px;text-align:left;vertical-align:top;}
+  table.grid th{background:#f3f4f6;font-weight:600;}
+  table.grid td.n{white-space:nowrap;width:2.2em;color:var(--muted);}
+  table.grid td.c{white-space:nowrap;width:5.2em;text-align:center;}
+  ul,ol{margin:0 0 10px;padding-left:1.2em;}
+  .badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:8.5pt;font-weight:600;font-family:Segoe UI,Arial,sans-serif;}
+  .badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .badge.part{background:var(--part-bg);color:var(--part);}
+  .badge.no{background:var(--no-bg);color:var(--no);}
+  .badge.out{background:var(--out-bg);color:var(--out);}
+  .summary{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;margin:10px 0 12px;}
+  .summary .card{border:1px solid var(--line);padding:8px 10px;text-align:center;}
+  .summary .card .num{font-size:20pt;font-weight:700;line-height:1.1;font-family:Segoe UI,Arial,sans-serif;}
+  .summary .card .lbl{font-size:9pt;color:var(--muted);margin-top:2px;}
+  .summary .card.ok .num{color:var(--ok);}
+  .summary .card.part .num{color:var(--part);}
+  .summary .card.no .num{color:var(--no);}
+  .summary .card.out .num{color:var(--out);}
+  .verdict{border:1px solid var(--line);background:#f9fafb;padding:9px 11px;margin:8px 0 12px;}
+  .note{font-size:9.5pt;color:var(--muted);margin-top:12px;}
+  .sign{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:10.5pt;}
+  .sign .box{border-top:1px solid var(--line);padding-top:8px;min-height:64px;}
+  a{color:#1d4ed8;}
+  .prio{width:100%;border-collapse:collapse;margin:8px 0 10px;font-size:10pt;}
+  .prio th,.prio td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;text-align:left;}
+  .prio th{background:#f3f4f6;}
+  .toolbar{max-width:210mm;margin:12px auto 0;font-family:Segoe UI,Arial,sans-serif;font-size:12px;}
+  .toolbar button,.toolbar a{margin-right:8px;padding:6px 10px;border:1px solid #9ca3af;background:#fff;border-radius:4px;cursor:pointer;text-decoration:none;color:#111;display:inline-block;}
+  @media print{
+    body{background:#fff;}
+    .page{margin:0;box-shadow:none;max-width:none;padding:10mm;}
+    .toolbar{display:none !important;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" onclick="window.print()">Печать / PDF</button>
+  <a href="happy-coverage-2026-09-22.html">Отчёт только по АРМ</a>
+  <a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy" target="_blank" rel="noopener">Сценарий на схеме</a>
+</div>
+<article class="page">
+  <h1>Покрытие: АРМ + типовая УНФ</h1>
+  <div class="sub">
+    Сценарий «Основной: закупка → отгрузка» (happy path)<br>
+    Что уже закрыто связкой «типовая 1С:УНФ 1.6 + расширение АРМ» и что останется дописать
+  </div>
+
+  <table class="meta">
+    <tr><td class="k">Документ</td><td>Аналитический отчёт для заказчика: совместное покрытие АРМ и УНФ</td></tr>
+    <tr><td class="k">Дата</td><td>22.09.2026</td></tr>
+    <tr><td class="k">Заказчик</td><td>Витавто</td></tr>
+    <tr><td class="k">Контур</td><td>Типовая УНФ 1.6 + расширение «АРМ закупок и продаж» (АРМЗакупокИПродаж__release.cfe)</td></tr>
+    <tr><td class="k">Эталон</td><td><a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy">Схема процесса, сценарий happy</a></td></tr>
+    <tr><td class="k">Назначение</td><td>Отделить уже доступный учётный контур от остатка доработок под процесс Витавто</td></tr>
+  </table>
+
+  <h2>1. Вердикт</h2>
+  <div class="verdict">
+    <p><strong>Связка УНФ + АРМ закрывает документный каркас закупки и отгрузки и часть статусной ленты, но не закрывает сквозной happy path «как на схеме».</strong></p>
+    <p style="margin-bottom:0">Типовая УНФ даёт документы и остатки. АРМ даёт рабочий стол менеджера/снабжения и смену статусов. Не закрыты: полноценный подбор номенклатуры (M2), размещение по зонам (K2), задания и контроль комплектации «как процесс», уведомления о готовности, отгрузочная ведомость, контроль оригиналов документов. Портал поставщика и клиентский вход — вне 1С.</p>
+  </div>
+
+  <div class="summary">
+    <div class="card ok"><div class="num">4</div><div class="lbl">покрыто связкой<br>(достаточно для учёта)</div></div>
+    <div class="card part"><div class="num">7</div><div class="lbl">частично<br>(есть задел)</div></div>
+    <div class="card no"><div class="num">4</div><div class="lbl">дописать<br>в 1С / АРМ</div></div>
+    <div class="card out"><div class="num">3</div><div class="lbl">вне 1С<br>(не АРМ)</div></div>
+  </div>
+  <p class="note" style="margin-top:0">18 шагов сценария. «Покрыто» = можно пройти учётными документами + статусами АРМ без обязательной новой разработки. «Дописать» = K2, M11, M12, M15∥K7. «Вне 1С» = клиент / поставщик / физическая выдача.</p>
+
+  <h2>2. Легенда итога по шагу</h2>
+  <ul>
+    <li><span class="badge ok">покрыто</span> — УНФ и/или АРМ достаточны для прохождения шага в рабочем режиме.</li>
+    <li><span class="badge part">частично</span> — есть документ, статус или поле, но нет полного действия схемы (ветвление, печать, зона, уведомление, отдельная роль).</li>
+    <li><span class="badge no">дописать</span> — ни УНФ, ни текущий АРМ шаг не закрывают; нужна доработка в 1С.</li>
+    <li><span class="badge out">вне 1С</span> — сознательно вне системы или внешний контур (портал, клиент, факт на складе).</li>
+  </ul>
+
+  <h2>3. Сводка по шагам: УНФ · АРМ · итог · остаток</h2>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>№</th>
+        <th>Шаг схемы</th>
+        <th>УНФ</th>
+        <th>АРМ</th>
+        <th>Итог</th>
+        <th>Что уже есть</th>
+        <th>Что останется дописать</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="n">1</td>
+        <td>N1 — Заявка Excel / фото</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>Менеджер заводит заказ в 1С.</td>
+        <td>Клиентский канал (мессенджер/Excel) — процессный, не АРМ. OCR/портал — отдельное решение.</td>
+      </tr>
+      <tr>
+        <td class="n">2</td>
+        <td>M1 — Загрузка заявки в 1С</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Заказ покупателя (УНФ) + табличный ввод в АРМ.</td>
+        <td>Парсер Excel по шаблону; автосопоставление артикулов.</td>
+      </tr>
+      <tr>
+        <td class="n">3</td>
+        <td>M2 — Поиск и подбор номенклатуры</td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Справочник и ручной поиск номенклатуры УНФ; ручной выбор в строке АРМ.</td>
+        <td><strong>Критично:</strong> кроссы / аналоги, матчинг факта клиента, ветка «есть остаток → резерв / нет → закуп / создать карточку».</td>
+      </tr>
+      <tr>
+        <td class="n">4</td>
+        <td>M4 — Заказ поставщику</td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Документ «Заказ поставщику» + создание из АРМ.</td>
+        <td>Не требуется для базового прохождения.</td>
+      </tr>
+      <tr>
+        <td class="n">5</td>
+        <td>P1 — Обработка у поставщика</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>Ручной контакт / подтверждение вне системы.</td>
+        <td>Портал / сайт поставщика — только если включать в объём отдельно (в БТ/ФТ обычно вне релиза).</td>
+      </tr>
+      <tr>
+        <td class="n">6</td>
+        <td>M7 — Контроль оплаты</td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Оплаты и взаиморасчёты УНФ + статус «Оплачено» в АРМ снабжения.</td>
+        <td>При желании — жёсткая связка «нет оплаты → нельзя в путь» (сейчас статусы АРМ и оплаты УНФ не обязаны быть синхронизированы правилом).</td>
+      </tr>
+      <tr>
+        <td class="n">7</td>
+        <td>P2 — «В пути»</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Статус «Товар в пути» в АРМ.</td>
+        <td>При необходимости: способ доставки, ожидаемая дата, контроль «доставлено».</td>
+      </tr>
+      <tr>
+        <td class="n">8</td>
+        <td>K1 — Приёмка по УПД</td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Приходная накладная УНФ; статусы «Приходуется» / «На складе» в АРМ (роль «Снабжение»).</td>
+        <td>Поля УПД в АРМ; автоперевод статуса с прихода; отдельный UI кладовщика (если нужен по ролям ТЗ).</td>
+      </tr>
+      <tr>
+        <td class="n">9</td>
+        <td>K2 — Размещение по зонам</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>Склады УНФ (без зон Витавто).</td>
+        <td><strong>Дописать:</strong> зоны (приёмка / малый / большой / неопознанные и т.д.) и операция размещения.</td>
+      </tr>
+      <tr>
+        <td class="n">10</td>
+        <td>M8 — Уведомление о приходе</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Статус прихода виден в списке АРМ.</td>
+        <td>Явное уведомление менеджеру (или принять «смотрит список» как правило работы).</td>
+      </tr>
+      <tr>
+        <td class="n">11</td>
+        <td>M9 — Задание на комплектацию</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Смена статуса на комплектацию в АРМ.</td>
+        <td>Документ/команда «задание» с составом позиций под заказ.</td>
+      </tr>
+      <tr>
+        <td class="n">12</td>
+        <td>K3 — Комплектация + сборочный лист</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Статусы «Комплектуется» / «Собран».</td>
+        <td>ПФ сборочного листа; отметки дефекта / недостачи (в БТ печатный комплект часто вне релиза — согласовать).</td>
+      </tr>
+      <tr>
+        <td class="n">13</td>
+        <td>M10 — Контроль комплектации</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge part">частично</span></td>
+        <td>Смена статусов по строкам.</td>
+        <td>Явный «ок / отклонение» + розыск позиции при отклонении.</td>
+      </tr>
+      <tr>
+        <td class="n">14</td>
+        <td>M11 — Уведомление о готовности</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>—</td>
+        <td><strong>Дописать:</strong> статус/признак «готово к отгрузке» и/или уведомление.</td>
+      </tr>
+      <tr>
+        <td class="n">15</td>
+        <td>M12 — Отгрузочная ведомость</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>Типовые ПФ расходной накладной (не ведомость Витавто).</td>
+        <td><strong>Дописать:</strong> ПФ отгрузочной ведомости (в текущих БТ/ФТ часто вынесено из релиза 1.0 — требует явного включения в объём).</td>
+      </tr>
+      <tr>
+        <td class="n">16</td>
+        <td>K5 — Отгрузка клиенту / ТК</td>
+        <td class="c"><span class="badge ok">есть</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge ok">покрыто</span></td>
+        <td>Расходная накладная УНФ; дата/номер отгрузки в АРМ.</td>
+        <td>Отдельный АРМ кладовщика на отгрузку — по желанию ролевой модели.</td>
+      </tr>
+      <tr>
+        <td class="n">17</td>
+        <td>N2a — Товар у клиента</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge part">част.</span></td>
+        <td class="c"><span class="badge out">вне 1С</span></td>
+        <td>Фиксация реквизитов отгрузки в АРМ.</td>
+        <td>Факт выдачи — вне системы; клиентский кабинет не требуется для учёта.</td>
+      </tr>
+      <tr>
+        <td class="n">18</td>
+        <td>M15 ∥ K7 — Контроль документов</td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">нет</span></td>
+        <td class="c"><span class="badge no">дописать</span></td>
+        <td>—</td>
+        <td>Галка «подписано / оригинал получен» у менеджера и склада.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">Шаги со статусом «частично» (M1, M2, P2, M8–M10, K3) тоже дают объём доработок — см. приоритеты в разделе 5; в счётчике «дописать» только полностью пустые шаги схемы.</p>
+
+  <h2>4. Что уже можно считать закрытым связкой УНФ + АРМ</h2>
+  <ul>
+    <li><strong>Учётный каркас:</strong> заказ покупателя → заказ поставщику → оплата → приходная → расходная.</li>
+    <li><strong>АРМ менеджера:</strong> строки, цены/кол-во, создание заказа поставщику, табличная загрузка, реквизиты отгрузки.</li>
+    <li><strong>АРМ снабжения:</strong> статусы оплаты, «в пути», прихода, комплектации, сборки.</li>
+    <li><strong>Связь строк АРМ с документами УНФ</strong> по заказам.</li>
+  </ul>
+
+  <h2>5. Остаток: что дописать (приоритет)</h2>
+  <table class="prio">
+    <thead>
+      <tr>
+        <th>Приоритет</th>
+        <th>Блок</th>
+        <th>Зачем на happy path</th>
+        <th>Комментарий по объёму</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>P0</td>
+        <td>M2 — подбор номенклатуры и ветвление «резерв / закуп»</td>
+        <td>Без этого сценарий «остатка нет → закуп» на схеме не автоматизирован.</td>
+        <td>Крупный блок; опора на НСИ УНФ, логика — в АРМ.</td>
+      </tr>
+      <tr>
+        <td>P1</td>
+        <td>K2 — зоны и размещение</td>
+        <td>После приёмки схема требует размещение, затем уведомление о приходе.</td>
+        <td>НСИ зон + операция в АРМ/складе.</td>
+      </tr>
+      <tr>
+        <td>P1</td>
+        <td>M9 → K3 → M10 — комплектация как процесс</td>
+        <td>Сейчас только статусы; нет задания, листа, ok/отклонения.</td>
+        <td>Можно поэтапно: сначала задание+контроль, ПФ — отдельно.</td>
+      </tr>
+      <tr>
+        <td>P2</td>
+        <td>M11 — готовность к отгрузке</td>
+        <td>Мост к отгрузке и ведомости.</td>
+        <td>Относительно небольшой (статус / признак / сигнал).</td>
+      </tr>
+      <tr>
+        <td>P2</td>
+        <td>M12 — отгрузочная ведомость</td>
+        <td>Финиш менеджера перед отгрузкой на схеме.</td>
+        <td>Печатная форма; часто вне релиза 1.0 — нужно явное «включить».</td>
+      </tr>
+      <tr>
+        <td>P2</td>
+        <td>M15 / K7 — контроль документов</td>
+        <td>Закрытие сценария на схеме.</td>
+        <td>Поля + права; без глубокой интеграции.</td>
+      </tr>
+      <tr>
+        <td>P3</td>
+        <td>M1 — Excel-парсер; жёсткая связка оплаты; UI кладовщика</td>
+        <td>Удобство и дисциплина процесса, не блокер учёта.</td>
+        <td>По согласованию приоритетов с заказчиком.</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td>P1 портал поставщика; N1 клиентский канал</td>
+        <td>На схеме есть, в 1С не живут.</td>
+        <td>Не «дописать АРМ»; отдельное решение или оставить ручным.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6. Как читать это заказчику одной фразой</h2>
+  <div class="verdict">
+    <p style="margin-bottom:0"><strong>УНФ ведёт документы и деньги/складской учёт. АРМ ведёт статусы заявки. Чтобы схема happy заработала целиком, дописать нужно прежде всего подбор номенклатуры, зоны размещения и процесс комплектации; затем готовность, ведомость и контроль документов. Портал поставщика и клиентский вход УНФ/АРМ не заменят.</strong></p>
+  </div>
+
+  <h2>7. Ограничения отчёта</h2>
+  <ul>
+    <li>Только сценарий «Основной: закупка → отгрузка». Резерв со склада, возвраты, виртуальный закуп, механик — не входят.</li>
+    <li>Оценка типовой УНФ — по стандартным возможностям редакции 1.6 без нестандартных обработок заказчика вне данного расширения.</li>
+    <li>Документ информационный; не заменяет акт приёмки и не фиксирует новый объём договора, пока стороны явно не согласуют остаток из раздела 5.</li>
+  </ul>
+
+  <p class="note">
+    Связанный отчёт (только АРМ): docs-customer/happy-coverage-2026-09-22.html<br>
+    Эталон схемы: https://baskakovanton.github.io/vitauto/process.html?scenario=happy
+  </p>
+
+  <div class="sign">
+    <div class="box">Подготовил:<br><br>________________ / ________________</div>
+    <div class="box">Ознакомлен (заказчик):<br><br>________________ / ________________</div>
+  </div>
+</article>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отчёт о покрытии сценария «Основной: закупка → отгрузка» — Витавто</title>
+<style>
+  :root{ --text:#111827; --muted:#4b5563; --line:#d1d5db; --bg:#fff;
+    --ok:#166534; --ok-bg:#dcfce7; --part:#92400e; --part-bg:#fef3c7; --no:#991b1b; --no-bg:#fee2e2; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#e5e7eb;color:var(--text);font-family:"Times New Roman",Times,serif;font-size:12pt;line-height:1.4;}
+  .page{max-width:210mm;margin:16px auto;background:var(--bg);padding:18mm 18mm 20mm;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  h1{font-size:17pt;margin:0 0 6px;font-weight:700;text-align:center;}
+  h2{font-size:13pt;margin:18px 0 8px;border-bottom:1px solid var(--line);padding-bottom:3px;}
+  h3{font-size:12pt;margin:14px 0 6px;}
+  p,li{margin:0 0 8px;}
+  .sub{text-align:center;color:var(--muted);font-size:11pt;margin-bottom:16px;}
+  .meta{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:11pt;}
+  .meta td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;}
+  .meta td.k{width:32%;color:var(--muted);background:#f9fafb;}
+  table.grid{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:10pt;}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top;}
+  table.grid th{background:#f3f4f6;font-weight:600;}
+  table.grid td.n{white-space:nowrap;width:4.5em;color:var(--muted);font-size:9.5pt;}
+  ul{margin:0 0 10px;padding-left:1.2em;}
+  .badge{display:inline-block;padding:1px 7px;border-radius:3px;font-size:9.5pt;font-weight:600;font-family:Segoe UI,Arial,sans-serif;letter-spacing:.01em;}
+  .badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .badge.part{background:var(--part-bg);color:var(--part);}
+  .badge.no{background:var(--no-bg);color:var(--no);}
+  .summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 14px;}
+  .summary .card{border:1px solid var(--line);padding:10px 12px;text-align:center;}
+  .summary .card .num{font-size:22pt;font-weight:700;line-height:1.1;font-family:Segoe UI,Arial,sans-serif;}
+  .summary .card .lbl{font-size:10pt;color:var(--muted);margin-top:2px;}
+  .summary .card.ok .num{color:var(--ok);}
+  .summary .card.part .num{color:var(--part);}
+  .summary .card.no .num{color:var(--no);}
+  .verdict{border:1px solid var(--line);background:#f9fafb;padding:10px 12px;margin:10px 0 14px;}
+  .note{font-size:10pt;color:var(--muted);margin-top:16px;}
+  .sign{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:11pt;}
+  .sign .box{border-top:1px solid var(--line);padding-top:8px;min-height:70px;}
+  a{color:#1d4ed8;}
+  .toolbar{max-width:210mm;margin:12px auto 0;font-family:Segoe UI,Arial,sans-serif;font-size:12px;}
+  .toolbar button,.toolbar a{margin-right:8px;padding:6px 10px;border:1px solid #9ca3af;background:#fff;border-radius:4px;cursor:pointer;text-decoration:none;color:#111;display:inline-block;}
+  @media print{
+    body{background:#fff;}
+    .page{margin:0;box-shadow:none;max-width:none;padding:12mm;}
+    .toolbar{display:none !important;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" onclick="window.print()">Печать / PDF</button>
+  <a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy" target="_blank" rel="noopener">Сценарий на схеме</a>
+</div>
+<article class="page">
+  <h1>Отчёт о покрытии основного сценария</h1>
+  <div class="sub">
+    Сценарий «Основной: закупка → отгрузка» (happy path)<br>
+    Сверка с реализованным расширением АРМ закупок и продаж · 1С:УНФ
+  </div>
+
+  <table class="meta">
+    <tr><td class="k">Документ</td><td>Отчёт о фактическом покрытии сценария кодом расширения АРМ</td></tr>
+    <tr><td class="k">Дата</td><td>22.09.2026</td></tr>
+    <tr><td class="k">Заказчик</td><td>Витавто</td></tr>
+    <tr><td class="k">Объект сверки</td><td>Расширение «АРМ закупок и продаж» (релизный файл АРМЗакупокИПродаж__release.cfe)</td></tr>
+    <tr><td class="k">Эталон процесса</td><td><a href="https://baskakovanton.github.io/vitauto/process.html?scenario=happy">Интерактивная схема процесса, сценарий happy</a></td></tr>
+    <tr><td class="k">Назначение</td><td>Показать заказчику, какие шаги основного потока уже работают в АРМ, какие — частично, каких нет</td></tr>
+  </table>
+
+  <h2>1. Вердикт</h2>
+  <div class="verdict">
+    <p><strong>Сквозной сценарий «заявка → закупка → приход → комплектация → отгрузка → контроль документов» end-to-end в текущем релизе расширения не закрыт.</strong></p>
+    <p style="margin-bottom:0">Устойчиво реализована середина закупки (заказ поставщику, оплата, статус «в пути») и смена складских/сборочных статусов в интерфейсе «Снабжение». Не закрыты поиск и подбор номенклатуры, размещение по зонам, уведомления о готовности, отгрузочная ведомость и контроль документов (подпись / оригинал).</p>
+  </div>
+
+  <div class="summary">
+    <div class="card ok"><div class="num">2</div><div class="lbl">есть в коде</div></div>
+    <div class="card part"><div class="num">10</div><div class="lbl">частично</div></div>
+    <div class="card no"><div class="num">6</div><div class="lbl">нет / разрыв</div></div>
+  </div>
+  <p class="note" style="margin-top:0">Итого 18 шагов сценария (параллельный контроль документов M15 и K7 учтён одной строкой в таблице ниже).</p>
+
+  <h2>2. Легенда</h2>
+  <ul>
+    <li><span class="badge ok">есть</span> — шаг закрыт функционалом АРМ в объёме, достаточном для прохождения по смыслу схемы.</li>
+    <li><span class="badge part">частично</span> — есть статусы, поля или документы-заготовки, но нет полного действия схемы (уведомление, печать, зона, отдельная роль и т.п.).</li>
+    <li><span class="badge no">нет</span> — в расширении АРМ шага нет.</li>
+  </ul>
+  <p>В коде расширения сейчас два рабочих интерфейса: <strong>Менеджер</strong> и <strong>Снабжение</strong>. Отдельного АРМ «Кладовщик» нет: складская часть сценария частично закрыта ролью «Снабжение».</p>
+
+  <h2>3. Покрытие по шагам сценария</h2>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>№</th>
+        <th>Шаг схемы</th>
+        <th>Статус</th>
+        <th>Что реализовано</th>
+        <th>Чего нет</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="n">1</td>
+        <td>N1 — Заявка клиента (Excel / фото)</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Вход через менеджера: контрагент и заказ покупателя в 1С.</td>
+        <td>Клиентского кабинета / портала нет.</td>
+      </tr>
+      <tr>
+        <td class="n">2</td>
+        <td>M1 — Загрузка заявки в 1С</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Табличный ввод строк (форма загрузки / вкладка на заказе покупателя).</td>
+        <td>Парсера Excel и автоматического сопоставления номенклатуры нет.</td>
+      </tr>
+      <tr>
+        <td class="n">3</td>
+        <td>M2 — Поиск и подбор номенклатуры</td>
+        <td><span class="badge no">нет</span></td>
+        <td>Ручной выбор номенклатуры в строке АРМ возможен.</td>
+        <td>Автопоиска, кроссов, ветвления «остаток / закуп / создать карточку» нет.</td>
+      </tr>
+      <tr>
+        <td class="n">4</td>
+        <td>M4 — Заказ поставщику</td>
+        <td><span class="badge ok">есть</span></td>
+        <td>Создание документа «Заказ поставщику» из АРМ, статусы закупки.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="n">5</td>
+        <td>P1 — Обработка заказа поставщиком</td>
+        <td><span class="badge no">нет</span></td>
+        <td>—</td>
+        <td>Внешний портал / интеграция с поставщиком не реализованы (только ручной контур вне 1С).</td>
+      </tr>
+      <tr>
+        <td class="n">6</td>
+        <td>M7 — Контроль оплаты</td>
+        <td><span class="badge ok">есть</span></td>
+        <td>Статус «Оплачено» в АРМ снабжения.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="n">7</td>
+        <td>P2 — Отгрузка поставщиком → «В пути»</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Статус «Товар в пути».</td>
+        <td>Нет портала поставщика и отдельной модели способа доставки (только комментарий).</td>
+      </tr>
+      <tr>
+        <td class="n">8</td>
+        <td>K1 — Приёмка по УПД</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Статусы «Приходуется» / «На складе» в интерфейсе «Снабжение».</td>
+        <td>Нет отдельного АРМ кладовщика и полей УПД как в ТЗ; автоперевод статуса с приходной накладной не активен.</td>
+      </tr>
+      <tr>
+        <td class="n">9</td>
+        <td>K2 — Размещение по складам / зонам</td>
+        <td><span class="badge no">нет</span></td>
+        <td>—</td>
+        <td>Зоны приёмки / малого / большого склада в АРМ не сделаны.</td>
+      </tr>
+      <tr>
+        <td class="n">10</td>
+        <td>M8 — Уведомление о приходе</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Статус прихода виден в списке АРМ.</td>
+        <td>Отдельного уведомления менеджеру нет.</td>
+      </tr>
+      <tr>
+        <td class="n">11</td>
+        <td>M9 — Задание на комплектацию</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Перевод строк в статусы комплектации.</td>
+        <td>Отдельного документа / задания на комплектацию нет.</td>
+      </tr>
+      <tr>
+        <td class="n">12</td>
+        <td>K3 — Комплектация + сборочный лист</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Статусы «Комплектуется» / «Собран».</td>
+        <td>Печати сборочного листа и отметок дефектов / недостач нет.</td>
+      </tr>
+      <tr>
+        <td class="n">13</td>
+        <td>M10 — Контроль комплектации</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Смена статусов по отмеченным строкам.</td>
+        <td>Нет отдельного контура «ок / отклонение» и связанного розыска позиции.</td>
+      </tr>
+      <tr>
+        <td class="n">14</td>
+        <td>M11 — Уведомление о готовности</td>
+        <td><span class="badge no">нет</span></td>
+        <td>—</td>
+        <td>Отдельного уведомления / статуса «готово к отгрузке» как на схеме нет.</td>
+      </tr>
+      <tr>
+        <td class="n">15</td>
+        <td>M12 — Отгрузочная ведомость</td>
+        <td><span class="badge no">нет</span></td>
+        <td>—</td>
+        <td>Печатной формы отгрузочной ведомости в расширении нет.</td>
+      </tr>
+      <tr>
+        <td class="n">16</td>
+        <td>K5 — Отгрузка клиенту / ТК</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Дата и номер отгрузки; связь с расходной накладной.</td>
+        <td>Полноценного АРМ отгрузки кладовщика нет.</td>
+      </tr>
+      <tr>
+        <td class="n">17</td>
+        <td>N2a — Получение товара клиентом</td>
+        <td><span class="badge part">частично</span></td>
+        <td>Реквизиты отгрузки фиксируются в данных АРМ.</td>
+        <td>Клиентского интерфейса получения нет.</td>
+      </tr>
+      <tr>
+        <td class="n">18</td>
+        <td>M15 ∥ K7 — Контроль документов</td>
+        <td><span class="badge no">нет</span></td>
+        <td>—</td>
+        <td>Нет отметки подписи / «оригинал получен» у менеджера и склада.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Что уже можно опираться в работе</h2>
+  <ul>
+    <li>Рабочий стол менеджера: строки заявки/заказа, правка цены и количества, создание заказа поставщику, проведение заказа покупателя, загрузка табличных данных.</li>
+    <li>Рабочий стол снабжения: статусы оплаты, «в пути», прихода, комплектации и сборки по отмеченным строкам.</li>
+    <li>Единый регистр строк АРМ, связанный с заказами покупателя и поставщику.</li>
+  </ul>
+
+  <h2>5. Критичные разрывы именно для happy path</h2>
+  <ol>
+    <li><strong>M2</strong> — поиск и подбор номенклатуры (без него сценарий «остатка нет → закуп» на схеме не автоматизирован).</li>
+    <li><strong>K2</strong> — размещение по зонам склада.</li>
+    <li><strong>M11 + M12</strong> — готовность к отгрузке и отгрузочная ведомость.</li>
+    <li><strong>M15 / K7</strong> — контроль документов в конце потока.</li>
+    <li><strong>P1</strong> — сторона поставщика (вне 1С; в релизе расширения не закрывается).</li>
+  </ol>
+
+  <h2>6. Ограничения отчёта</h2>
+  <ul>
+    <li>Отчёт относится только к сценарию «Основной: закупка → отгрузка». Другие сценарии (резерв со склада, возвраты, виртуальный закуп, механик) в этот документ не входят.</li>
+    <li>Оценка дана по коду расширения АРМ, а не по полной типовой конфигурации УНФ: часть шагов может частично закрываться типовыми документами вне АРМ — это отмечено в колонке «Что реализовано», где применимо.</li>
+    <li>Документ носит информационный характер и не заменяет акт приёмки работ.</li>
+  </ul>
+
+  <p class="note">
+    Эталон схемы: https://baskakovanton.github.io/vitauto/process.html?scenario=happy<br>
+    Источник сверки: расширение АРМЗакупокИПродаж__release.cfe (разбор исходников АРМ).
+  </p>
+
+  <div class="sign">
+    <div class="box">Подготовил:<br><br>________________ / ________________</div>
+    <div class="box">Ознакомлен (заказчик):<br><br>________________ / ________________</div>
+  </div>
+</article>
+</body>
+</html>
